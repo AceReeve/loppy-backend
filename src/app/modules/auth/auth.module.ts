@@ -6,6 +6,8 @@ import { UserModule } from '../user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtService } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from 'src/app/api/google/google.strategy';
 
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { UserRepository } from 'src/app/repository/user/user.repository';
@@ -16,9 +18,15 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
         UserSchemaModule,
         UserModule,
         JSONWebTokenModule,
+        PassportModule.register({ defaultStrategy: 'google' }),
     ],
 
     controllers: [AuthController],
-    providers: [AuthService, AuthRepository, UserRepository, JwtService],
+    providers: [AuthService, 
+                AuthRepository, 
+                UserRepository, 
+                JwtService,
+                GoogleStrategy
+            ],
 })
 export class AuthModule { }
