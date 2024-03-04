@@ -8,25 +8,29 @@ import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from 'src/app/api/google/google.strategy';
+import { FacebookStrategy } from 'src/app/api/facebook/facebook.strategy';
 
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { UserRepository } from 'src/app/repository/user/user.repository';
 
 @Module({
-    imports: [
-        ConfigModule,
-        UserSchemaModule,
-        UserModule,
-        JSONWebTokenModule,
-        PassportModule.register({ defaultStrategy: 'google' }),
-    ],
+  imports: [
+    ConfigModule,
+    UserSchemaModule,
+    UserModule,
+    JSONWebTokenModule,
+    PassportModule.register({ defaultStrategy: 'google' }),
+    PassportModule.register({ defaultStrategy: 'facebook' }),
+  ],
 
-    controllers: [AuthController],
-    providers: [AuthService, 
-                AuthRepository, 
-                UserRepository, 
-                JwtService,
-                GoogleStrategy
-            ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    AuthRepository,
+    UserRepository,
+    JwtService,
+    GoogleStrategy,
+    FacebookStrategy,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}
