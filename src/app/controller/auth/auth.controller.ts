@@ -24,6 +24,7 @@ export class AuthController {
     return this.authService.login(userLoginDTO);
   }
 
+  //google_auth_signin
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleAuth(@Req() req) {}
@@ -31,6 +32,17 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req) {
+    return req.user;
+  }
+
+  //facebook_auth_signin
+  @Get('facebook')
+  @UseGuards(AuthGuard('facebook'))
+  async facebookLogin(): Promise<any> {}
+
+  @Get('facebook/callback')
+  @UseGuards(AuthGuard('facebook'))
+  async facebookLoginCallback(@Req() req): Promise<any> {
     return req.user;
   }
 }
