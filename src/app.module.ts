@@ -8,8 +8,8 @@ import { UserModule } from './app/modules/user/user.module';
 import { DatabaseModule } from './config/database/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './app/modules/auth/auth.module';
-import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtModule } from '@nestjs/jwt';
+import { RoleModule } from './app/modules/role/role.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -18,7 +18,8 @@ import { JwtModule } from '@nestjs/jwt';
     MongooseModule,
     DatabaseModule,
     AuthModule,
-    JwtModule
+    JwtModule,
+    RoleModule
   ],
 
   providers: [

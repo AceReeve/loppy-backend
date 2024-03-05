@@ -3,7 +3,7 @@ import { ApiModuleSchemaModule } from './api-module/api-module.schema.module';
 import { DBEnvVarSchemaModule } from './db-env-variables/db-env-variables.schema.module';
 import { PermissionSchemaModule } from './permission/permission.schema.module';
 import { UserSchemaModule } from './user/user.schema.module';
-
+import { RoleSchemaModule } from './role/role.schema.module';
 
 @Module({
   imports: [
@@ -11,6 +11,7 @@ import { UserSchemaModule } from './user/user.schema.module';
     ApiModuleSchemaModule,
     DBEnvVarSchemaModule,
     UserSchemaModule,
+    RoleSchemaModule
   ],
   providers: [],
   exports: [
@@ -18,6 +19,7 @@ import { UserSchemaModule } from './user/user.schema.module';
     ApiModuleSchemaModule,
     DBEnvVarSchemaModule,
     UserSchemaModule,
+    RoleSchemaModule
   ],
 })
 export class ModelModule { }

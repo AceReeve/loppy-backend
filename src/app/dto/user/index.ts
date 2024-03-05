@@ -34,9 +34,75 @@ export class UserLoginDTO {
   @IsNotEmpty()
   password: string;
 }
+export class UserInfoDTO {
+  @ApiProperty({ example: 'JuanDelacuz' })
+  @IsString()
+  @MaxLength(256, { message: 'User name is too long (maximum 256 characters)' })
+  username: string;
 
+  @ApiProperty({ example: 'Juan' })
+  @IsString()
+  @MaxLength(256, { message: 'First name is too long (maximum 256 characters)' })
+  first_name: string;
+
+  @ApiProperty({ example: 'Omega' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(256, { message: 'Middle name is too long (maximum 256 characters)' })
+  middle_name?: string;
+
+  @ApiProperty({ example: 'Dela Cruz' })
+  @IsString()
+  @MaxLength(256, { message: 'Last First name is too long (maximum 256 characters)' })
+  last_name?: string;
+
+  @ApiProperty({ example: 'address' })
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({ example: 2009 })
+  zipCode: number;
+
+  @ApiProperty({ example: 'city' })
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @ApiProperty({ example: 'state' })
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({ example: 19123456789 })
+  contact_no: number;
+
+  @ApiProperty({ example: 'Male' })
+  @IsString()
+  @IsNotEmpty()
+  gender: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({ example: '2021-01-01' })
+  birthday: Date;
+
+  @ApiProperty({ example: 'CEO Service Hero' })
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+}
 
 export class UserRegisterDTO {
+
+  @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
+  @IsOptional()
+  _id?: string;
+
   @ApiProperty({ example: 'example@gmail.com' })
   @IsString()
   @IsNotEmpty()
@@ -65,13 +131,13 @@ export class UserRegisterDTO {
   })
   password: string;
 
-  @ApiProperty({ example: 'Juan' })
+  @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
   @IsString()
-  @MaxLength(256, { message: 'First name is too long (maximum 256 characters)' })
-  first_name?: string;
+  @IsNotEmpty()
+  role: string;
 
-  @ApiProperty({ example: 'Dela Cruz' })
-  @IsString()
-  @MaxLength(256, { message: 'Last First name is too long (maximum 256 characters)' })
-  last_name?: string;
+  @ApiPropertyOptional({ type: () => UserInfoDTO })
+  @ValidateNested()
+  @IsOptional()
+  user_information?: UserInfoDTO;
 }
