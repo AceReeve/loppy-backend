@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from 'src/app/api/google/google.strategy';
 import { FacebookStrategy } from 'src/app/api/facebook/facebook.strategy';
+import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { UserRepository } from 'src/app/repository/user/user.repository';
@@ -21,6 +22,7 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
     JSONWebTokenModule,
     PassportModule.register({ defaultStrategy: 'google' }),
     PassportModule.register({ defaultStrategy: 'facebook' }),
+    RoleSchemaModule
   ],
 
   controllers: [AuthController],
@@ -33,4 +35,4 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
     FacebookStrategy,
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

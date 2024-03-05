@@ -12,13 +12,13 @@ import {
 export abstract class AbstractUserRepository {
     abstract createUser(
         userRegisterDto: UserRegisterDTO,
-    ): Promise<RegisterResponseData | null>;
+    ): Promise<any>;
 }
 
 export abstract class AbstractUserService {
     abstract createUser(
         userRegisterDto: UserRegisterDTO,
-    ): Promise<RegisterResponseData | null>;
+    ): Promise<any>;
 }
 export interface RegisterResponseData {
     _id: string;

@@ -17,7 +17,7 @@ export class UserService implements AbstractUserService {
 
     async createUser(
         userRegisterDto: UserRegisterDTO,
-    ): Promise<RegisterResponseData | null> {
+    ): Promise<any> {
         return await this.repository.createUser(userRegisterDto);
     }
 }

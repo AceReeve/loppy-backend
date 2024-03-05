@@ -8,9 +8,9 @@ import { UserModule } from './app/modules/user/user.module';
 import { DatabaseModule } from './config/database/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './app/modules/auth/auth.module';
-import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtModule } from '@nestjs/jwt';
 import { StripeModule } from 'src/app/modules/api/api.module';
+import { RoleModule } from './app/modules/role/role.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -21,6 +21,7 @@ import { StripeModule } from 'src/app/modules/api/api.module';
     AuthModule,
     JwtModule,
     StripeModule,
+    RoleModule,
   ],
 
   providers: [
