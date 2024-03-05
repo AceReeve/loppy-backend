@@ -12,12 +12,6 @@ export type UserDocument = User & Document;
 export class User implements GenericSchema {
     _id: string;
 
-    @Prop({ required: [true, 'Missing required first_name field'] })
-    first_name: string;
-
-    @Prop({ required: [true, 'Missing required last_name field'] })
-    last_name: string;
-
     @Prop({
         unique: true,
         required: [true, 'Missing required email field'],
@@ -27,11 +21,11 @@ export class User implements GenericSchema {
     @Prop()
     password: string;
 
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Role' })
+    role: MongooseSchema.Types.ObjectId;
+
     @Prop({ default: 'ACTIVE' })
     status: string;
-
-    @Prop({ type: Date })
-    last_login: Date;
 }
 
 async function hashPasswordHook(next: () => void): Promise<void> {
