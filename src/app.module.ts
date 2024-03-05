@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './app/modules/auth/auth.module';
 import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtModule } from '@nestjs/jwt';
+import { StripeModule } from 'src/app/modules/api/api.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -18,7 +19,8 @@ import { JwtModule } from '@nestjs/jwt';
     MongooseModule,
     DatabaseModule,
     AuthModule,
-    JwtModule
+    JwtModule,
+    StripeModule,
   ],
 
   providers: [
@@ -26,7 +28,6 @@ import { JwtModule } from '@nestjs/jwt';
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
-
   ],
   controllers: [],
 })
