@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
-import { AbstractApiModuleRepository } from 'src/app/interface/apimodule';
+import { AbstractApiModuleRepository } from 'src/app/interface/api-module';
 import { ApiModule } from 'src/app/models/api-module/api-module.schema';
 
 @Injectable()

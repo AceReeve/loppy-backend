@@ -10,7 +10,7 @@ import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { PermissionSchemaModule } from 'src/app/models/permission/permission.schema.module';
 import { AbstractPermissionRepository } from 'src/app/interface/permission';
 import { PermissionRepository } from 'src/app/repository/permission/permission.repository';
-import { AbstractApiModuleRepository } from 'src/app/interface/apimodule';
+import { AbstractApiModuleRepository } from 'src/app/interface/api-module';
 import { ApiModuleRepository } from 'src/app/repository/api-module/api-module.repository';
 import { ApiModuleSchemaModule } from 'src/app/models/api-module/api-module.schema.module';
 import { JwtService } from '@nestjs/jwt';
@@ -36,7 +36,7 @@ import { JwtService } from '@nestjs/jwt';
       provide: AbstractApiModuleRepository,
       useClass: ApiModuleRepository,
     },
-    JwtService
+    JwtService,
   ],
 
   exports: [
@@ -50,4 +50,4 @@ import { JwtService } from '@nestjs/jwt';
     },
   ],
 })
-export class RoleModule { }
+export class RoleModule {}

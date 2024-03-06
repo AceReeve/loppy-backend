@@ -9,6 +9,7 @@ import { DatabaseModule } from './config/database/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './app/modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { StripeModule } from 'src/app/modules/api/api.module';
 import { RoleModule } from './app/modules/role/role.module';
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { RoleModule } from './app/modules/role/role.module';
     DatabaseModule,
     AuthModule,
     JwtModule,
-    RoleModule
+    StripeModule,
+    RoleModule,
   ],
 
   providers: [
@@ -27,7 +29,6 @@ import { RoleModule } from './app/modules/role/role.module';
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
-
   ],
   controllers: [],
 })
