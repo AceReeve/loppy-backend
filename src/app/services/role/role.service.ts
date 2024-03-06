@@ -12,12 +12,10 @@ import { Role } from 'src/app/models/role/role.schema';
 import { UpdateResult } from 'src/app/interface';
 import { AbstractPermissionRepository } from 'src/app/interface/permission';
 import * as _ from 'lodash';
-import { AbstractApiModuleRepository } from 'src/app/interface/apimodule';
+import { AbstractApiModuleRepository } from 'src/app/interface/api-module';
 @Injectable()
 export class RoleService implements AbstractRoleService {
-  constructor(
-    private readonly repository: AbstractRoleRepository,
-  ) { }
+  constructor(private readonly repository: AbstractRoleRepository) {}
 
   async getAllRoles(): Promise<Role[] | null> {
     return await this.repository.getAllRoles();

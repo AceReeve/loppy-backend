@@ -1,15 +1,32 @@
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Controller, Post, Body } from '@nestjs/common';
+// payment.controller.ts
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 
-@ApiTags('Stripe')
-@Controller('stripe')
-@ApiBearerAuth()
+@Controller('payment')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
-  @Post('charge')
-  async charge(@Body() amount: number, currency: string, source: string) {
-    return this.stripeService.charge(amount, currency, source);
+  @Post('create-charge')
+  async createCharge(
+    @Body()
+    paymentData: {
+      amount: number;
+      currency: string;
+      source: string;
+      description: string;
+    },
+  ) {
+    try {
+      const charge = await this.stripeService.createCharge();
+      return {
+        success: true,
+        charge,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   }
 }

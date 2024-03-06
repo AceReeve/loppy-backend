@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Stripe } from 'stripe';
 import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
 
 @Injectable()
 export class StripeService {
@@ -15,15 +15,15 @@ export class StripeService {
     );
   }
 
-  async charge(
-    amount: number,
-    currency: string,
-    source: string,
-  ): Promise<Stripe.Response<Stripe.Charge>> {
-    return this.stripe.charges.create({
-      amount,
-      currency,
-      source,
+  async createCharge(): Promise<Stripe.Charge> {
+    const testToken = 'tok_visa';
+    const charge = await this.stripe.charges.create({
+      amount: 2000,
+      currency: 'usd',
+      source: testToken,
+      description: 'Test charge using a Stripe test token',
     });
+
+    return charge;
   }
 }
