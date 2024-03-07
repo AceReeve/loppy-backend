@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { StripeDTO } from 'src/app/dto/api/stripe';
 
 @Injectable()
 export class StripeService {
@@ -15,15 +16,8 @@ export class StripeService {
     );
   }
 
-  async createCharge(): Promise<Stripe.Charge> {
-    const testToken = 'tok_visa';
-    const charge = await this.stripe.charges.create({
-      amount: 2000,
-      currency: 'usd',
-      source: testToken,
-      description: 'Test charge using a Stripe test token',
-    });
-
+  async createCharge(stripeDTO: StripeDTO): Promise<Stripe.Charge> {
+    const charge = await this.stripe.charges.create(stripeDTO);
     return charge;
   }
 }
