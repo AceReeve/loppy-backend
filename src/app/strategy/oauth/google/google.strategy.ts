@@ -2,10 +2,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
+import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
+import { SignInBy } from 'src/app/const';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(protected readonly configService: ConfigService) {
+  constructor(
+    protected readonly configService: ConfigService,
+    protected readonly oauthRepository: OauthRepository
+  ) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
@@ -29,5 +33,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       accessToken,
     };
     done(null, user);
+    await this.oauthRepository.recordLogin(user, SignInBy.SIGN_IN_BY_GOOGLE);
   }
 }

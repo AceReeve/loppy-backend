@@ -7,12 +7,14 @@ import { ConfigModule } from '@nestjs/config';
 import { JSONWebTokenModule } from 'src/config/jwt/jwt.module';
 import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { GoogleStrategy } from 'src/app/api/google/google.strategy';
-import { FacebookStrategy } from 'src/app/api/facebook/facebook.strategy';
+import { GoogleStrategy } from 'src/app/strategy/oauth/google/google.strategy';
+import { FacebookStrategy } from 'src/app/strategy/oauth/facebook/facebook.strategy';
 import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { UserRepository } from 'src/app/repository/user/user.repository';
+import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
+import { OauthSchemaModule } from 'src/app/models/oauth/aouth.schema.module';
 
 @Module({
   imports: [
@@ -22,7 +24,8 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
     JSONWebTokenModule,
     PassportModule.register({ defaultStrategy: 'google' }),
     PassportModule.register({ defaultStrategy: 'facebook' }),
-    RoleSchemaModule
+    RoleSchemaModule,
+    OauthSchemaModule
   ],
 
   controllers: [AuthController],
@@ -33,6 +36,7 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
     JwtService,
     GoogleStrategy,
     FacebookStrategy,
+    OauthRepository
   ],
 })
 export class AuthModule { }
