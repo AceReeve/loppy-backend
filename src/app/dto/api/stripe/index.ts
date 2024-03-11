@@ -37,3 +37,13 @@ export class StripeDTO {
     description?: string;
 }
 
+export class MessageDTO {
+    @ApiProperty({ example: '+18015203693' })
+    @IsString()
+    to: string;
+
+    @ApiProperty({ example: 'hello' })
+    @IsString()
+    body: string;
+}
+
