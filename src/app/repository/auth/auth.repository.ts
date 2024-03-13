@@ -32,9 +32,10 @@ export class AuthRepository {
         }
     }
     generateJWT(payload: object, exp: string): string {
-        return this.jwtService.sign(payload, { 
-            secret: this.configService.get<string>('JWT_SECRET'), 
-            expiresIn: this.configService.get<string>('JWT_EXPIRATION') });
+        return this.jwtService.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+            expiresIn: this.configService.get<string>('JWT_EXPIRATION')
+        });
     }
     async login(userLoginDTO: UserLoginDTO) {
         try {
@@ -43,6 +44,7 @@ export class AuthRepository {
             const { _id, first_name, last_name, email, status } = user;
             const payload = { email: user.email, sub: user._id };
             const access_token = this.generateJWT(payload, this.configService.get<string>('JWT_EXPIRATION'));
+            await this.userModel.findOneAndUpdate({ email: email }, { $inc: { login_count: 1 } })
             return { _id, first_name, last_name, email, status, access_token };
         } catch (error) {
             throw new BadRequestException('Incorrect Email or Password12');
