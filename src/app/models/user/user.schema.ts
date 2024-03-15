@@ -26,6 +26,13 @@ export class User implements GenericSchema {
 
     @Prop({ default: 'ACTIVE' })
     status: string;
+
+    @Prop()
+    login_by?: string;
+
+    @Prop()
+    login_count: number;
+
 }
 
 async function hashPasswordHook(next: () => void): Promise<void> {

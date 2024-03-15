@@ -12,6 +12,7 @@ import {
     UserRegisterDTO
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
+import { SignInBy } from 'src/app/const'
 export class UserRepository implements AbstractUserRepository {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -41,7 +42,7 @@ export class UserRepository implements AbstractUserRepository {
 
             const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userRegisterDto.role));
             if (!isValidRole) { throw new BadRequestException('Role not found') }
-            const newUser = await this.userModel.create(userRegisterDto);
+            const newUser = await this.userModel.create({ ...userRegisterDto, login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO, login_count: 1 });
             if (!newUser) throw new BadRequestException('Unable to register user');
 
             const userInfoDTO = {
