@@ -4,11 +4,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { SignInBy } from 'src/app/const';
+import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     protected readonly configService: ConfigService,
-    protected readonly oauthRepository: OauthRepository
+    protected readonly oauthRepository: OauthRepository,
+    private readonly jwtService: JwtService,
+
   ) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),

@@ -25,12 +25,6 @@ import { JwtService } from '@nestjs/jwt';
         JwtService
     ],
 
-    exports: [
-        {
-            provide: AbstractUserService,
-            useClass: UserService,
-        },
-
-    ],
+    exports: [UserSchemaModule],
 })
 export class UserModule { }
