@@ -21,11 +21,14 @@ export class TwilioService {
     @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name)
     private userInfoModel: Model<UserInfoDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
   ) { }
 
   async sendMessage(messageDTO: MessageDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
-    let userInfo: UserInfo | null = await this.userInfoModel.findOne({ user_id: user.sub });
+    const userData = await this.userModel.findOne({ email: user.email })
+    let userInfo: UserInfo | null = await this.userInfoModel.findOne({ user_id: userData._id });
     if (!userInfo.twillio_number) {
       throw new Error('twilio should not be empty');
     }
