@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { StripeModule } from 'src/app/modules/api/api.module';
 import { RoleModule } from './app/modules/role/role.module';
 import { TwilioModule } from './app/modules/api/twilio/twilio.module';
+import { DashboardModule } from './app/modules/dashboard/dashboard.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -24,6 +25,7 @@ import { TwilioModule } from './app/modules/api/twilio/twilio.module';
     StripeModule,
     RoleModule,
     TwilioModule,
+    DashboardModule
   ],
 
   providers: [
