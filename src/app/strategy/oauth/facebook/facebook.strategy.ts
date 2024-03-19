@@ -45,7 +45,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       email: emails[0].value,
       firstName: name.givenName,
       lastName: name.familyName,
-      accessToken,
+      accessToken: access_token,
     };
     done(null, user);
     await this.oauthRepository.recordLogin(user, SignInBy.SIGN_IN_BY_FACEBOOK);
