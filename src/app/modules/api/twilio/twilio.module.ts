@@ -3,9 +3,11 @@ import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import { Twilio } from 'twilio';
 import { TwilioClient } from 'src/app/const';
 import { TwilioController } from 'src/app/controller/api/twilio/twilio.controller';
-
+import { UserSchemaModule } from 'src/app/models/user/user.schema.module'
+import { JwtService } from '@nestjs/jwt';
 @Global()
 @Module({
+  imports: [UserSchemaModule],
   providers: [
     {
       provide: TwilioClient.TWILIO_CLIENT,
@@ -18,9 +20,9 @@ import { TwilioController } from 'src/app/controller/api/twilio/twilio.controlle
         return new Twilio(accountSid, authToken);
       },
     },
-    TwilioService,
+    TwilioService, JwtService
   ],
   controllers: [TwilioController],
   exports: [TwilioService],
 })
-export class TwilioModule {}
+export class TwilioModule { }

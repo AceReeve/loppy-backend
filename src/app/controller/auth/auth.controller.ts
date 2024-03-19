@@ -8,7 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('login')
   @ApiBody({ type: UserLoginDTO })
@@ -27,7 +27,7 @@ export class AuthController {
   //google_auth_signin
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleAuth(@Req() req) {}
+  googleAuth(@Req() req) { }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
@@ -38,7 +38,7 @@ export class AuthController {
   //facebook_auth_signin
   @Get('facebook')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLogin(): Promise<any> {}
+  async facebookLogin(): Promise<any> { }
 
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))
