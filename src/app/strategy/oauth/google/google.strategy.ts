@@ -35,7 +35,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { name, emails, photos } = profile;
-    //use jwt token instead of token provided by goolge
+    //use jwt token instead of token provided by google
     const payload = { email: emails[0].value };
     const access_token = this.generateJWT(payload, this.configService.get<string>('JWT_EXPIRATION'));
     //----//
