@@ -25,6 +25,8 @@ import {
     AbstractUserService,
     RegisterResponseData,
 } from 'src/app/interface/user';
+import { JwtAuthGuard } from 'src/app/guard/auth';
+
 @ApiTags('User')
 @Controller('user')
 export class UserController {
@@ -49,5 +51,13 @@ export class UserController {
         @Body() userRegisterDto: UserRegisterDTO,
     ): Promise<any> {
         return this.userService.createUser(userRegisterDto);
+    }
+
+    @Get('profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('Bearer')
+    @ApiOperation({ summary: 'Get User Profile' })
+    async profile(): Promise<any> {
+        return this.userService.profile();
     }
 }

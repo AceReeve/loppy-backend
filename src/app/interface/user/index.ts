@@ -13,12 +13,14 @@ export abstract class AbstractUserRepository {
     abstract createUser(
         userRegisterDto: UserRegisterDTO,
     ): Promise<any>;
+    abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
 }
 
 export abstract class AbstractUserService {
     abstract createUser(
         userRegisterDto: UserRegisterDTO,
     ): Promise<any>;
+    abstract profile(): Promise<any>;
 }
 export interface RegisterResponseData {
     _id: string;

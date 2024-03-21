@@ -27,6 +27,7 @@ export class TwilioService {
 
   async sendMessage(messageDTO: MessageDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
+    console.log('user', user)
     const userData = await this.userModel.findOne({ email: user.email })
     let userInfo: UserInfo | null = await this.userInfoModel.findOne({ user_id: userData._id });
     if (!userInfo.twillio_number) {

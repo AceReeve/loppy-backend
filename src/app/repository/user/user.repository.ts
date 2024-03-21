@@ -24,9 +24,10 @@ export class UserRepository implements AbstractUserRepository {
     ): Promise<any> {
         if (userRegisterDto._id) {
             const id = new Types.ObjectId(userRegisterDto._id);
-
-            const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userRegisterDto.role));
-            if (!isValidRole) { throw new BadRequestException('Role not found') }
+            if (userRegisterDto.role) {
+                const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userRegisterDto.role));
+                if (!isValidRole) { throw new BadRequestException('Role not found') }
+            }
             const updatedUser = await this.userModel.findOneAndUpdate(
                 { _id: id },
                 { $set: userRegisterDto },
@@ -54,5 +55,9 @@ export class UserRepository implements AbstractUserRepository {
             return { newUser, newUserInfo };
         }
     }
+
+    async profile(user: Partial<User> & { sub: string }): Promise<any> {
+        return await this.userInfoModel.findOne({ user_id: user.sub });
+    };
 
 }

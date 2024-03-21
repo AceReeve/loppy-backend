@@ -134,7 +134,7 @@ export class UserRegisterDTO {
   @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
   @IsString()
   @IsNotEmpty()
-  role: string;
+  role?: string;
 
   @ApiPropertyOptional({ type: () => UserInfoDTO })
   @ValidateNested()
