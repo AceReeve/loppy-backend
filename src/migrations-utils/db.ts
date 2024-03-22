@@ -9,9 +9,8 @@ console.log(
 
 const { MONGO_HOSTNAME, MONGO_USERNAME, MONGO_PASSWORD, MONGO_DB_NAME } = process.env;
 
-const MONGO_URL = `mongodb+srv://acegowithhero:2OisNcKl2bMDJV8Q@cluster0.oh6xtoy.mongodb.net/servicehero?retryWrites=true&w=majority`;
 // add the mongo url from env
-// const MONGO_URL = `${MONGO_HOSTNAME}://${MONGO_USERNAME}:${MONGO_PASSWORD}@cluster0.oh6xtoy.mongodb.net/${MONGO_DB_NAME}?retryWrites=true&w=majority`;
+const MONGO_URL = `${MONGO_HOSTNAME}://${MONGO_USERNAME}:${MONGO_PASSWORD}@cluster0.oh6xtoy.mongodb.net/${MONGO_DB_NAME}?retryWrites=true&w=majority`;
 
 console.log('MongoDB URI:', MONGO_URL); // Add this line for debugging
 

@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+  nestapp:
+    container_name: servicehero-backend
+    image: nestapp:1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
