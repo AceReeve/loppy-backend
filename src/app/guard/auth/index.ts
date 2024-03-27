@@ -24,11 +24,6 @@ export class JwtAuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET')
       });
       request.user = decodedToken;
-      // console.log('decodedToken', decodedToken)
-      // console.log('decodedToken', decodedToken.sub)
-      // const userInfo = await this.userService.findByUserId(decodedToken.sub);
-      // console.log('userInfo', userInfo)
-
       return true;
     } catch (error) {
       if (error instanceof JsonWebTokenError || error instanceof TokenExpiredError) {
@@ -37,5 +32,16 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Token verification failed');
       }
     }
+  }
+}
+
+@Injectable()
+export class VerifyProfile implements CanActivate {
+  constructor() { }
+
+  canActivate(context: ExecutionContext): boolean {
+    // Implement your logic to check if the user has a user profile
+    // If user profile exists, return true; otherwise, return false
+    return true; // Example implementation
   }
 }

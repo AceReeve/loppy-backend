@@ -35,10 +35,10 @@ export class UserLoginDTO {
   password: string;
 }
 export class UserInfoDTO {
-  @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
-  @IsString()
-  @IsNotEmpty()
-  role?: string;
+  // @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
+  // @IsString()
+  // @IsNotEmpty()
+  // role?: string;
 
   @ApiProperty({ example: 'JuanDelacuz' })
   @IsString()

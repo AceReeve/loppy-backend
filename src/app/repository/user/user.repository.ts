@@ -36,20 +36,18 @@ export class UserRepository implements AbstractUserRepository {
     ): Promise<any> {
         const user = this.request.user as Partial<User> & { sub: string };
         const userData = await this.userModel.findOne({ email: user.email })
-
-        const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userInfoDTODto.role));
-        if (!isValidRole) { throw new BadRequestException('Role not found') }
+        //set default role
+        const role = await this.roleDocumentModel.findOne({ role_name: "Owner" })
         const userInfoDTO = {
             ...userInfoDTODto,
-            user_id: userData._id
+            user_id: userData._id,
+            role: role._id,
         };
         const newUserInfo = await this.userInfoModel.create(userInfoDTO);
         if (!newUserInfo) throw new BadRequestException('Unable to register user Information');
         return { newUserInfo };
     }
-
     async profile(user: Partial<User> & { sub: string }): Promise<any> {
         return await this.userInfoModel.findOne({ user_id: user.sub });
     };
-
 }
