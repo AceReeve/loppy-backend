@@ -8,7 +8,7 @@ import {
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import { StripeDTO } from 'src/app/dto/api/stripe';
-@ApiTags('User')
+@ApiTags('Payment')
 @Controller('payment')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) { }

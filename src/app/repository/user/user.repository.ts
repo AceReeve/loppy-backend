@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import {
@@ -9,51 +9,43 @@ import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
 import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 import {
-    UserRegisterDTO
+    UserRegisterDTO, UserInfoDTO
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
-import { SignInBy } from 'src/app/const'
+import { SignInBy } from 'src/app/const';
+import { Request } from 'express';
+import { REQUEST } from '@nestjs/core';
 export class UserRepository implements AbstractUserRepository {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
         @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
+        @Inject(REQUEST) private readonly request: Request,
+
     ) { }
     async createUser(
         userRegisterDto: UserRegisterDTO,
     ): Promise<any> {
-        if (userRegisterDto._id) {
-            const id = new Types.ObjectId(userRegisterDto._id);
-            if (userRegisterDto.role) {
-                const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userRegisterDto.role));
-                if (!isValidRole) { throw new BadRequestException('Role not found') }
-            }
-            const updatedUser = await this.userModel.findOneAndUpdate(
-                { _id: id },
-                { $set: userRegisterDto },
-                { new: true }
-            );
-            const updatedUserInfo = await this.userInfoModel.findOneAndUpdate(
-                { user_id: id },
-                { $set: userRegisterDto.user_information, user_id: updatedUser._id },
-                { new: true });
+        const newUser = await this.userModel.create({ ...userRegisterDto, login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO, login_count: 1 });
+        if (!newUser) throw new BadRequestException('Unable to register user');
 
-            return { updatedUser, updatedUserInfo };
-        } else {
+        return { newUser };
+    }
+    async createUserInfo(
+        userInfoDTODto: UserInfoDTO,
+    ): Promise<any> {
+        const user = this.request.user as Partial<User> & { sub: string };
+        const userData = await this.userModel.findOne({ email: user.email })
 
-            const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userRegisterDto.role));
-            if (!isValidRole) { throw new BadRequestException('Role not found') }
-            const newUser = await this.userModel.create({ ...userRegisterDto, login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO, login_count: 1 });
-            if (!newUser) throw new BadRequestException('Unable to register user');
-
-            const userInfoDTO = {
-                ...userRegisterDto.user_information,
-                user_id: newUser._id
-            };
-            const newUserInfo = await this.userInfoModel.create(userInfoDTO);
-            if (!newUserInfo) throw new BadRequestException('Unable to register user Information');
-            return { newUser, newUserInfo };
-        }
+        const isValidRole = await this.roleDocumentModel.findById(new Types.ObjectId(userInfoDTODto.role));
+        if (!isValidRole) { throw new BadRequestException('Role not found') }
+        const userInfoDTO = {
+            ...userInfoDTODto,
+            user_id: userData._id
+        };
+        const newUserInfo = await this.userInfoModel.create(userInfoDTO);
+        if (!newUserInfo) throw new BadRequestException('Unable to register user Information');
+        return { newUserInfo };
     }
 
     async profile(user: Partial<User> & { sub: string }): Promise<any> {
