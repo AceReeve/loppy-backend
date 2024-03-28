@@ -35,6 +35,11 @@ export class UserLoginDTO {
   password: string;
 }
 export class UserInfoDTO {
+  // @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
+  // @IsString()
+  // @IsNotEmpty()
+  // role?: string;
+
   @ApiProperty({ example: 'JuanDelacuz' })
   @IsString()
   @MaxLength(256, { message: 'User name is too long (maximum 256 characters)' })
@@ -98,17 +103,11 @@ export class UserInfoDTO {
 }
 
 export class UserRegisterDTO {
-
-  @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
-  @IsOptional()
-  _id?: string;
-
   @ApiProperty({ example: 'example@gmail.com' })
   @IsString()
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
   @ApiProperty({ example: 'Password123!' })
   @IsString()
   @IsNotEmpty()
@@ -130,14 +129,4 @@ export class UserRegisterDTO {
     message: 'password must contain at least one number',
   })
   password: string;
-
-  @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
-  @IsString()
-  @IsNotEmpty()
-  role: string;
-
-  @ApiPropertyOptional({ type: () => UserInfoDTO })
-  @ValidateNested()
-  @IsOptional()
-  user_information?: UserInfoDTO;
 }

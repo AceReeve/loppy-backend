@@ -56,6 +56,13 @@ export class UserInfo implements GenericSchema {
 
     @Prop()
     twillio_number?: number;
+
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Role' })
+    role?: MongooseSchema.Types.ObjectId;
+
+    @Prop({ default: 'ACTIVE' })
+    status: string;
+
 }
 export const UserInfoSchema = SchemaFactory.createForClass(UserInfo);
 

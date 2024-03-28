@@ -21,9 +21,6 @@ export class User implements GenericSchema {
     @Prop()
     password: string;
 
-    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Role' })
-    role: MongooseSchema.Types.ObjectId;
-
     @Prop({ default: 'ACTIVE' })
     status: string;
 

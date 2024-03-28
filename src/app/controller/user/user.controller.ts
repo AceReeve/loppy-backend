@@ -19,35 +19,43 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import {
-    UserRegisterDTO,
+    UserRegisterDTO, UserInfoDTO
 } from 'src/app/dto/user';
 import {
     AbstractUserService,
     RegisterResponseData,
 } from 'src/app/interface/user';
+import { JwtAuthGuard } from 'src/app/guard/auth';
+
 @ApiTags('User')
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: AbstractUserService) { }
 
     @Post('register')
-    @ApiBody({ type: UserRegisterDTO })
     @ApiOperation({ summary: 'Register user' })
-    @ApiResponse({
-        status: 200,
-        description: 'User Created',
-    })
-    @ApiResponse({
-        status: 500,
-        description: 'An internal error occured',
-    })
-    @ApiResponse({
-        status: 400,
-        description: 'Missing Required Fields - Bad Request',
-    })
     async createUser(
         @Body() userRegisterDto: UserRegisterDTO,
     ): Promise<any> {
         return this.userService.createUser(userRegisterDto);
+    }
+
+
+    @Post('user-info')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('Bearer')
+    @ApiOperation({ summary: 'Create user info' })
+    async createUserInfo(
+        @Body() userInfoDTO: UserInfoDTO,
+    ): Promise<any> {
+        return this.userService.createUserInfo(userInfoDTO);
+    }
+
+    @Get('profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('Bearer')
+    @ApiOperation({ summary: 'Get User Profile' })
+    async profile(): Promise<any> {
+        return this.userService.profile();
     }
 }
