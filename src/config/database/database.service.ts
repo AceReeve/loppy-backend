@@ -18,7 +18,8 @@ export class DatabaseConnection implements MongooseOptionsFactory {
         const MONGO_PASSWORD = this.configService.get<string>('MONGO_PASSWORD');
         const MONGO_DB_NAME = this.configService.get<string>('MONGO_DB_NAME');
         return {
-            uri: `${MONGO_HOSTNAME}://${MONGO_USERNAME}:${MONGO_PASSWORD}@cluster0.oh6xtoy.mongodb.net/${MONGO_DB_NAME}`
+            uri: `${MONGO_HOSTNAME}://${MONGO_USERNAME}:${MONGO_PASSWORD}@servihero.7ucwppc.mongodb.net/?retryWrites=true&w=majority&appName=${MONGO_DB_NAME}`
+           
         };
     }
     async onModuleInit() {
