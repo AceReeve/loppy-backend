@@ -25,18 +25,15 @@ export class TwilioService {
     @InjectModel(twilio.name) private twilioModel: Model<twilioDocument>,
 
   ) { }
-  async twilioProvider(ssid: string, auth_token: string) {
+  // async twilioProvider(ssid: string, auth_token: string) {
 
-    const accountSid = ssid;
-    const authToken = auth_token;
-    console.log('accountSid', accountSid);
-    console.log('authToken', authToken);
-
-    if (!accountSid || !authToken) {
-      throw new Error('Twilio account SID and auth token must be provided');
-    }
-    return new Twilio(accountSid, authToken);
-  }
+  //   const accountSid = ssid;
+  //   const authToken = auth_token;
+  //   if (!accountSid || !authToken) {
+  //     throw new Error('Twilio account SID and auth token must be provided');
+  //   }
+  //   return new Twilio(accountSid, authToken);
+  // }
   async twilioCredentials(ssid: string, auth_token: string, twilio_number: string) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email })
@@ -53,6 +50,16 @@ export class TwilioService {
   //   const userData = await this.userModel.findOne({ email: user.email })
   //   return await this.twilioModel.findOne({ user_id: userData._id });
   // }
+  // async getTwilioInfoFromDatabase(): Promise<{ ssid: string; auth_token: string; twilio_number: string }> {
+  //   const user = this.request.user as Partial<User> & { sub: string };
+  //   const userData = await this.userModel.findOne({ email: user.email });
+  //   const twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
+  //   return twilioInfo;
+  // }
+  // async initializeTwilioClient(ssid: string, auth_token: string): Promise<void> {
+  //   this.twilioClient = new Twilio(ssid, auth_token);
+  // }
+
   async sendMessage(messageDTO: MessageDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email })
@@ -60,7 +67,10 @@ export class TwilioService {
     if (!twilioInfo) {
       throw new Error('This user doest not have twilio number');
     }
-    await this.twilioProvider(twilioInfo.ssid, twilioInfo.auth_token)
+    // if (!this.twilioClient) {
+    //   await this.initializeTwilioClient(twilioInfo.ssid, twilioInfo.auth_token);
+    // }
+    // await this.twilioProvider(twilioInfo.ssid, twilioInfo.auth_token)
     return this.twilioClient.messages.create({
       to: messageDTO.to,
       from: twilioInfo.twilio_number,

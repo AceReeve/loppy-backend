@@ -15,11 +15,12 @@ import { twilioSchemaModule } from 'src/app/models/twilio/twilio.schema.module';
 @Module({
   imports: [UserSchemaModule, UserModule, RoleSchemaModule, twilioSchemaModule],
   providers: [
+    UserService, TwilioService, JwtService,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-    UserService, TwilioService, JwtService,
+
   ],
   controllers: [TwilioController],
   exports: [TwilioService],
