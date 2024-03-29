@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { MessageDTO } from 'src/app/dto/api/stripe';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
+import { twilio, twilioDocument } from 'src/app/models/twilio/twilio.schema';
 import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
@@ -19,22 +20,50 @@ export class TwilioService {
     @Inject(TwilioClient.TWILIO_CLIENT) private twilioClient: Twilio,
     protected readonly configService: ConfigService,
     @Inject(REQUEST) private readonly request: Request,
-    @InjectModel(UserInfo.name)
-    private userInfoModel: Model<UserInfoDocument>,
-    @InjectModel(User.name)
-    private userModel: Model<UserDocument>,
-  ) { }
+    @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(twilio.name) private twilioModel: Model<twilioDocument>,
 
+  ) { }
+  async twilioProvider(ssid: string, auth_token: string) {
+
+    const accountSid = ssid;
+    const authToken = auth_token;
+    console.log('accountSid', accountSid);
+    console.log('authToken', authToken);
+
+    if (!accountSid || !authToken) {
+      throw new Error('Twilio account SID and auth token must be provided');
+    }
+    return new Twilio(accountSid, authToken);
+  }
+  async twilioCredentials(ssid: string, auth_token: string, twilio_number: string) {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email })
+    const saveTwilio = await this.twilioModel.create({
+      user_id: userData._id,
+      ssid: ssid,
+      auth_token: auth_token,
+      twilio_number: twilio_number
+    });
+    return saveTwilio;
+  }
+  // async getTwilioInfo() {
+  //   const user = this.request.user as Partial<User> & { sub: string };
+  //   const userData = await this.userModel.findOne({ email: user.email })
+  //   return await this.twilioModel.findOne({ user_id: userData._id });
+  // }
   async sendMessage(messageDTO: MessageDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email })
-    let userInfo: UserInfo | null = await this.userInfoModel.findOne({ user_id: userData._id });
-    if (!userInfo.twillio_number) {
-      throw new Error('twilio should not be empty');
+    let twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
+    if (!twilioInfo) {
+      throw new Error('This user doest not have twilio number');
     }
+    await this.twilioProvider(twilioInfo.ssid, twilioInfo.auth_token)
     return this.twilioClient.messages.create({
       to: messageDTO.to,
-      from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
+      from: twilioInfo.twilio_number,
       body: messageDTO.body,
     });
   }
