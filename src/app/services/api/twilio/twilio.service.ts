@@ -10,14 +10,14 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, {
-  Model
+  Model, Types
 } from 'mongoose';
 import { throwIfEmpty } from 'rxjs';
 
 @Injectable()
 export class TwilioService {
+  private twilioClient: Twilio;
   constructor(
-    @Inject(TwilioClient.TWILIO_CLIENT) private twilioClient: Twilio,
     protected readonly configService: ConfigService,
     @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
@@ -25,52 +25,41 @@ export class TwilioService {
     @InjectModel(twilio.name) private twilioModel: Model<twilioDocument>,
 
   ) { }
-  // async twilioProvider(ssid: string, auth_token: string) {
-
-  //   const accountSid = ssid;
-  //   const authToken = auth_token;
-  //   if (!accountSid || !authToken) {
-  //     throw new Error('Twilio account SID and auth token must be provided');
-  //   }
-  //   return new Twilio(accountSid, authToken);
-  // }
+  private async initializeTwilioClient(userId: string) {
+    const userData = await this.userModel.findById(userId).exec();
+    if (!userData) {
+      throw new Error('User not found');
+    }
+    const twilioInfo = await this.twilioModel.findOne({ user_id: userId }).exec();
+    if (!twilioInfo) {
+      throw new Error('Twilio information not found for the user');
+    }
+    const { ssid, auth_token } = twilioInfo;
+    this.twilioClient = new Twilio(ssid, auth_token);
+  }
   async twilioCredentials(ssid: string, auth_token: string, twilio_number: string) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email })
+    const twilioInfo = await this.twilioModel.findOne({ user_id: userData._id }).exec();
+    if (twilioInfo) {
+      throw new Error('Already have Twilio information for this user');
+    }
     const saveTwilio = await this.twilioModel.create({
-      user_id: userData._id,
+      user_id: new Types.ObjectId(userData._id),
       ssid: ssid,
       auth_token: auth_token,
       twilio_number: twilio_number
     });
     return saveTwilio;
   }
-  // async getTwilioInfo() {
-  //   const user = this.request.user as Partial<User> & { sub: string };
-  //   const userData = await this.userModel.findOne({ email: user.email })
-  //   return await this.twilioModel.findOne({ user_id: userData._id });
-  // }
-  // async getTwilioInfoFromDatabase(): Promise<{ ssid: string; auth_token: string; twilio_number: string }> {
-  //   const user = this.request.user as Partial<User> & { sub: string };
-  //   const userData = await this.userModel.findOne({ email: user.email });
-  //   const twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
-  //   return twilioInfo;
-  // }
-  // async initializeTwilioClient(ssid: string, auth_token: string): Promise<void> {
-  //   this.twilioClient = new Twilio(ssid, auth_token);
-  // }
-
   async sendMessage(messageDTO: MessageDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email })
+    await this.initializeTwilioClient(userData._id);
     let twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
     if (!twilioInfo) {
       throw new Error('This user doest not have twilio number');
     }
-    // if (!this.twilioClient) {
-    //   await this.initializeTwilioClient(twilioInfo.ssid, twilioInfo.auth_token);
-    // }
-    // await this.twilioProvider(twilioInfo.ssid, twilioInfo.auth_token)
     return this.twilioClient.messages.create({
       to: messageDTO.to,
       from: twilioInfo.twilio_number,
@@ -79,6 +68,9 @@ export class TwilioService {
   }
 
   async getMessageStatus(messageSid: string) {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email })
+    await this.initializeTwilioClient(userData._id);
     try {
       const message = await this.twilioClient.messages(messageSid).fetch();
       return {
@@ -92,6 +84,9 @@ export class TwilioService {
   }
 
   async getAllMessages() {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email })
+    await this.initializeTwilioClient(userData._id);
     try {
       const messages = await this.twilioClient.messages.list();
       const groupedMessages: { [to: string]: any[] } = {};

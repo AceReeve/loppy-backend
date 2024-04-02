@@ -1,7 +1,5 @@
 import { Module, Global, forwardRef } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
-import { Twilio } from 'twilio';
-import { TwilioClient } from 'src/app/const';
 import { TwilioController } from 'src/app/controller/api/twilio/twilio.controller';
 import { UserSchemaModule } from 'src/app/models/user/user.schema.module'
 import { JwtService } from '@nestjs/jwt';
