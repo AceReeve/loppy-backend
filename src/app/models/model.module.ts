@@ -4,6 +4,7 @@ import { DBEnvVarSchemaModule } from './db-env-variables/db-env-variables.schema
 import { PermissionSchemaModule } from './permission/permission.schema.module';
 import { UserSchemaModule } from './user/user.schema.module';
 import { RoleSchemaModule } from './role/role.schema.module';
+import { twilioSchemaModule } from './twilio/twilio.schema.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { RoleSchemaModule } from './role/role.schema.module';
     ApiModuleSchemaModule,
     DBEnvVarSchemaModule,
     UserSchemaModule,
-    RoleSchemaModule
+    RoleSchemaModule,
+    twilioSchemaModule
   ],
   providers: [],
   exports: [
@@ -19,7 +21,8 @@ import { RoleSchemaModule } from './role/role.schema.module';
     ApiModuleSchemaModule,
     DBEnvVarSchemaModule,
     UserSchemaModule,
-    RoleSchemaModule
+    RoleSchemaModule,
+    twilioSchemaModule
   ],
 })
 export class ModelModule { }
