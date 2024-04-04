@@ -12,12 +12,20 @@ import { JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Messages')
 @Controller('messages')
+@ApiBearerAuth('Bearer')
 @UseGuards(JwtAuthGuard)
 export class TwilioController {
   constructor(private twilioService: TwilioService) { }
+  @Post('twilio-credentials/:ssid/:auth_token/:twilio_number')
+  async twilioCredentials(
+    @Param('ssid') ssid: string,
+    @Param('auth_token') auth_token: string,
+    @Param('twilio_number') twilio_number: string
+  ) {
+    return this.twilioService.twilioCredentials(ssid, auth_token, twilio_number);
+  }
 
   @Post()
-  @ApiBearerAuth('Bearer')
   async sendMessage(
     @Body() messageDTO: MessageDTO
   ) {
@@ -25,7 +33,6 @@ export class TwilioController {
   }
 
   @Get('messageStatus/:sId')
-  @ApiBearerAuth('Bearer')
   async getMessageStatus(
     @Param('sId') sId: string
   ) {
@@ -33,7 +40,6 @@ export class TwilioController {
   }
 
   @Get('get-all')
-  @ApiBearerAuth('Bearer')
   async getAllMessages() {
     return this.twilioService.getAllMessages();
   }
