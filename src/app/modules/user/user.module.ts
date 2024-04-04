@@ -7,10 +7,13 @@ import { UserService } from 'src/app/services/user/user.service';
 import { UserSchemaModule } from 'src/app/models/user/user.schema.module';
 import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { JwtService } from '@nestjs/jwt';
+import { EmailerModule } from '@util/emailer/emailer';
+
 @Module({
     imports: [
         UserSchemaModule,
-        RoleSchemaModule
+        RoleSchemaModule,
+        EmailerModule
     ],
     controllers: [UserController],
     providers: [

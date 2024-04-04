@@ -15,12 +15,15 @@ import * as _ from 'lodash';
 import { SignInBy } from 'src/app/const';
 import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
+import { EmailerService } from '@util/emailer/emailer';
+
 export class UserRepository implements AbstractUserRepository {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
         @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
         @Inject(REQUEST) private readonly request: Request,
+        private readonly emailService: EmailerService,
 
     ) { }
     async createUser(
@@ -50,4 +53,8 @@ export class UserRepository implements AbstractUserRepository {
     async profile(user: Partial<User> & { sub: string }): Promise<any> {
         return await this.userInfoModel.findOne({ user_id: user.sub });
     };
+
+    async inviteUser(email: string): Promise<any> {
+
+    }
 }

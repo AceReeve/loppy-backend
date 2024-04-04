@@ -10,23 +10,17 @@ import {
 } from 'src/app/dto/user';
 
 export abstract class AbstractUserRepository {
-    abstract createUser(
-        userRegisterDto: UserRegisterDTO,
-    ): Promise<any>;
-    abstract createUserInfo(
-        userInfoDTO: UserInfoDTO,
-    ): Promise<any>;
+    abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
+    abstract createUserInfo(userInfoDTO: UserInfoDTO,): Promise<any>;
     abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
+    abstract inviteUser(email: string): Promise<any>;
 }
 
 export abstract class AbstractUserService {
-    abstract createUser(
-        userRegisterDto: UserRegisterDTO,
-    ): Promise<any>;
+    abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
     abstract profile(): Promise<any>;
-    abstract createUserInfo(
-        userInfoDTO: UserInfoDTO,
-    ): Promise<any>;
+    abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
+    abstract inviteUser(email: string): Promise<any>;
 }
 export interface RegisterResponseData {
     _id: string;

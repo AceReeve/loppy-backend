@@ -10,11 +10,11 @@ import { UserModule } from 'src/app/modules/user/user.module';
 import { AbstractUserRepository } from 'src/app/interface/user';
 import { UserRepository } from 'src/app/repository/user/user.repository';
 import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
-
+import { EmailerModule } from '@util/emailer/emailer';
 
 @Global()
 @Module({
-  imports: [UserSchemaModule, UserModule, RoleSchemaModule],
+  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule],
   providers: [
     {
       provide: TwilioClient.TWILIO_CLIENT,

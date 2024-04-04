@@ -58,4 +58,13 @@ export class UserController {
     async profile(): Promise<any> {
         return this.userService.profile();
     }
+    @Post('invite-user/:email')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('Bearer')
+    @ApiOperation({ summary: 'Invite User' })
+    async inviteUser(
+        @Param('email') email: string,
+    ): Promise<any> {
+        return this.userService.inviteUser(email);
+    }
 }
