@@ -6,27 +6,21 @@ import {
 import { GenericAbstractRepository } from 'src/app/interface/generic.abstract.repository';
 import { User } from 'src/app/models/user/user.schema';
 import {
-    UserRegisterDTO, UserInfoDTO
+    UserRegisterDTO, UserInfoDTO, InviteUserDTO
 } from 'src/app/dto/user';
 
 export abstract class AbstractUserRepository {
-    abstract createUser(
-        userRegisterDto: UserRegisterDTO,
-    ): Promise<any>;
-    abstract createUserInfo(
-        userInfoDTO: UserInfoDTO,
-    ): Promise<any>;
+    abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
+    abstract createUserInfo(userInfoDTO: UserInfoDTO,): Promise<any>;
     abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
+    abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
 }
 
 export abstract class AbstractUserService {
-    abstract createUser(
-        userRegisterDto: UserRegisterDTO,
-    ): Promise<any>;
+    abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
     abstract profile(): Promise<any>;
-    abstract createUserInfo(
-        userInfoDTO: UserInfoDTO,
-    ): Promise<any>;
+    abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
+    abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
 }
 export interface RegisterResponseData {
     _id: string;

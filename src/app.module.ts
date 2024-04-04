@@ -13,6 +13,8 @@ import { StripeModule } from 'src/app/modules/api/api.module';
 import { RoleModule } from './app/modules/role/role.module';
 import { TwilioModule } from './app/modules/api/twilio/twilio.module';
 import { DashboardModule } from './app/modules/dashboard/dashboard.module';
+import { EmailNotificationModule } from './app/modules/email-notification/email.notification.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -25,7 +27,8 @@ import { DashboardModule } from './app/modules/dashboard/dashboard.module';
     StripeModule,
     RoleModule,
     TwilioModule,
-    DashboardModule
+    DashboardModule,
+    EmailNotificationModule
   ],
 
   providers: [

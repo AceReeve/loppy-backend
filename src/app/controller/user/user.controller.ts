@@ -19,7 +19,7 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import {
-    UserRegisterDTO, UserInfoDTO
+    UserRegisterDTO, UserInfoDTO, InviteUserDTO
 } from 'src/app/dto/user';
 import {
     AbstractUserService,
@@ -57,5 +57,14 @@ export class UserController {
     @ApiOperation({ summary: 'Get User Profile' })
     async profile(): Promise<any> {
         return this.userService.profile();
+    }
+    @Post('invite-user/:email')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('Bearer')
+    @ApiOperation({ summary: 'Invite User' })
+    async inviteUser(
+        @Body() inviteUserDTO: InviteUserDTO,
+    ): Promise<any> {
+        return this.userService.inviteUser(inviteUserDTO);
     }
 }

@@ -15,7 +15,7 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { UserRepository } from 'src/app/repository/user/user.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { OauthSchemaModule } from 'src/app/models/oauth/aouth.schema.module';
-
+import { EmailerModule } from '@util/emailer/emailer';
 @Module({
   imports: [
     ConfigModule,
@@ -25,7 +25,8 @@ import { OauthSchemaModule } from 'src/app/models/oauth/aouth.schema.module';
     PassportModule.register({ defaultStrategy: 'google' }),
     PassportModule.register({ defaultStrategy: 'facebook' }),
     RoleSchemaModule,
-    OauthSchemaModule
+    OauthSchemaModule,
+    EmailerModule
   ],
 
   controllers: [AuthController],

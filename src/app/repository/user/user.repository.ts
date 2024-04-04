@@ -9,18 +9,21 @@ import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
 import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 import {
-    UserRegisterDTO, UserInfoDTO
+    UserRegisterDTO, UserInfoDTO, InviteUserDTO
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { SignInBy } from 'src/app/const';
 import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
+import { EmailerService } from '@util/emailer/emailer';
+
 export class UserRepository implements AbstractUserRepository {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
         @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
         @Inject(REQUEST) private readonly request: Request,
+        private readonly emailService: EmailerService,
 
     ) { }
     async createUser(
@@ -50,4 +53,11 @@ export class UserRepository implements AbstractUserRepository {
     async profile(user: Partial<User> & { sub: string }): Promise<any> {
         return await this.userInfoModel.findOne({ user_id: user.sub });
     };
+
+    async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
+        for (const email of inviteUserDTO.email) {
+            await this.emailService.inviteUser(email);
+        }
+
+    }
 }
