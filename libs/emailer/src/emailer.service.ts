@@ -11,11 +11,7 @@ export class EmailerService {
 
   private readonly logger = new Logger(EmailerService.name);
 
-  async inviteUser<T extends {
-    email: string
-  }>(data: T, claim?: string,
-  ): Promise<any> {
-    const { email } = data
+  async inviteUser(email: string): Promise<any> {
     try {
       await this.mailerService.sendMail({
         to: email,

@@ -55,6 +55,6 @@ export class UserRepository implements AbstractUserRepository {
     };
 
     async inviteUser(email: string): Promise<any> {
-
+        await this.emailService.inviteUser(email);
     }
 }
