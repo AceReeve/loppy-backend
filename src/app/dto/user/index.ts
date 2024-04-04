@@ -130,3 +130,11 @@ export class UserRegisterDTO {
   })
   password: string;
 }
+
+export class InviteUserDTO {
+  @ApiProperty({ example: ['example@gmail.com', 'example1@gmail.com'] })
+  @IsString({ each: true })
+  @IsNotEmpty()
+  @IsEmail({}, { each: true })
+  email: string[];
+}

@@ -9,7 +9,7 @@ import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
 import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 import {
-    UserRegisterDTO, UserInfoDTO
+    UserRegisterDTO, UserInfoDTO, InviteUserDTO
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { SignInBy } from 'src/app/const';
@@ -54,7 +54,10 @@ export class UserRepository implements AbstractUserRepository {
         return await this.userInfoModel.findOne({ user_id: user.sub });
     };
 
-    async inviteUser(email: string): Promise<any> {
-        await this.emailService.inviteUser(email);
+    async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
+        for (const email of inviteUserDTO.email) {
+            await this.emailService.inviteUser(email);
+        }
+
     }
 }
