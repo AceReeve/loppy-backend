@@ -110,4 +110,42 @@ export class TwilioService {
       throw new Error('Failed to fetch messages: ' + error.message);
     }
   }
+  async getAllContacts() {
+    const twilioData = await this.twilioModel.find();
+    const result = [];
+
+    for (const twilio of twilioData) {
+      const userData = await this.userInfoModel.findOne({ user_id: twilio.user_id });
+      const firstname = userData ? userData.first_name : "Unknown";
+      const lastname = userData ? userData.last_name : "Unknown";
+      const name = `${firstname} ${lastname}`;
+      const lastMessage = await this.generateRandomMessage();
+      const twilioDataWithUserInfo = { ...twilio.toObject(), name, lastMessage };
+      result.push(twilioDataWithUserInfo);
+    }
+
+    return result;
+  }
+
+  async generateRandomMessage() {
+    const messages = [
+      "Hey, how are you?",
+      "What's up?",
+      "Good morning!",
+      "How's your day going?",
+      "Did you hear about the latest news?",
+      "Just checking in!",
+      "Remember to complete the task!",
+      "Looking forward to seeing you soon.",
+      "Hope you're having a great day!",
+      "Take care!",
+      "Let's catch up soon.",
+      "Happy weekend!"
+    ];
+
+    const randomIndex = Math.floor(Math.random() * messages.length);
+
+    // Return the random message
+    return messages[randomIndex];
+  }
 }
