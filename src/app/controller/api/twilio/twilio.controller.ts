@@ -43,4 +43,8 @@ export class TwilioController {
   async getAllMessages() {
     return this.twilioService.getAllMessages();
   }
+  @Get('get-all-contacts')
+  async getAllContacts() {
+    return this.twilioService.getAllContacts();
+  }
 }
