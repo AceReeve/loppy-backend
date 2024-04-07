@@ -5,6 +5,7 @@ import { AbstractUserRepository } from 'src/app/interface/user';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { EmailerModule } from '@util/emailer/emailer';
 import { JwtService } from '@nestjs/jwt';
+import { OauthRepository } from './oauth/oauth.repository';
 
 @Module({
   imports: [ModelModule, EmailerModule],
@@ -15,7 +16,9 @@ import { JwtService } from '@nestjs/jwt';
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-    AuthRepository, JwtService
+    AuthRepository,
+    JwtService,
+    OauthRepository,
   ],
 
   exports: [
@@ -25,7 +28,7 @@ import { JwtService } from '@nestjs/jwt';
     },
     ModelModule,
     // UserRepository,
-    AuthRepository
+    AuthRepository,
   ],
 })
-export class RepositoryModule { }
+export class RepositoryModule {}

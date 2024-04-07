@@ -1,37 +1,38 @@
 import {
-    Controller,
-    Post,
-    Body,
-    Get,
-    Request,
-    UseGuards,
-    Put,
-    Param,
-    Query,
-    Delete,
-    Req,
+  Controller,
+  Post,
+  Body,
+  Get,
+  Request,
+  UseGuards,
+  Put,
+  Param,
+  Query,
+  Delete,
+  Req,
+  SetMetadata,
 } from '@nestjs/common';
 import {
-    ApiBearerAuth,
-    ApiBody,
-    ApiOperation,
-    ApiResponse,
-    ApiTags,
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import {
     UserRegisterDTO, UserInfoDTO, InviteUserDTO
 } from 'src/app/dto/user';
 import {
-    AbstractUserService,
-    RegisterResponseData,
+  AbstractUserService,
+  RegisterResponseData,
 } from 'src/app/interface/user';
-import { JwtAuthGuard } from 'src/app/guard/auth';
-
+import { Public } from '../../decorators/public.decorator';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: AbstractUserService) { }
 
+  @Public()
     @Post('register')
     @ApiOperation({ summary: 'Register user' })
     async createUser(
@@ -42,7 +43,6 @@ export class UserController {
 
 
     @Post('user-info')
-    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('Bearer')
     @ApiOperation({ summary: 'Create user info' })
     async createUserInfo(
@@ -52,14 +52,12 @@ export class UserController {
     }
 
     @Get('profile')
-    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('Bearer')
     @ApiOperation({ summary: 'Get User Profile' })
     async profile(): Promise<any> {
         return this.userService.profile();
     }
     @Post('invite-user/:email')
-    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('Bearer')
     @ApiOperation({ summary: 'Invite User' })
     async inviteUser(
