@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Schema as MongooseSchema } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
-import * as bcrypt from 'bcrypt';
 export type UserInfoDocument = UserInfo & Document;
 
 @Schema({
@@ -62,6 +61,10 @@ export class UserInfo implements GenericSchema {
 
     @Prop({ default: 'ACTIVE' })
     status: string;
+
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'StripeEvent' })
+    stripe_id?: MongooseSchema.Types.ObjectId;
+
 
 }
 export const UserInfoSchema = SchemaFactory.createForClass(UserInfo);

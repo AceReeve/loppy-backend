@@ -16,6 +16,7 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { OauthSchemaModule } from 'src/app/models/oauth/aouth.schema.module';
 import { EmailerModule } from '@util/emailer/emailer';
+import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 @Module({
   imports: [
     ConfigModule,
@@ -26,7 +27,8 @@ import { EmailerModule } from '@util/emailer/emailer';
     PassportModule.register({ defaultStrategy: 'facebook' }),
     RoleSchemaModule,
     OauthSchemaModule,
-    EmailerModule
+    EmailerModule,
+    StripeEventSchemaModule
   ],
 
   controllers: [AuthController],

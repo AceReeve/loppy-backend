@@ -8,12 +8,15 @@ import { UserSchemaModule } from 'src/app/models/user/user.schema.module';
 import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { JwtService } from '@nestjs/jwt';
 import { EmailerModule } from '@util/emailer/emailer';
+import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
+import { StripeModule } from '../api/api.module';
 
 @Module({
     imports: [
         UserSchemaModule,
         RoleSchemaModule,
-        EmailerModule
+        EmailerModule,
+        StripeEventSchemaModule
     ],
     controllers: [UserController],
     providers: [

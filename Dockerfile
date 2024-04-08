@@ -1,13 +1,12 @@
 FROM node:20
 
-RUN npm i -g @nestjs/cli
+WORKDIR /usr/src/app
 
-COPY package.json .
+COPY . . 
 
 RUN npm install
 
-COPY . .
 
 EXPOSE 8080
 
-CMD ["nest", "start"]
+CMD ["npm", "run", "start"]

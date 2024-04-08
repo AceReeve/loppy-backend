@@ -45,4 +45,10 @@ export class UserService implements AbstractUserService {
 
         return await this.repository.inviteUser(inviteUserDTO);
     }
+
+    async updateUserStripeId(
+        stripeId: string, userId: string
+    ): Promise<any> {
+        return this.repository.updateUserStripeId(stripeId, userId)
+    }
 }

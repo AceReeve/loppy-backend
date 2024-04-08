@@ -35,6 +35,8 @@ export class StripeDTO {
     @ApiProperty({ example: 'description' })
     @IsString()
     description?: string;
+
+    metadata?: { [key: string]: string };
 }
 
 export class MessageDTO {
@@ -46,4 +48,34 @@ export class MessageDTO {
     @IsString()
     body: string;
 }
+
+
+export class StripePaymentIntentDTO {
+    @ApiProperty({
+        example: 'essential',
+        description:
+            'Type of subscription. Can be `essential`, `professional`, or `corporate`',
+    })
+    @IsString()
+    type: 'essential' | 'professional' | 'corporate';
+
+    @ApiProperty({
+        description: 'Confirmation token sent from the client`',
+    })
+    @IsString()
+    confirmationToken: string;
+
+    metadata?: { [key: string]: string };
+}
+
+
+export class SummarizePaymentDTO {
+    @ApiProperty({
+        description: 'Confirmation token sent from the client`',
+    })
+    @IsString()
+    confirmationToken: string;
+}
+
+
 
