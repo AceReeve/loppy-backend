@@ -10,9 +10,10 @@ import { UserRepository } from 'src/app/repository/user/user.repository';
 import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { EmailerModule } from '@util/emailer/emailer';
 import { twilioSchemaModule } from 'src/app/models/twilio/twilio.schema.module';
+import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 @Global()
 @Module({
-  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule],
+  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule],
   providers: [
     UserService, TwilioService, JwtService,
     {

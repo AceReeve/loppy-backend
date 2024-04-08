@@ -16,12 +16,14 @@ import { SignInBy } from 'src/app/const';
 import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { EmailerService } from '@util/emailer/emailer';
+import { StripeEvent } from 'src/app/models/stripe/stripe.event.schema';
 
 export class UserRepository implements AbstractUserRepository {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
         @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
+        @InjectModel(StripeEvent.name) private stripeEventModel: Model<StripeEvent>,
         @Inject(REQUEST) private readonly request: Request,
         private readonly emailService: EmailerService,
 
@@ -59,5 +61,20 @@ export class UserRepository implements AbstractUserRepository {
             await this.emailService.inviteUser(email);
         }
 
+    }
+
+    async updateUserStripeId(
+        stripeId: string, userId: string
+    ): Promise<any> {
+        const stripeEvent = await this.stripeEventModel.findOne({ stripe_event_id: stripeId })
+        const stripeSubscription = await this.userInfoModel.findOneAndUpdate(
+            { user_id: new Types.ObjectId(userId) },
+            {
+                $set:
+                {
+                    stripe_id: stripeEvent._id
+                }
+            })
+        return stripeSubscription
     }
 }
