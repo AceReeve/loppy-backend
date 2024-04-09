@@ -11,16 +11,19 @@ import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { EmailerModule } from '@util/emailer/emailer';
 import { twilioSchemaModule } from 'src/app/models/twilio/twilio.schema.module';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
+import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
+import { AuthRepository } from 'src/app/repository/auth/auth.repository';
+
 @Global()
 @Module({
-  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule],
+  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule, InvitedUserSchemaModule],
   providers: [
     UserService, TwilioService, JwtService,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-
+    AuthRepository
   ],
   controllers: [TwilioController],
   exports: [TwilioService],

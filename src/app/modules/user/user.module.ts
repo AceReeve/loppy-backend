@@ -10,13 +10,16 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailerModule } from '@util/emailer/emailer';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 import { StripeModule } from '../api/api.module';
+import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
+import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 
 @Module({
     imports: [
         UserSchemaModule,
         RoleSchemaModule,
         EmailerModule,
-        StripeEventSchemaModule
+        StripeEventSchemaModule,
+        InvitedUserSchemaModule,
     ],
     controllers: [UserController],
     providers: [
@@ -28,7 +31,7 @@ import { StripeModule } from '../api/api.module';
             provide: AbstractUserService,
             useClass: UserService,
         },
-        JwtService, UserService
+        JwtService, UserService, AuthRepository
     ],
 
     exports: [UserSchemaModule],

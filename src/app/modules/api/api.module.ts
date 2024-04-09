@@ -14,20 +14,22 @@ import { RoleSchemaModule } from 'src/app/models/role/role.schema.module';
 import { JwtService } from '@nestjs/jwt';
 import { EmailerModule, EmailerService } from '@util/emailer/emailer';
 import { MailerModule, MailerService } from '@nestjs-modules/mailer';
+import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
+import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 @Module({
-  imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule],
+  imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule, InvitedUserSchemaModule],
   controllers: [StripeController],
   providers: [StripeService, StripeWebhookService, StripeEventRepository, UserService, JwtService,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
-    }, ],
+    }, AuthRepository],
 
-  exports: [StripeService, StripeWebhookService, StripeEventRepository, 
+  exports: [StripeService, StripeWebhookService, StripeEventRepository,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
-    },
+    }
   ],
 })
 export class StripeModule { }

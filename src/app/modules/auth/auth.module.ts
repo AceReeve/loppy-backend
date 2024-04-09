@@ -17,6 +17,7 @@ import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { OauthSchemaModule } from 'src/app/models/oauth/aouth.schema.module';
 import { EmailerModule } from '@util/emailer/emailer';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
+import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 @Module({
   imports: [
     ConfigModule,
@@ -28,7 +29,8 @@ import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.sche
     RoleSchemaModule,
     OauthSchemaModule,
     EmailerModule,
-    StripeEventSchemaModule
+    StripeEventSchemaModule,
+    InvitedUserSchemaModule
   ],
 
   controllers: [AuthController],
