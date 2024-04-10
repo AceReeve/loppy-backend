@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../../guard/http-jwt-auth.guard';
 import { JwtStrategy } from '../../strategy/oauth/jwt/jwt.strategy';
 
 import { EmailerModule } from '@util/emailer/emailer';
+import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
+import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 @Module({
   imports: [
     ConfigModule,
@@ -27,7 +29,9 @@ import { EmailerModule } from '@util/emailer/emailer';
     PassportModule.register({ defaultStrategy: 'facebook' }),
     RoleSchemaModule,
     OauthSchemaModule,
-    EmailerModule
+    EmailerModule,
+    StripeEventSchemaModule,
+    InvitedUserSchemaModule
   ],
 
   controllers: [AuthController],

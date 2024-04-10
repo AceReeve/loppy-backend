@@ -6,9 +6,10 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { EmailerModule } from '@util/emailer/emailer';
 import { JwtService } from '@nestjs/jwt';
 import { OauthRepository } from './oauth/oauth.repository';
+import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.module';
 
 @Module({
-  imports: [ModelModule, EmailerModule],
+  imports: [ModelModule, EmailerModule, StripeEventSchemaModule],
   controllers: [],
   // Inversion
   providers: [

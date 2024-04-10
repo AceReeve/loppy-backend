@@ -2,7 +2,7 @@ import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as _ from 'lodash';
-import { UserRegisterDTO, UserInfoDTO, InviteUserDTO } from 'src/app/dto/user';
+import { UserRegisterDTO, UserInfoDTO, InviteUserDTO, InvitedUserRegistrationDTO } from 'src/app/dto/user';
 import { AbstractUserService } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
@@ -44,5 +44,17 @@ export class UserService implements AbstractUserService {
     async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
 
         return await this.repository.inviteUser(inviteUserDTO);
+    }
+
+    async updateUserStripeId(
+        stripeId: string, userId: string
+    ): Promise<any> {
+        return this.repository.updateUserStripeId(stripeId, userId)
+    }
+
+    async invitedUserRegistration(
+        invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
+    ): Promise<any> {
+        return await this.repository.invitedUserRegistration(invitedUserRegistrationDTO);
     }
 }

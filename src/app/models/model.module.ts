@@ -5,6 +5,7 @@ import { PermissionSchemaModule } from './permission/permission.schema.module';
 import { UserSchemaModule } from './user/user.schema.module';
 import { RoleSchemaModule } from './role/role.schema.module';
 import { twilioSchemaModule } from './twilio/twilio.schema.module';
+import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { twilioSchemaModule } from './twilio/twilio.schema.module';
     DBEnvVarSchemaModule,
     UserSchemaModule,
     RoleSchemaModule,
-    twilioSchemaModule
+    twilioSchemaModule,
+    InvitedUserSchemaModule,
   ],
   providers: [],
   exports: [
@@ -22,7 +24,8 @@ import { twilioSchemaModule } from './twilio/twilio.schema.module';
     DBEnvVarSchemaModule,
     UserSchemaModule,
     RoleSchemaModule,
-    twilioSchemaModule
+    twilioSchemaModule,
+    InvitedUserSchemaModule,
   ],
 })
 export class ModelModule { }

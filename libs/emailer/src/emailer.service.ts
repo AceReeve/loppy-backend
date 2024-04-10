@@ -11,11 +11,15 @@ export class EmailerService {
 
   private readonly logger = new Logger(EmailerService.name);
 
-  async inviteUser(email: string): Promise<any> {
+  async inviteUser(email: string, access_token: string): Promise<any> {
+
+    const link = `https://example.com/invitation?token=${access_token}`;
+
     try {
       await this.mailerService.sendMail({
         to: email,
         subject: `You are invited testing`,
+        html: `Hello, <br><br> You are invited to join our platform. Please click on the link below to accept your invitation: <br><a href="${link}">Accept Invitation</a><br><br> If you did not request this invitation, please ignore this email.`,
       });
     } catch (error) {
       const errorMessage = 'Error Sending invite';

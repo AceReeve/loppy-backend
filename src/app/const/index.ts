@@ -7,3 +7,15 @@ export enum SignInBy {
 export enum TwilioClient {
   TWILIO_CLIENT = 'TWILIO_CLIENT',
 }
+
+export enum UserStatus {
+  PENDING = 'Pending',
+  ACTIVE = 'Active',
+  ACCEPTED = 'Accepted',
+}
+
+export enum UserRole {
+  OWNER = 'Owner',
+  User = 'User',
+  Admin = 'Admin'
+}
