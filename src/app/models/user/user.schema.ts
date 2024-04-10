@@ -21,6 +21,9 @@ export class User implements GenericSchema {
     @Prop()
     password: string;
 
+    @Prop()
+    verified_email?: boolean;
+
     @Prop({ default: 'ACTIVE' })
     status: string;
 

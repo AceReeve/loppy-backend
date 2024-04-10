@@ -6,7 +6,8 @@ import {
 import { GenericAbstractRepository } from 'src/app/interface/generic.abstract.repository';
 import { User } from 'src/app/models/user/user.schema';
 import {
-    UserRegisterDTO, UserInfoDTO, InviteUserDTO
+    UserRegisterDTO, UserInfoDTO, InviteUserDTO,
+    InvitedUserRegistrationDTO
 } from 'src/app/dto/user';
 
 export abstract class AbstractUserRepository {
@@ -17,6 +18,7 @@ export abstract class AbstractUserRepository {
     abstract updateUserStripeId(
         stripeId: string, userId: string
     ): Promise<any>;
+    abstract invitedUserRegistration(invitedUserRegistrationDTO: InvitedUserRegistrationDTO): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -30,6 +32,7 @@ export abstract class AbstractUserService {
     ): Promise<any>;
 
     abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+    abstract invitedUserRegistration(invitedUserRegistrationDTO: InvitedUserRegistrationDTO): Promise<any>;
 }
 export interface RegisterResponseData {
     _id: string;
