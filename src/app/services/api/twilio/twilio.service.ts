@@ -12,7 +12,6 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { NotFoundException } from '@nestjs/common/exceptions';
 
 @Injectable()
 export class TwilioService {
@@ -62,18 +61,13 @@ export class TwilioService {
   async getTwilioAccessToken() {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
-    let twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
-
-    if (!twilioInfo) {
-      throw new NotFoundException('No twilio account found');
-    }
 
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;
 
     // Used when generating any kind of tokens
     // To set up environmental variables, see http://twil.io/secure
-    const twilioAccountSid = twilioInfo.ssid;
+    const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
     const twilioApiKey = process.env.TWILIO_API_KEY_SID;
     const twilioApiSecret = process.env.TWILIO_API_KEY_SECRET;
 
