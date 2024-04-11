@@ -7,10 +7,7 @@ console.log(
   `Loaded environment: ${process.env.NODE_ENV} - ${process.env.MONGO_HOSTNAME}`,
 );
 
-const MONGO_URL =
-  process.env.MONGODB_URL || 'mongodb://localhost:27017/service-hero';
-
-console.log('MongoDB URI:', MONGO_URL); // Add this line for debugging
+const MONGO_URL = process.env.MONGODB_URL;
 
 export const getDb = async () => {
   const client: MongoClient = await MongoClient.connect(MONGO_URL, {
