@@ -50,17 +50,15 @@ export class TwilioService {
     if (twilioInfo) {
       throw new Error('Already have Twilio information for this user');
     }
-    const saveTwilio = await this.twilioModel.create({
+    return await this.twilioModel.create({
       user_id: new Types.ObjectId(userData._id),
       ssid: ssid,
       auth_token: auth_token,
       twilio_number: twilio_number,
     });
-    return saveTwilio;
   }
   async getTwilioAccessToken() {
     const user = this.request.user as Partial<User> & { sub: string };
-    const userData = await this.userModel.findOne({ email: user.email });
 
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;
