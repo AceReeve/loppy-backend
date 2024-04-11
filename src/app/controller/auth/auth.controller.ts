@@ -1,15 +1,28 @@
-import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Get,
+  SetMetadata,
+} from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserLoginDTO } from 'src/app/dto/user';
 import { LoginResponseData } from 'src/app/interface/user';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { HttpGoogleOAuthGuard } from '../../guard/http-google-oauth.guard';
+import { HttpUser } from '../../decorators/http-user.decorator';
+import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
+import { Public } from '../../decorators/public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   @ApiBody({ type: UserLoginDTO })
   @ApiResponse({
@@ -25,20 +38,25 @@ export class AuthController {
   }
 
   //google_auth_signin
+  @SetMetadata('google-login', true)
+  @UseGuards(HttpGoogleOAuthGuard)
   @Get('google')
-  @UseGuards(AuthGuard('google'))
-  googleAuth(@Req() req) { }
+  googleAuth(@Req() req) {
+    console.log('CALLED GOOGLE LOGIN', req);
+  }
 
+  @SetMetadata('google-login', true)
+  @UseGuards(HttpGoogleOAuthGuard)
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req) {
-    return req.user;
+  googleAuthRedirect(@HttpUser() user: GoogleLoginUserDto) {
+    console.log('CALLED CALLBACK');
+    return this.authService.googleLogin(user);
   }
 
   //facebook_auth_signin
   @Get('facebook')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLogin(): Promise<any> { }
+  async facebookLogin(): Promise<any> {}
 
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))

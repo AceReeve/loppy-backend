@@ -23,7 +23,9 @@ import { EmailNotificationModule } from './app/modules/email-notification/email.
     MongooseModule,
     DatabaseModule,
     AuthModule,
-    JwtModule,
+    JwtModule.register({
+      global: true,
+    }),
     StripeModule,
     RoleModule,
     TwilioModule,

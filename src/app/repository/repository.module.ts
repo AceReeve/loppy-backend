@@ -5,6 +5,7 @@ import { AbstractUserRepository } from 'src/app/interface/user';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { EmailerModule } from '@util/emailer/emailer';
 import { JwtService } from '@nestjs/jwt';
+import { OauthRepository } from './oauth/oauth.repository';
 import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.module';
 
 @Module({
@@ -16,7 +17,9 @@ import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.mo
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-    AuthRepository, JwtService
+    AuthRepository,
+    JwtService,
+    OauthRepository,
   ],
 
   exports: [
@@ -26,7 +29,7 @@ import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.mo
     },
     ModelModule,
     // UserRepository,
-    AuthRepository
+    AuthRepository,
   ],
 })
-export class RepositoryModule { }
+export class RepositoryModule {}
