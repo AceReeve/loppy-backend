@@ -13,6 +13,7 @@ import { twilioSchemaModule } from 'src/app/models/twilio/twilio.schema.module';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
+import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 
 @Global()
 @Module({
@@ -23,7 +24,7 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-    AuthRepository
+    AuthRepository, OauthRepository
   ],
   controllers: [TwilioController],
   exports: [TwilioService],

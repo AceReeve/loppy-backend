@@ -12,6 +12,7 @@ import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.sche
 import { StripeModule } from '../api/api.module';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
+import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 
 @Module({
     imports: [
@@ -31,7 +32,7 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
             provide: AbstractUserService,
             useClass: UserService,
         },
-        JwtService, UserService, AuthRepository
+        JwtService, UserService, AuthRepository, OauthRepository
     ],
 
     exports: [UserSchemaModule],

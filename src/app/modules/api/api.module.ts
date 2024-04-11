@@ -16,10 +16,11 @@ import { EmailerModule, EmailerService } from '@util/emailer/emailer';
 import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
+import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 @Module({
   imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule, InvitedUserSchemaModule],
   controllers: [StripeController],
-  providers: [StripeService, StripeWebhookService, StripeEventRepository, UserService, JwtService,
+  providers: [StripeService, StripeWebhookService, StripeEventRepository, UserService, JwtService, OauthRepository,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
