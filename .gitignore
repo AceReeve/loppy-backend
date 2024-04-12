@@ -41,6 +41,7 @@ package.json
 .env.development.local
 .env.test.local
 .env.production.local
+.env
 .env.local
 .env.production
 
