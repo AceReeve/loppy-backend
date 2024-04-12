@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   development-be:
+    container_name: servihero-backend
     image: development-version-1.0.0
     build:
       context: .
@@ -12,3 +13,11 @@ services:
       - .env
     volumes:
       - ./src:/usr/src/app/src
+    networks:
+      - frontend
+      - backend
+networks:
+  frontend:
+    external: false
+  backend:
+    external: false
