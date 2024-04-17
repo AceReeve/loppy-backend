@@ -14,6 +14,7 @@ import { RoleModule } from './app/modules/role/role.module';
 import { TwilioModule } from './app/modules/api/twilio/twilio.module';
 import { DashboardModule } from './app/modules/dashboard/dashboard.module';
 import { EmailNotificationModule } from './app/modules/email-notification/email.notification.module';
+import { FileUploadModule } from './app/modules/file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { EmailNotificationModule } from './app/modules/email-notification/email.
     RoleModule,
     TwilioModule,
     DashboardModule,
-    EmailNotificationModule
+    EmailNotificationModule,
+    FileUploadModule,
   ],
 
   providers: [

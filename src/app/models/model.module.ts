@@ -6,6 +6,7 @@ import { UserSchemaModule } from './user/user.schema.module';
 import { RoleSchemaModule } from './role/role.schema.module';
 import { twilioSchemaModule } from './twilio/twilio.schema.module';
 import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.module';
+import { FileUploadSchemaModule } from './contacts/contacts.schema.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.mo
     RoleSchemaModule,
     twilioSchemaModule,
     InvitedUserSchemaModule,
+    FileUploadSchemaModule,
   ],
   providers: [],
   exports: [
@@ -26,6 +28,7 @@ import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.mo
     RoleSchemaModule,
     twilioSchemaModule,
     InvitedUserSchemaModule,
+    FileUploadSchemaModule,
   ],
 })
-export class ModelModule { }
+export class ModelModule {}
