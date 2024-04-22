@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  BadRequestException,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common/exceptions';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { FilterQuery, Model, Types, UpdateQuery } from 'mongoose';
-import { Dashboard } from 'src/app/models/dashboard/dashboard.schema';
+import mongoose, { FilterQuery, Model, ObjectId, Types, UpdateQuery } from 'mongoose';
 
 import * as _ from 'lodash';
 import { StripeEvent } from 'src/app/models/stripe/stripe.event.schema';
@@ -47,6 +41,9 @@ export class StripeEventRepository {
     return stripeSubscription
   }
 
-
+  async findByUserStripeData(stripeId: ObjectId) {
+    const stripeInfo = await this.stripeEventModel.findOne({ _id: stripeId })
+    return stripeInfo;
+  }
 
 }
