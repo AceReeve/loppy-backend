@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { StripeDTO, StripePaymentIntentDTO, SummarizePaymentDTO } from 'src/app/dto/api/stripe';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
+import { Public } from 'src/app/decorators/public.decorator';
 
 @Injectable()
 export class StripeService {
@@ -44,7 +45,7 @@ export class StripeService {
           use_stripe_sdk: true,
           metadata: { userId: userId.toString() },
         });
-
+        console.log("asdasdassda", paymentIntent)
         if (paymentIntent.status)
           return {
             client_secret: paymentIntent.client_secret,

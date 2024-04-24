@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { StripeDTO } from 'src/app/dto/api/stripe';
 import { StripeEventRepository } from 'src/app/repository/stripe/stripe.event.repository';
 import { UserService } from '../../user/user.service';
+import { Public } from 'src/app/decorators/public.decorator';
 
 @Injectable()
 export class StripeWebhookService {
@@ -55,8 +56,17 @@ export class StripeWebhookService {
       subscriptionExpirationDate,
       subscriptionPlan);
 
-
     return this.userService.updateUserStripeId(event.id, userId);
+  }
+
+
+  async getUserStripeData(id: string
+  ): Promise<any> {
+
+    const userInfo = await this.userService.findByUserId(id);
+
+
+    return await this.repository.findByUserStripeData(userInfo.stripe_id);
   }
 
 }

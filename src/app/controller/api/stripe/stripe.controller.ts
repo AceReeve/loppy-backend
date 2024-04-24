@@ -5,7 +5,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, RawBodyRequest, Res } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, RawBodyRequest, Res, Get } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import {
   StripeDTO,
@@ -17,10 +17,18 @@ import Stripe from 'stripe';
 import { StripeWebhookService } from 'src/app/services/api/stripe/stripe.webhook.service';
 import { JwtAuthGuard } from 'src/app/guard/auth';
 import { Response, response } from 'express';
+import { Public } from 'src/app/decorators/public.decorator';
 
 @ApiTags('Payment')
 @Controller('payment')
 export class StripeController {
+  private stripeEventTypes: string[] =
+    [
+      "payment_intent.succeeded",
+      "payment_intent.processing",
+      "payment_intent.payment_failed"
+    ]
+
   constructor(private readonly stripeService: StripeService,
     private stripeWebhookService: StripeWebhookService) { }
 
@@ -63,7 +71,6 @@ export class StripeController {
         stripeDTO,
         userId,
       );
-
       return {
         success: true,
         paymentIntent
@@ -72,39 +79,47 @@ export class StripeController {
     catch (error) {
       return {
         success: false,
-        message: error.message,
+        message: error,
       };
     }
   }
 
-  @ApiBearerAuth('Bearer')
+  @Public()
   @Post('summarize-payment')
   @ApiOperation({ summary: 'summarize payment using confirmation token' })
   async summarizePayment(@Body() summarizePaymentDTO: SummarizePaymentDTO) {
     return await this.stripeService.summarizePayment(summarizePaymentDTO);
   }
 
+  @ApiBearerAuth('Bearer')
+  @Get('payment-status')
+  @ApiOperation({ summary: 'summarize payment using confirmation token' })
+  async getPaymentStatus(@Req() request) {
+    const userId = request.user.sub;
+    return await this.stripeWebhookService.getUserStripeData(userId);
+  }
 
+
+  @Public()
   @Post('webhook')
   async handleIncomingEvents(
     @Headers('stripe-signature') signature: string,
     @Req() request: RequestWithRawBody,
     @Res() response: Response
   ) {
-
     try {
       if (!signature) {
         throw new BadRequestException('Missing stripe-signature header');
       }
       const stripeEvent = this.stripeService.constructEventFromPayload(signature, request.rawBody);
 
-      if (stripeEvent.type === 'payment_intent.succeeded') {
-        const stripePayment = stripeEvent.data.object;
+      if (this.stripeEventTypes.includes(stripeEvent.type)) {
+        const stripePayment = stripeEvent.data.object as Stripe.PaymentIntent;
         const userId = stripePayment.metadata.userId;
-        return this.stripeWebhookService.processSubscriptionUpdate(stripeEvent, userId);
+        await this.stripeWebhookService.processSubscriptionUpdate(stripeEvent, userId);
       }
-      return response.status(200).end();
 
+      return response.status(201).json({ received: true }).end();
     } catch (error) {
       console.log("Error", error)
     }
