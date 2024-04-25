@@ -14,10 +14,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  AbstractFileUploadRepository,
-  Files,
-} from 'src/app/interface/file-upload';
+import { AbstractContactsRepository, Files } from 'src/app/interface/contacs';
 import {
   FileUpload,
   FileUploadDocument,
@@ -27,9 +24,14 @@ import { REQUEST } from '@nestjs/core';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { S3Service } from 'src/app/services/s3/s3.service';
+import { ContactsDTO } from 'src/app/dto/contacts';
+import {
+  Contacts,
+  ContactsDocument,
+} from 'src/app/models/contacts/contacts.schema';
 
 @Injectable()
-export class FileUploadRepository implements AbstractFileUploadRepository {
+export class ContactsRepository implements AbstractContactsRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(FileUpload.name)
@@ -37,6 +39,8 @@ export class FileUploadRepository implements AbstractFileUploadRepository {
     @Inject(REQUEST) private readonly request: Request,
     private configService: ConfigService,
     private readonly s3: S3Service,
+    @InjectModel(Contacts.name)
+    private contactsModel: Model<ContactsDocument>,
   ) {}
 
   async fileUpload(files: Files): Promise<any | null> {
@@ -88,7 +92,7 @@ export class FileUploadRepository implements AbstractFileUploadRepository {
           'Unable to upload document to S3 Bucket',
         );
 
-      const fileUpload = await this.fileUploadModel.create({  
+      const fileUpload = await this.fileUploadModel.create({
         original_filename: originalname,
         extension: originalname.split('.')[1],
         name: fieldname,
@@ -119,5 +123,20 @@ export class FileUploadRepository implements AbstractFileUploadRepository {
     ('http://localhost:3000' as string);
   private getDomainHost(): string {
     return `${this.host}/api/servicehero/files`;
+  }
+  async createContacts(contactsDTO: ContactsDTO): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    return await this.contactsModel.create({
+      user_id: userData._id,
+      first_name: contactsDTO.first_name,
+      last_name: contactsDTO.last_name,
+      email: contactsDTO.email,
+      phone_number: contactsDTO.phone_number,
+      source: contactsDTO.source,
+      lifetime_value: contactsDTO.lifetime_value,
+      last_campaign_ran: contactsDTO.last_campaign_ran,
+      last_interaction: contactsDTO.last_interaction,
+    });
   }
 }

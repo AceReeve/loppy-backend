@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { FileUpload, FileUploadSchema } from './contacts.schema';
+import { Contacts, ContactsSchema } from './contacts.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: FileUpload.name, schema: FileUploadSchema },
+      { name: Contacts.name, schema: ContactsSchema },
     ]),
   ],
   exports: [MongooseModule],
 })
-export class FileUploadSchemaModule {}
+export class ContactsSchemaModule {}

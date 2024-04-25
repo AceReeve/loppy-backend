@@ -21,17 +21,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/app/guard/auth';
-import {
-  AbstractFileUploadService,
-  Files,
-} from 'src/app/interface/file-upload';
+import { AbstractContactsService, Files } from 'src/app/interface/contacs';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
+import { ContactsDTO } from 'src/app/dto/contacts';
 
-@ApiTags('Non Catalog Line Item')
-@Controller('non-catalog-line-item')
-export class FileUploadController {
+@ApiTags('Contacts')
+@Controller('Contacts')
+export class ContactsController {
   constructor(
-    private readonly abstractFileUploadService: AbstractFileUploadService,
+    private readonly abstractContactsService: AbstractContactsService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -65,6 +63,16 @@ export class FileUploadController {
   async updateNonCatalogLineItemImageUpload(
     @UploadedFiles(FileUploadPipe) files: Files,
   ) {
-    return await this.abstractFileUploadService.fileUpload(files);
+    return await this.abstractContactsService.fileUpload(files);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @ApiOperation({
+    summary: 'Create Contacts',
+  })
+  @ApiBearerAuth('Bearer')
+  async createContacts(@Body() contactsDTO: ContactsDTO) {
+    return await this.abstractContactsService.createContacts(contactsDTO);
   }
 }
