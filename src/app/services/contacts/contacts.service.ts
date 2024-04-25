@@ -4,7 +4,7 @@ import {
   AbstractContactsRepository,
   AbstractContactsService,
   Files,
-} from 'src/app/interface/contacs';
+} from 'src/app/interface/contacts';
 
 @Injectable()
 export class ContactsService implements AbstractContactsService {
@@ -18,5 +18,9 @@ export class ContactsService implements AbstractContactsService {
 
   async createContacts(contactsDTO: ContactsDTO): Promise<any> {
     return this.abstractContactsRepository.createContacts(contactsDTO);
+  }
+
+  async importContacts(filePath: string): Promise<any> {
+    return this.abstractContactsRepository.importContacts(filePath);
   }
 }

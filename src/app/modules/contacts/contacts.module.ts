@@ -3,7 +3,7 @@ import { ContactsController } from 'src/app/controller/contacs/contacs.controlle
 import {
   AbstractContactsRepository,
   AbstractContactsService,
-} from 'src/app/interface/contacs';
+} from 'src/app/interface/contacts';
 import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
 import { UserSchemaModule } from 'src/app/models/user/user.schema.module';
 import { ContactsRepository } from 'src/app/repository/contacts/contacts.repository';

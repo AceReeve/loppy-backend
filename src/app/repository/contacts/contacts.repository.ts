@@ -14,7 +14,11 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { AbstractContactsRepository, Files } from 'src/app/interface/contacs';
+import {
+  AbstractContactsRepository,
+  Files,
+  ExcelContactData,
+} from 'src/app/interface/contacts';
 import {
   FileUpload,
   FileUploadDocument,
@@ -29,7 +33,7 @@ import {
   Contacts,
   ContactsDocument,
 } from 'src/app/models/contacts/contacts.schema';
-
+import * as XLSX from 'xlsx';
 @Injectable()
 export class ContactsRepository implements AbstractContactsRepository {
   constructor(
@@ -138,5 +142,38 @@ export class ContactsRepository implements AbstractContactsRepository {
       last_campaign_ran: contactsDTO.last_campaign_ran,
       last_interaction: contactsDTO.last_interaction,
     });
+  }
+
+  async importContacts(filePath: string): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    // Read the Excel file
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data: ExcelContactData[] = XLSX.utils.sheet_to_json(sheet);
+
+    // Process each row
+    for (const item of data) {
+      const contact = new this.contactsModel({
+        user_id: userData._id,
+        first_name: item.first_name,
+        last_name: item.last_name,
+        email: item.email,
+        phone_number: item.phone_number,
+        source: item.source,
+        lifetime_value: item.lifetime_value,
+        last_campaign_ran: item.last_campaign_ran,
+        last_interaction: new Date(item.last_interaction),
+      });
+
+      try {
+        // Save the contact
+        await contact.save();
+      } catch (error) {
+        // Handle duplicate emails or other errors
+        console.error('Failed to import contact:', error);
+      }
+    }
   }
 }

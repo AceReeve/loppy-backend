@@ -23,7 +23,7 @@ export class Contacts implements GenericSchema {
   @Prop()
   last_name: string;
 
-  @Prop({ unique: true })
+  @Prop()
   email: string;
 
   @Prop()

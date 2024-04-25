@@ -10,6 +10,7 @@ import {
   Body,
   UseInterceptors,
   UploadedFiles,
+  UploadedFile,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -21,10 +22,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/app/guard/auth';
-import { AbstractContactsService, Files } from 'src/app/interface/contacs';
+import { AbstractContactsService, Files } from 'src/app/interface/contacts';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
 import { ContactsDTO } from 'src/app/dto/contacts';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 @ApiTags('Contacts')
 @Controller('Contacts')
 export class ContactsController {
@@ -74,5 +77,42 @@ export class ContactsController {
   @ApiBearerAuth('Bearer')
   async createContacts(@Body() contactsDTO: ContactsDTO) {
     return await this.abstractContactsService.createContacts(contactsDTO);
+  }
+
+  // @Post('import')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async importContacts(@UploadedFile() file: Express.Multer.File) {
+  //   console.log(file); // This should now include a path property
+  //   if (!file) {
+  //     return { message: 'No file uploaded' };
+  //   }
+  //   console.log('File path:', file.path);
+  //   await this.abstractContactsService.importContacts(file.path);
+  //   return { message: 'Contacts imported successfully' };
+  // }
+
+  @Post('import')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination:
+          'C:/serviceherorepository/BE/serviceherocrm-backend/uploads',
+        filename: (req, file, cb) => {
+          const filename: string =
+            file.originalname.replace(/\s+/g, '') +
+            '-' +
+            Date.now() +
+            extname(file.originalname);
+          cb(null, filename);
+        },
+      }),
+    }),
+  )
+  async importContacts(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      return { message: 'No file uploaded' };
+    }
+    await this.abstractContactsService.importContacts(file.path);
+    return { message: 'Contacts imported successfully' };
   }
 }
