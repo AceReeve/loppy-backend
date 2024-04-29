@@ -15,26 +15,39 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 
 @Module({
-    imports: [
-        UserSchemaModule,
-        RoleSchemaModule,
-        EmailerModule,
-        StripeEventSchemaModule,
-        InvitedUserSchemaModule,
-    ],
-    controllers: [UserController],
-    providers: [
-        {
-            provide: AbstractUserRepository,
-            useClass: UserRepository,
-        },
-        {
-            provide: AbstractUserService,
-            useClass: UserService,
-        },
-        JwtService, UserService, AuthRepository, OauthRepository
-    ],
+  imports: [
+    UserSchemaModule,
+    RoleSchemaModule,
+    EmailerModule,
+    StripeEventSchemaModule,
+    InvitedUserSchemaModule,
+  ],
+  controllers: [UserController],
+  providers: [
+    {
+      provide: AbstractUserRepository,
+      useClass: UserRepository,
+    },
+    {
+      provide: AbstractUserService,
+      useClass: UserService,
+    },
+    JwtService,
+    UserService,
+    AuthRepository,
+    OauthRepository,
+  ],
 
-    exports: [UserSchemaModule],
+  exports: [
+    UserSchemaModule,
+    {
+      provide: AbstractUserRepository,
+      useClass: UserRepository,
+    },
+    {
+      provide: AbstractUserService,
+      useClass: UserService,
+    },
+  ],
 })
-export class UserModule { }
+export class UserModule {}
