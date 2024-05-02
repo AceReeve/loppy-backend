@@ -22,6 +22,12 @@ import {
 import { Schema } from 'mongoose';
 import { CommonFilter } from '..';
 
+export class TagsDTO {
+  @ApiProperty({ example: 'ChatGPT Subscription' })
+  @IsString()
+  @IsNotEmpty()
+  tag_name: string;
+}
 export class ContactsDTO {
   @ApiProperty({ example: 'juan' })
   @IsString()
@@ -63,4 +69,9 @@ export class ContactsDTO {
   @IsDateString()
   @IsNotEmpty()
   last_interaction: Date;
+
+  @ApiProperty({ type: [TagsDTO] })
+  @IsArray()
+  @IsOptional()
+  tags?: TagsDTO[];
 }

@@ -1,8 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Model, Schema as MongooseSchema } from 'mongoose';
+import { Document, Model, Schema as MongooseSchema, ObjectId } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
 export type ContactsDocument = Contacts & Document;
 
+@Schema()
+export class Tags {
+  @Prop()
+  tag_name: string;
+}
 @Schema({
   versionKey: false,
   collection: 'contacts',
@@ -40,6 +45,9 @@ export class Contacts implements GenericSchema {
 
   @Prop()
   last_interaction: Date;
+
+  @Prop({ type: [Tags] })
+  tags?: Tags[];
 }
 
 export const ContactsSchema = SchemaFactory.createForClass(Contacts);

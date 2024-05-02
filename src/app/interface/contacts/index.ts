@@ -4,11 +4,29 @@ export abstract class AbstractContactsService {
   abstract fileUpload(files: Files): Promise<any>;
   abstract createContacts(contactsDTO: ContactsDTO): Promise<any>;
   abstract importContacts(filePath: string): Promise<any>;
+  abstract getAllContacts(
+    searchKey?: string,
+    status?: string,
+    skip?: number,
+    limit?: number,
+    sort_dir?: string,
+    tags?: string,
+  ): Promise<any>;
+  abstract getContactByID(id: string): Promise<any>;
 }
 export abstract class AbstractContactsRepository {
   abstract fileUpload(files: Files): Promise<any>;
   abstract createContacts(contactsDTO: ContactsDTO): Promise<any>;
   abstract importContacts(filePath: string): Promise<any>;
+  abstract getAllContacts(
+    searchKey?: string,
+    status?: string,
+    skip?: number,
+    limit?: number,
+    sort_dir?: string,
+    tags?: string,
+  ): Promise<any>;
+  abstract getContactByID(id: string): Promise<any>;
 }
 interface File {
   path: string;
@@ -36,4 +54,5 @@ export interface ExcelContactData {
   lifetime_value: number;
   last_campaign_ran: string;
   last_interaction: string;
+  tags: string;
 }
