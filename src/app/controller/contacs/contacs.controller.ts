@@ -26,7 +26,7 @@ import {
 import { JwtAuthGuard } from 'src/app/guard/auth';
 import { AbstractContactsService, Files } from 'src/app/interface/contacts';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
-import { ContactsDTO } from 'src/app/dto/contacts';
+import { ContactsDTO, FilterTags } from 'src/app/dto/contacts';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -82,7 +82,7 @@ export class ContactsController {
   }
 
   // @Post('import')
-  // @UseInterceptors(FileInterceptor('file'))
+  // @UseInterceptors(FileInterceptor('file'))f
   // async importContacts(@UploadedFile() file: Express.Multer.File) {
   //   console.log(file); // This should now include a path property
   //   if (!file) {
@@ -142,18 +142,15 @@ export class ContactsController {
     name: 'sort_dir',
     required: false,
   } as ApiQueryOptions)
-  @ApiQuery({
-    name: 'tags',
-    required: false,
-  } as ApiQueryOptions)
   async getAll(
     @Query('search_key') searchKey?: string,
     @Query('status') status?: string,
     @Query('skip') skip?: number,
     @Query('limit') limit?: number,
     @Query('sort_dir') sort_dir?: string,
-    @Query('tags') tags?: string,
+    @Query() query?: FilterTags,
   ): Promise<any> {
+    const tags = query.tag;
     return await this.abstractContactsService.getAllContacts(
       searchKey,
       status,

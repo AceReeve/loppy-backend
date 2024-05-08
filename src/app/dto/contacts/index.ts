@@ -21,7 +21,7 @@ import {
 } from 'class-validator';
 import { Schema } from 'mongoose';
 import { CommonFilter } from '..';
-
+import { IsStringOrArray } from 'src/app/validator/single-array.validator';
 export class TagsDTO {
   @ApiProperty({ example: 'ChatGPT Subscription' })
   @IsString()
@@ -74,4 +74,18 @@ export class ContactsDTO {
   @IsArray()
   @IsOptional()
   tags?: TagsDTO[];
+}
+
+export class FilterTags {
+  @ApiPropertyOptional({
+    example: 'tag1 or ["tag2", "tag3"]',
+    description: 'Single or multiple tags for filtering',
+    type: 'string',
+    isArray: true,
+  })
+  @IsStringOrArray({
+    message: 'tags must be a single string or an array of strings',
+  })
+  @IsOptional()
+  tag?: string | string[];
 }

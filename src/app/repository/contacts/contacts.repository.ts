@@ -184,7 +184,7 @@ export class ContactsRepository implements AbstractContactsRepository {
     skip: number = 0,
     limit: number = 10,
     sort_dir: string = 'desc',
-    tags?: string,
+    tags?: string | string[],
     sort_field: string = 'created_at',
   ): Promise<{
     data: any[];
@@ -228,8 +228,14 @@ export class ContactsRepository implements AbstractContactsRepository {
     if (status) {
       query.status = status;
     }
+    // if (tags) {
+    //   const tagsArray = tags.split(',').map((tag) => tag.trim());
+    //   query['tags.tag_name'] = { $in: tagsArray };
+    // }
+
     if (tags) {
-      const tagsArray = tags.split(',').map((tag) => tag.trim());
+      const filter_tag = typeof tags === 'string' ? [tags] : tags;
+      const tagsArray = filter_tag.map((tag: string) => tag.trim());
       query['tags.tag_name'] = { $in: tagsArray };
     }
     const data = await this.contactsModel

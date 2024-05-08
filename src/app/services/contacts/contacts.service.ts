@@ -32,7 +32,7 @@ export class ContactsService implements AbstractContactsService {
     skip = 1,
     limit = 10,
     sort_dir?: string,
-    tags?: string,
+    tags?: string | string[],
   ): Promise<PaginateResponse<ContactsDocument>> {
     return await this.abstractContactsRepository.getAllContacts(
       searchKey,

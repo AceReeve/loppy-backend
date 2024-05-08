@@ -10,7 +10,7 @@ export abstract class AbstractContactsService {
     skip?: number,
     limit?: number,
     sort_dir?: string,
-    tags?: string,
+    tags?: string | string[],
   ): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
 }
@@ -24,7 +24,7 @@ export abstract class AbstractContactsRepository {
     skip?: number,
     limit?: number,
     sort_dir?: string,
-    tags?: string,
+    tags?: string | string[],
   ): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
 }

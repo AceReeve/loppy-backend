@@ -24,20 +24,25 @@ export class AuthRepository {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
   async validateUser(email: string, password: string): Promise<User | null> {
-    try {
-      let user: User | any;
-      user = await this.userModel.findOne({ email: email });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        throw new BadRequestException('Incorrect Password');
-      }
-      return user;
-    } catch (error) {
-      throw new BadRequestException('Incorrect Email or Password');
+    let user: User | any;
+    user = await this.userModel.findOne({ email: email });
+    if (!user) {
+      throw new NotFoundException('Incorrect email');
     }
+    if (user.login_by === SignInBy.SIGN_IN_BY_GOOGLE) {
+      throw new BadRequestException(
+        'Oops! It looks like you already have an account registered with Google Sign-In. Please log in using the Google button to continue',
+      );
+    } else if (user.login_by === SignInBy.SIGN_IN_BY_FACEBOOK) {
+      throw new BadRequestException(
+        'Oops! It looks like you already have an account registered with Facebook Sign-In. Please log in using the Facebook button to continue',
+      );
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      throw new BadRequestException('Incorrect Password');
+    }
+    return user;
   }
   generateJWT(payload: object, exp: string): string {
     return this.jwtService.sign(payload, {
@@ -46,23 +51,19 @@ export class AuthRepository {
     });
   }
   async login(userLoginDTO: UserLoginDTO) {
-    try {
-      let user: User | any;
-      user = await this.validateUser(userLoginDTO.email, userLoginDTO.password);
-      const { _id, first_name, last_name, email, status } = user;
-      const payload = { email: user.email, sub: user._id };
-      const access_token = this.generateJWT(
-        payload,
-        this.configService.get<string>('JWT_EXPIRATION'),
-      );
-      await this.userModel.findOneAndUpdate(
-        { email: email },
-        { $inc: { login_count: 1 } },
-      );
-      return { _id, first_name, last_name, email, status, access_token };
-    } catch (error) {
-      throw new BadRequestException('Incorrect Email or Password');
-    }
+    let user: User | any;
+    user = await this.validateUser(userLoginDTO.email, userLoginDTO.password);
+    const { _id, first_name, last_name, email, status } = user;
+    const payload = { email: user.email, sub: user._id };
+    const access_token = this.generateJWT(
+      payload,
+      this.configService.get<string>('JWT_EXPIRATION'),
+    );
+    await this.userModel.findOneAndUpdate(
+      { email: email },
+      { $inc: { login_count: 1 } },
+    );
+    return { _id, first_name, last_name, email, status, access_token };
   }
 
   async googleLogin(user: GoogleLoginUserDto) {
@@ -75,9 +76,6 @@ export class AuthRepository {
       user,
       SignInBy.SIGN_IN_BY_GOOGLE,
     );
-
-    console.log('userData', userData);
-
     const access_token = await this.signJwt(
       userData.id,
       id_token,
@@ -100,7 +98,6 @@ export class AuthRepository {
       access_token,
       expires_at,
     };
-    console.log('signJwt', payload);
     return this.jwtService.signAsync(payload, {
       expiresIn,
       secret: this.configService.get('JWT_SECRET'),
