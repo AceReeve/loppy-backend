@@ -41,3 +41,10 @@ export interface PaginateResponse<T> {
   data: T[];
   meta: Meta;
 }
+
+export interface IPaginationMeta {
+  total: number;
+  limit: number;
+  page: number;
+  pages: number;
+}

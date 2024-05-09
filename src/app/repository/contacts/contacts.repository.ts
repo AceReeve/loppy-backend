@@ -2,6 +2,7 @@ import mongoose, {
   Error,
   FilterQuery,
   Model,
+  Mongoose,
   Types,
   UpdateQuery,
 } from 'mongoose';
@@ -34,6 +35,7 @@ import {
   ContactsDocument,
 } from 'src/app/models/contacts/contacts.schema';
 import * as XLSX from 'xlsx';
+import { IPaginationMeta } from 'src/app/interface';
 @Injectable()
 export class ContactsRepository implements AbstractContactsRepository {
   constructor(
@@ -141,6 +143,7 @@ export class ContactsRepository implements AbstractContactsRepository {
       lifetime_value: contactsDTO.lifetime_value,
       last_campaign_ran: contactsDTO.last_campaign_ran,
       last_interaction: contactsDTO.last_interaction,
+      tags: contactsDTO.tags,
     });
   }
 
@@ -168,12 +171,97 @@ export class ContactsRepository implements AbstractContactsRepository {
       });
 
       try {
-        // Save the contact
         await contact.save();
       } catch (error) {
-        // Handle duplicate emails or other errors
-        console.error('Failed to import contact:', error);
+        throw new BadRequestException('Failed to import contact');
       }
     }
+  }
+
+  async getAllContacts(
+    searchKey?: string,
+    status?: string,
+    skip: number = 0,
+    limit: number = 10,
+    sort_dir: string = 'desc',
+    tags?: string | string[],
+    sort_field: string = 'created_at',
+  ): Promise<{
+    data: any[];
+    meta: IPaginationMeta;
+  }> {
+    limit = Number(limit);
+    skip = Number(skip);
+
+    const sortDir: number = sort_dir === 'desc' ? -1 : 1;
+    const sort = {
+      [sort_field]: sortDir,
+    } as Record<string, 1 | -1>;
+
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    const userId = userData._id;
+    if (!userId) throw new BadRequestException('Invalid user id');
+
+    let query: Record<string, any> = { user_id: userId };
+
+    if (searchKey) {
+      const regex = new RegExp(searchKey, 'i'); // Common regex for string fields
+      let numericSearchKey = Number(searchKey); // Convert searchKey to number
+      let searchKeyIsNumeric = !isNaN(numericSearchKey); // Check if conversion is valid
+
+      query.$or = [
+        { first_name: regex },
+        { last_name: regex },
+        { email: regex },
+        { source: regex },
+        { last_campaign_ran: regex },
+      ];
+
+      if (searchKeyIsNumeric) {
+        // Use numericSearchKey for numeric fields
+        query.$or.push({ phone_number: numericSearchKey });
+        query.$or.push({ lifetime_value: numericSearchKey });
+      }
+    }
+
+    if (status) {
+      query.status = status;
+    }
+    // if (tags) {
+    //   const tagsArray = tags.split(',').map((tag) => tag.trim());
+    //   query['tags.tag_name'] = { $in: tagsArray };
+    // }
+
+    if (tags) {
+      const filter_tag = typeof tags === 'string' ? [tags] : tags;
+      const tagsArray = filter_tag.map((tag: string) => tag.trim());
+      query['tags.tag_name'] = { $in: tagsArray };
+    }
+    const data = await this.contactsModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort);
+    const totalCount = await this.contactsModel.countDocuments(query);
+
+    const meta: IPaginationMeta = {
+      total: totalCount,
+      limit: limit,
+      page: skip / limit + 1,
+      pages: Math.ceil(totalCount / limit),
+    };
+
+    return { data, meta };
+  }
+
+  async getContactByID(id: string): Promise<any> {
+    const contactDetails = await this.contactsModel.findById({
+      _id: new Types.ObjectId(id),
+    });
+    if (!contactDetails) {
+      throw new BadRequestException('Contact not found');
+    }
+    return contactDetails;
   }
 }

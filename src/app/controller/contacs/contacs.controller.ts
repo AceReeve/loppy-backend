@@ -20,11 +20,13 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiQuery,
+  ApiQueryOptions,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/app/guard/auth';
 import { AbstractContactsService, Files } from 'src/app/interface/contacts';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
-import { ContactsDTO } from 'src/app/dto/contacts';
+import { ContactsDTO, FilterTags } from 'src/app/dto/contacts';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -80,7 +82,7 @@ export class ContactsController {
   }
 
   // @Post('import')
-  // @UseInterceptors(FileInterceptor('file'))
+  // @UseInterceptors(FileInterceptor('file'))f
   // async importContacts(@UploadedFile() file: Express.Multer.File) {
   //   console.log(file); // This should now include a path property
   //   if (!file) {
@@ -114,5 +116,56 @@ export class ContactsController {
     }
     await this.abstractContactsService.importContacts(file.path);
     return { message: 'Contacts imported successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('get-all')
+  @ApiOperation({ summary: 'Filter All Contacts' })
+  @ApiBearerAuth('Bearer')
+  @ApiQuery({
+    name: 'search_key',
+    required: false,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'status',
+    required: false,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'skip',
+    required: false,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'sort_dir',
+    required: false,
+  } as ApiQueryOptions)
+  async getAll(
+    @Query('search_key') searchKey?: string,
+    @Query('status') status?: string,
+    @Query('skip') skip?: number,
+    @Query('limit') limit?: number,
+    @Query('sort_dir') sort_dir?: string,
+    @Query() query?: FilterTags,
+  ): Promise<any> {
+    const tags = query.tag;
+    return await this.abstractContactsService.getAllContacts(
+      searchKey,
+      status,
+      skip,
+      limit,
+      sort_dir,
+      tags,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/:id')
+  @ApiOperation({ summary: 'Get Contact By ID' })
+  @ApiBearerAuth('Bearer')
+  async getContactByID(@Param('id') id: string): Promise<any> {
+    return await this.abstractContactsService.getContactByID(id);
   }
 }
