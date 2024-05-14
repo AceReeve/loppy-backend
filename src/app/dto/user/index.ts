@@ -34,6 +34,28 @@ export class UserLoginDTO {
   @IsNotEmpty()
   password: string;
 }
+export class GoogleSaveDTO {
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  first_name: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  last_name: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  picture: string;
+}
 export class UserInfoDTO {
   // @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
   // @IsString()
@@ -47,18 +69,24 @@ export class UserInfoDTO {
 
   @ApiProperty({ example: 'Juan' })
   @IsString()
-  @MaxLength(256, { message: 'First name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'First name is too long (maximum 256 characters)',
+  })
   first_name: string;
 
   @ApiProperty({ example: 'Omega' })
   @IsString()
   @IsOptional()
-  @MaxLength(256, { message: 'Middle name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'Middle name is too long (maximum 256 characters)',
+  })
   middle_name?: string;
 
   @ApiProperty({ example: 'Dela Cruz' })
   @IsString()
-  @MaxLength(256, { message: 'Last First name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'Last First name is too long (maximum 256 characters)',
+  })
   last_name?: string;
 
   @ApiProperty({ example: 'address' })
@@ -140,7 +168,6 @@ export class InviteUserDTO {
 }
 
 export class InvitedUserRegistrationDTO {
-
   @ApiProperty({ example: 'Password123!' })
   @IsString()
   @IsNotEmpty()
@@ -175,18 +202,24 @@ export class InvitedUserRegistrationDTO {
 
   @ApiProperty({ example: 'Juan' })
   @IsString()
-  @MaxLength(256, { message: 'First name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'First name is too long (maximum 256 characters)',
+  })
   first_name: string;
 
   @ApiProperty({ example: 'Omega' })
   @IsString()
   @IsOptional()
-  @MaxLength(256, { message: 'Middle name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'Middle name is too long (maximum 256 characters)',
+  })
   middle_name?: string;
 
   @ApiProperty({ example: 'Dela Cruz' })
   @IsString()
-  @MaxLength(256, { message: 'Last First name is too long (maximum 256 characters)' })
+  @MaxLength(256, {
+    message: 'Last First name is too long (maximum 256 characters)',
+  })
   last_name?: string;
 
   @ApiProperty({ example: 'address' })

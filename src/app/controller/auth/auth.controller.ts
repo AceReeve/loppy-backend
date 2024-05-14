@@ -8,7 +8,7 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserLoginDTO } from 'src/app/dto/user';
+import { GoogleSaveDTO, UserLoginDTO } from 'src/app/dto/user';
 import { LoginResponseData } from 'src/app/interface/user';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -62,5 +62,20 @@ export class AuthController {
   @UseGuards(AuthGuard('facebook'))
   async facebookLoginCallback(@Req() req): Promise<any> {
     return req.user;
+  }
+
+  @Public()
+  @Post('google-save')
+  @ApiBody({ type: GoogleSaveDTO })
+  @ApiResponse({
+    status: 201,
+    description: 'save successful',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'An internal error occured',
+  })
+  async googleSave(@Body() googleSaveDTO: GoogleSaveDTO): Promise<any> {
+    return this.authService.googleSave(googleSaveDTO);
   }
 }

@@ -7,13 +7,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
+import {
+  UserInfo,
+  UserInfoDocument,
+} from 'src/app/models/user/user-info.schema';
 import * as bcrypt from 'bcrypt';
-import { UserLoginDTO } from '../../dto/user';
+import { GoogleSaveDTO, UserLoginDTO } from '../../dto/user';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 import { OauthRepository } from '../oauth/oauth.repository';
 import { SignInBy } from '../../const';
+import { Email } from 'src/app/models/invited-users/invited-users.schema';
 
 @Injectable()
 export class AuthRepository {
@@ -22,6 +27,7 @@ export class AuthRepository {
     private configService: ConfigService,
     protected readonly oauthRepository: OauthRepository,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
   ) {}
   async validateUser(email: string, password: string): Promise<User | null> {
     let user: User | any;
@@ -83,6 +89,32 @@ export class AuthRepository {
       expires_in,
     );
     return { access_token };
+  }
+
+  async googleSave(googleSaveDTO: GoogleSaveDTO) {
+    const data = await this.userModel.findOne({ email: googleSaveDTO.email });
+
+    if (data) {
+      const userData = await this.userModel.findOneAndUpdate(
+        { email: data.email },
+        { $inc: { login_count: 1 } },
+      );
+      return { userData };
+    } else {
+      const userData = await this.userModel.create({
+        email: googleSaveDTO.email,
+        login_by: SignInBy.SIGN_IN_BY_GOOGLE,
+        login_count: 1,
+      });
+      const userInfo = await this.userInfoModel.create({
+        user_id: userData._id,
+        first_name: googleSaveDTO.email,
+        last_name: googleSaveDTO.last_name,
+        picture: googleSaveDTO.picture,
+      });
+
+      return { userData, userInfo };
+    }
   }
 
   signJwt(
