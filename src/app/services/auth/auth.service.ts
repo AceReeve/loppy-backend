@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { LoginResponseData } from 'src/app/interface/user';
-import { UserLoginDTO } from 'src/app/dto/user/index';
+import { GoogleSaveDTO, UserLoginDTO } from 'src/app/dto/user/index';
 import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 
 @Injectable()
@@ -14,5 +14,9 @@ export class AuthService {
 
   async googleLogin(user: GoogleLoginUserDto) {
     return await this.authRepository.googleLogin(user);
+  }
+
+  async googleSave(googleSaveDTO: GoogleSaveDTO): Promise<any> {
+    return await this.authRepository.googleSave(googleSaveDTO);
   }
 }
