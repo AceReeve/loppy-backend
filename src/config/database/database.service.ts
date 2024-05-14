@@ -12,9 +12,24 @@ export class DatabaseConnection implements MongooseOptionsFactory {
   constructor(private configService: ConfigService) {}
 
   createMongooseOptions(): MongooseModuleOptions {
-    return {
-      uri: this.configService.get<string>('MONGODB_URL'),
-    };
+    if (process.env.NODE_ENV === 'local') {
+      return {
+        uri: this.configService.get<string>('MONGODB_URL'),
+      };
+    } else if (process.env.NODE_ENV === 'dev') {
+      const hostname = process.env.MONGO_HOSTNAME;
+      const username = process.env.MONGO_USERNAME;
+      const password = process.env.MONGO_PASSWORD;
+      const dbName = process.env.MONGO_DB_NAME;
+      const clustername = process.env.MONGO_CLUSTER_NAME;
+      console.log(
+        'uri',
+        `${hostname}://${username}:${password}@${dbName}?retryWrites=true&w=majority&appName=${clustername}`,
+      );
+      return {
+        uri: `${hostname}://${username}:${password}@${dbName}?retryWrites=true&w=majority&appName=${clustername}`,
+      };
+    }
   }
   async onModuleInit() {
     try {
@@ -24,6 +39,7 @@ export class DatabaseConnection implements MongooseOptionsFactory {
     }
   }
   private async connectToDatabase() {
+    console.log('uri', this.createMongooseOptions().uri);
     const option = this.createMongooseOptions().uri;
     await mongoose.connect(option);
     this.logger.log('Connected to MongoDB database...');
