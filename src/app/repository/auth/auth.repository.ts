@@ -99,7 +99,13 @@ export class AuthRepository {
         { email: data.email },
         { $inc: { login_count: 1 } },
       );
-      return { userData };
+      const payload = { email: userData.email, sub: userData._id };
+      const access_token = this.generateJWT(
+        payload,
+        this.configService.get<string>('JWT_EXPIRATION'),
+      );
+
+      return { userData, access_token };
     } else {
       const userData = await this.userModel.create({
         email: googleSaveDTO.email,
@@ -113,7 +119,12 @@ export class AuthRepository {
         picture: googleSaveDTO.picture,
       });
 
-      return { userData, userInfo };
+      const payload = { email: userData.email, sub: userData._id };
+      const access_token = this.generateJWT(
+        payload,
+        this.configService.get<string>('JWT_EXPIRATION'),
+      );
+      return { userData, userInfo, access_token };
     }
   }
 
