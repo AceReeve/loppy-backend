@@ -55,6 +55,11 @@ export class GoogleSaveDTO {
   @IsString()
   @IsNotEmpty()
   picture: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  token: string;
 }
 export class UserInfoDTO {
   // @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
