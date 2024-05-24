@@ -72,8 +72,9 @@ export class UserRepository implements AbstractUserRepository {
     return { newUserInfo };
   }
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
-    console.log('user profile', user);
-    return await this.userInfoModel.findOne({ user_id: user.sub });
+    const userDetails = await this.userModel.findById(user.sub);
+    const userInfo = await this.userInfoModel.findOne({ user_id: user.sub });
+    return { userDetails, userInfo };
   }
 
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
@@ -115,7 +116,43 @@ export class UserRepository implements AbstractUserRepository {
       emails: emails,
       invited_by: userData._id,
     });
+    const updateUser = await this.userModel.findOneAndUpdate(
+      { _id: userData._id },
+      {
+        already_send_invites: true,
+      },
+    );
     return saveInvitedUser;
+  }
+
+  async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    const isInvitedAlready = await this.invitedUserModel.find(
+      { 'emails.email': { $in: inviteUserDTO.email } },
+      'emails.email',
+    );
+    if (userData.already_send_invites === true) {
+      //validate if already send invites
+      throw new BadRequestException(`you already send invites`);
+    }
+    // Extract all emails from the matched documents
+    let matchedEmails = isInvitedAlready.flatMap((doc) =>
+      doc.emails.map((emailObj) => emailObj.email),
+    );
+    // Filter out only those that were in the DTO's email list
+    matchedEmails = matchedEmails.filter((email) =>
+      inviteUserDTO.email.includes(email),
+    );
+
+    if (matchedEmails.length > 0) {
+      //print the emails that already invited
+      throw new BadRequestException(
+        `These emails are already invited: ${matchedEmails.join(', ')}.`,
+      );
+    }
+
+    return true;
   }
 
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {
