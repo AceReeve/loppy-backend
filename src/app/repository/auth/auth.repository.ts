@@ -19,7 +19,7 @@ import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 import { OauthRepository } from '../oauth/oauth.repository';
 import { SignInBy } from '../../const';
 import { Email } from 'src/app/models/invited-users/invited-users.schema';
-
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthRepository {
   constructor(
@@ -93,7 +93,12 @@ export class AuthRepository {
 
   async googleSave(googleSaveDTO: GoogleSaveDTO) {
     const data = await this.userModel.findOne({ email: googleSaveDTO.email });
-
+    await this.verifyToken(
+      googleSaveDTO.email,
+      googleSaveDTO.first_name,
+      googleSaveDTO.last_name,
+      googleSaveDTO.token,
+    );
     if (data) {
       const userData = await this.userModel.findOneAndUpdate(
         { email: data.email },
@@ -125,6 +130,43 @@ export class AuthRepository {
         this.configService.get<string>('JWT_EXPIRATION'),
       );
       return { userData, userInfo, access_token };
+    }
+  }
+
+  async verifyToken(
+    email: string,
+    first_name: string,
+    last_name: string,
+    token: string,
+  ) {
+    try {
+      const secret = this.configService.get('JWT_SECRET');
+      const decoded = jwt.verify(token, secret);
+      const userDetails = await this.userModel.findById(decoded.sub);
+      if (!userDetails) {
+        throw new UnauthorizedException('User not found');
+      }
+      const userInfoDetails = await this.userInfoModel.findOne({
+        user_id: decoded.sub,
+      });
+      if (!userInfoDetails) {
+        throw new UnauthorizedException('User info not found');
+      }
+      // Validate email
+      if (userDetails.email !== email) {
+        throw new UnauthorizedException('Invalid email');
+      }
+      // Validate first name
+      if (userInfoDetails.first_name !== first_name) {
+        throw new UnauthorizedException('Invalid first name');
+      }
+      // Validate last name
+      if (userInfoDetails.last_name !== last_name) {
+        throw new UnauthorizedException('Invalid last name');
+      }
+      return decoded;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
     }
   }
 

@@ -12,11 +12,12 @@ export class DatabaseConnection implements MongooseOptionsFactory {
   constructor(private configService: ConfigService) {}
 
   createMongooseOptions(): MongooseModuleOptions {
-    if (process.env.NODE_ENV === 'local') {
+    const mongodDBURL = this.configService.get<string>('MONGODB_URL');
+    if (mongodDBURL) {
       return {
         uri: this.configService.get<string>('MONGODB_URL'),
       };
-    } else if (process.env.NODE_ENV === 'dev') {
+    } else {
       const hostname = process.env.MONGO_HOSTNAME;
       const username = process.env.MONGO_USERNAME;
       const password = process.env.MONGO_PASSWORD;
