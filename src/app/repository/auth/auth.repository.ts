@@ -119,7 +119,7 @@ export class AuthRepository {
       });
       const userInfo = await this.userInfoModel.create({
         user_id: userData._id,
-        first_name: googleSaveDTO.email,
+        first_name: googleSaveDTO.first_name,
         last_name: googleSaveDTO.last_name,
         picture: googleSaveDTO.picture,
       });
@@ -141,29 +141,30 @@ export class AuthRepository {
   ) {
     try {
       const secret = this.configService.get('JWT_SECRET');
-      const decoded = jwt.verify(token, secret);
-      const userDetails = await this.userModel.findById(decoded.sub);
-      if (!userDetails) {
-        throw new UnauthorizedException('User not found');
-      }
-      const userInfoDetails = await this.userInfoModel.findOne({
-        user_id: decoded.sub,
+      const decoded = jwt.verify(token, secret) as { email: string };
+      const userDetails = await this.userModel.findOne({
+        email: decoded?.email,
       });
-      if (!userInfoDetails) {
-        throw new UnauthorizedException('User info not found');
+      if (userDetails) {
+        // Validate email
+        if (userDetails.email !== email) {
+          throw new UnauthorizedException('Invalid email');
+        }
+        const userInfoDetails = await this.userInfoModel.findOne({
+          user_id: userDetails._id,
+        });
+        if (userInfoDetails) {
+          // Validate first name
+          if (userInfoDetails.first_name !== first_name) {
+            throw new UnauthorizedException('Invalid first name');
+          }
+          // Validate last name
+          if (userInfoDetails.last_name !== last_name) {
+            throw new UnauthorizedException('Invalid last name');
+          }
+        }
       }
-      // Validate email
-      if (userDetails.email !== email) {
-        throw new UnauthorizedException('Invalid email');
-      }
-      // Validate first name
-      if (userInfoDetails.first_name !== first_name) {
-        throw new UnauthorizedException('Invalid first name');
-      }
-      // Validate last name
-      if (userInfoDetails.last_name !== last_name) {
-        throw new UnauthorizedException('Invalid last name');
-      }
+
       return decoded;
     } catch (error) {
       throw new UnauthorizedException('Invalid token');

@@ -33,11 +33,18 @@ export class UserController {
   async profile(): Promise<any> {
     return this.userService.profile();
   }
-  @Post('invite-user/:email')
+  @Post('invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
   async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
     return this.userService.inviteUser(inviteUserDTO);
+  }
+
+  @Post('validate-invite-user')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Invite User' })
+  async validateInviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
+    return this.userService.validateInviteUser(inviteUserDTO);
   }
 
   @Post('invited-user/register')
