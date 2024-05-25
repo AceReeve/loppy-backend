@@ -151,8 +151,12 @@ export class UserRepository implements AbstractUserRepository {
         `These emails are already invited: ${matchedEmails.join(', ')}.`,
       );
     }
+    const emails = inviteUserDTO.email.map((emailAddress) => ({
+      email: emailAddress,
+      status: UserStatus.PENDING,
+    }));
 
-    return true;
+    return emails;
   }
 
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {

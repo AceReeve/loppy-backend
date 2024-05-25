@@ -30,6 +30,7 @@ import { ContactsDTO, FilterTags } from 'src/app/dto/contacts';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { BadRequestException } from '@nestjs/common';
 @ApiTags('Contacts')
 @Controller('Contacts')
 export class ContactsController {
@@ -112,7 +113,7 @@ export class ContactsController {
   )
   async importContacts(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      return { message: 'No file uploaded' };
+      throw new BadRequestException(`No file uploaded`);
     }
     await this.abstractContactsService.importContacts(file.path);
     return { message: 'Contacts imported successfully' };
