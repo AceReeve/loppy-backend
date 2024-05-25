@@ -43,6 +43,12 @@ export class ContactsService implements AbstractContactsService {
       tags,
     );
   }
+  async exportContacts(fromDate?: Date, toDate?: Date): Promise<Buffer> {
+    return await this.abstractContactsRepository.exportContacts(
+      fromDate,
+      toDate,
+    );
+  }
 
   async getContactByID(id: string): Promise<any> {
     return await this.abstractContactsRepository.getContactByID(id);

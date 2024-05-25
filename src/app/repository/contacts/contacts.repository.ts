@@ -178,6 +178,47 @@ export class ContactsRepository implements AbstractContactsRepository {
     }
   }
 
+  async exportContacts(from?: Date, to?: Date): Promise<Buffer> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    if (!userData) {
+      throw new BadRequestException('User not found');
+    }
+
+    let query: any = { user_id: userData._id };
+    if (from && to) {
+      const fromStartOfDay = new Date(from);
+      fromStartOfDay.setUTCHours(0, 0, 0, 0);
+      const toEndOfDay = new Date(to);
+      toEndOfDay.setUTCHours(23, 59, 59, 999);
+      query.created_at = { $gte: fromStartOfDay, $lte: toEndOfDay };
+    }
+
+    const contacts = await this.contactsModel.find(query).exec();
+    if (contacts.length === 0) {
+      throw new BadRequestException(
+        'No contacts found in the specified date range',
+      );
+    }
+
+    const exportData = contacts.map((contact) => ({
+      first_name: contact.first_name,
+      last_name: contact.last_name,
+      email: contact.email,
+      phone_number: contact.phone_number,
+      source: contact.source,
+      lifetime_value: contact.lifetime_value,
+      last_campaign_ran: contact.last_campaign_ran,
+      last_interaction: contact.last_interaction,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
+
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    return buffer;
+  }
   async getAllContacts(
     searchKey?: string,
     status?: string,
