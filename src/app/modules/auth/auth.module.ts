@@ -20,6 +20,7 @@ import { JwtStrategy } from '../../strategy/oauth/jwt/jwt.strategy';
 import { EmailerModule } from '@util/emailer/emailer';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
+import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 @Module({
   imports: [
     ConfigModule,
@@ -31,7 +32,8 @@ import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-us
     OauthSchemaModule,
     EmailerModule,
     StripeEventSchemaModule,
-    InvitedUserSchemaModule
+    InvitedUserSchemaModule,
+    WeatherForecastSchemaModule
   ],
 
   controllers: [AuthController],

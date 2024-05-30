@@ -17,8 +17,9 @@ import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
+import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 @Module({
-  imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule, InvitedUserSchemaModule],
+  imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule, InvitedUserSchemaModule, WeatherForecastSchemaModule],
   controllers: [StripeController],
   providers: [StripeService, StripeWebhookService, StripeEventRepository, UserService, JwtService, OauthRepository,
     {

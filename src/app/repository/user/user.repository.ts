@@ -31,19 +31,21 @@ import { UserStatus } from 'src/app/const';
 import { AuthRepository } from '../auth/auth.repository';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from 'src/app/const';
+import { WeatherForecast } from 'src/app/models/weatherforecast/weatherforecast.schema';
 export class UserRepository implements AbstractUserRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
     @InjectModel(StripeEvent.name) private stripeEventModel: Model<StripeEvent>,
+    @InjectModel(WeatherForecast.name) private weatherforecastModel: Model<StripeEvent>,
     @InjectModel(InvitedUser.name)
     private invitedUserModel: Model<InvitedUserDocument>,
     @Inject(REQUEST) private readonly request: Request,
     private readonly emailService: EmailerService,
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
-  ) {}
+  ) { }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     const newUser = await this.userModel.create({
       ...userRegisterDto,
@@ -172,6 +174,21 @@ export class UserRepository implements AbstractUserRepository {
       },
     );
     return stripeSubscription;
+  }
+
+  async updateWeatherInfoId(weatherforecast_id: string, userId: string): Promise<any> {
+    const weatherforecast = await this.weatherforecastModel.findOne({
+      _id: weatherforecast_id,
+    });
+    const userWeatherforecast = await this.userInfoModel.findOneAndUpdate(
+      { user_id: new Types.ObjectId(userId) },
+      {
+        $set: {
+          weatherforecast_id: weatherforecast._id,
+        },
+      },
+    );
+    return userWeatherforecast;
   }
 
   async invitedUserRegistration(

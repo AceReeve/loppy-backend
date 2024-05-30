@@ -7,9 +7,10 @@ import { EmailerModule } from '@util/emailer/emailer';
 import { JwtService } from '@nestjs/jwt';
 import { OauthRepository } from './oauth/oauth.repository';
 import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.module';
+import { WeatherForecastSchemaModule } from '../models/weatherforecast/weatherforecast.schema.module';
 
 @Module({
-  imports: [ModelModule, EmailerModule, StripeEventSchemaModule],
+  imports: [ModelModule, EmailerModule, StripeEventSchemaModule, WeatherForecastSchemaModule],
   controllers: [],
   // Inversion
   providers: [
@@ -32,4 +33,4 @@ import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.mo
     AuthRepository,
   ],
 })
-export class RepositoryModule {}
+export class RepositoryModule { }
