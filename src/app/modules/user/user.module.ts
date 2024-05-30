@@ -13,6 +13,8 @@ import { StripeModule } from '../api/api.module';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
+import { WeatherForecastSchema } from 'src/app/models/weatherforecast/weatherforecast.schema';
+import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
     RoleSchemaModule,
     EmailerModule,
     StripeEventSchemaModule,
+    WeatherForecastSchemaModule,
     InvitedUserSchemaModule,
   ],
   controllers: [UserController],
@@ -50,4 +53,4 @@ import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
     },
   ],
 })
-export class UserModule {}
+export class UserModule { }

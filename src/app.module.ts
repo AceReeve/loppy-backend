@@ -15,6 +15,7 @@ import { TwilioModule } from './app/modules/api/twilio/twilio.module';
 import { DashboardModule } from './app/modules/dashboard/dashboard.module';
 import { EmailNotificationModule } from './app/modules/email-notification/email.notification.module';
 import { ContactsModule } from './app/modules/contacts/contacts.module';
+import { WeatherForecastModule } from './app/models/weatherforecast/weatherforecast.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ContactsModule } from './app/modules/contacts/contacts.module';
     DashboardModule,
     EmailNotificationModule,
     ContactsModule,
+    WeatherForecastModule
   ],
 
   providers: [

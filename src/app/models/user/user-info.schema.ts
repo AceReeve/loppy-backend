@@ -65,6 +65,8 @@ export class UserInfo implements GenericSchema {
     @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'StripeEvent' })
     stripe_id?: MongooseSchema.Types.ObjectId;
 
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'WeatherForecast' })
+    weatherforecast_id?: MongooseSchema.Types.ObjectId;
 
 }
 export const UserInfoSchema = SchemaFactory.createForClass(UserInfo);

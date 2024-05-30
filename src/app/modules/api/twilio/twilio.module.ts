@@ -14,10 +14,11 @@ import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.sche
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
+import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 
 @Global()
 @Module({
-  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule, InvitedUserSchemaModule],
+  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule, InvitedUserSchemaModule, WeatherForecastSchemaModule],
   providers: [
     UserService, TwilioService, JwtService,
     {
