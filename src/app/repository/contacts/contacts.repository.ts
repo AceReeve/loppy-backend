@@ -36,6 +36,10 @@ import {
 } from 'src/app/models/contacts/contacts.schema';
 import * as XLSX from 'xlsx';
 import { IPaginationMeta } from 'src/app/interface';
+import {
+  ContactsHistory,
+  ContactsHistoryDocument,
+} from 'src/app/models/contacts/contacts-history.schema';
 @Injectable()
 export class ContactsRepository implements AbstractContactsRepository {
   constructor(
@@ -47,6 +51,8 @@ export class ContactsRepository implements AbstractContactsRepository {
     private readonly s3: S3Service,
     @InjectModel(Contacts.name)
     private contactsModel: Model<ContactsDocument>,
+    @InjectModel(ContactsHistory.name)
+    private contactsHistoryModel: Model<ContactsHistoryDocument>,
   ) {}
 
   async fileUpload(files: Files): Promise<any | null> {
@@ -156,26 +162,73 @@ export class ContactsRepository implements AbstractContactsRepository {
     const sheet = workbook.Sheets[sheetName];
     const data: ExcelContactData[] = XLSX.utils.sheet_to_json(sheet);
 
+    // Track rows that already exist
+    const existingContacts: ExcelContactData[] = [];
+    const importedContacts: any[] = [];
+    const historyEntries: any[] = [];
+
     // Process each row
     for (const item of data) {
-      const contact = new this.contactsModel({
+      const existingContact = await this.contactsModel.findOne({
         user_id: userData._id,
-        first_name: item.first_name,
-        last_name: item.last_name,
-        email: item.email,
-        phone_number: item.phone_number,
-        source: item.source,
-        lifetime_value: item.lifetime_value,
-        last_campaign_ran: item.last_campaign_ran,
-        last_interaction: new Date(item.last_interaction),
+        $or: [{ email: item.email }, { phone_number: item.phone_number }],
+      });
+      if (existingContact) {
+        existingContacts.push(item);
+      } else {
+        const contact = new this.contactsModel({
+          user_id: userData._id,
+          first_name: item.first_name,
+          last_name: item.last_name,
+          email: item.email,
+          phone_number: item.phone_number,
+          source: item.source,
+          lifetime_value: item.lifetime_value,
+          last_campaign_ran: item.last_campaign_ran,
+          last_interaction: new Date(item.last_interaction),
+        });
+
+        try {
+          await contact.save();
+          importedContacts.push(contact);
+          // Create a history entry for this contact
+          historyEntries.push({
+            date: new Date(),
+            contact_id: contact._id,
+          });
+        } catch (error) {
+          throw new BadRequestException('Failed to import contact');
+        }
+      }
+    }
+    // Save all history entries in one document
+    if (historyEntries.length > 0) {
+      const historyEntry = new this.contactsHistoryModel({
+        user_id: userData._id,
+        type: 'imported',
+        history: historyEntries,
       });
 
       try {
-        await contact.save();
+        await historyEntry.save();
       } catch (error) {
-        throw new BadRequestException('Failed to import contact');
+        throw new BadRequestException('Failed to save contact history');
       }
     }
+
+    if (existingContacts.length > 0) {
+      const existingDetails = existingContacts
+        .map(
+          (contact) =>
+            `Email: ${contact.email}, Phone: ${contact.phone_number}`,
+        )
+        .join(', ');
+      throw new BadRequestException(
+        `Contacts with the following details already exist and were not saved: ${existingDetails}`,
+      );
+    }
+
+    return { message: 'All Contacts imported successfully' };
   }
 
   async exportContacts(from?: Date, to?: Date): Promise<Buffer> {
@@ -216,6 +269,21 @@ export class ContactsRepository implements AbstractContactsRepository {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
 
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    // Create a history entry for the export
+    const historyEntry = new this.contactsHistoryModel({
+      user_id: userData._id,
+      type: 'exported',
+      history: contacts.map((contact) => ({
+        date: new Date(),
+        contact_id: contact._id,
+      })),
+    });
+
+    try {
+      await historyEntry.save();
+    } catch (error) {
+      throw new BadRequestException('Failed to save export history');
+    }
 
     return buffer;
   }
