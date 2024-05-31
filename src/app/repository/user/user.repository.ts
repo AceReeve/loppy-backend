@@ -38,14 +38,15 @@ export class UserRepository implements AbstractUserRepository {
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
     @InjectModel(StripeEvent.name) private stripeEventModel: Model<StripeEvent>,
-    @InjectModel(WeatherForecast.name) private weatherforecastModel: Model<StripeEvent>,
+    @InjectModel(WeatherForecast.name)
+    private weatherforecastModel: Model<StripeEvent>,
     @InjectModel(InvitedUser.name)
     private invitedUserModel: Model<InvitedUserDocument>,
     @Inject(REQUEST) private readonly request: Request,
     private readonly emailService: EmailerService,
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
-  ) { }
+  ) {}
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     const newUser = await this.userModel.create({
       ...userRegisterDto,
@@ -76,6 +77,14 @@ export class UserRepository implements AbstractUserRepository {
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
     const userDetails = await this.userModel.findById(user.sub);
     const userInfo = await this.userInfoModel.findOne({ user_id: user.sub });
+    return { userDetails, userInfo };
+  }
+
+  async getUser(id: string): Promise<any> {
+    const userDetails = await this.userModel.findById(new Types.ObjectId(id));
+    const userInfo = await this.userInfoModel.findOne({
+      user_id: new Types.ObjectId(id),
+    });
     return { userDetails, userInfo };
   }
 
@@ -176,7 +185,10 @@ export class UserRepository implements AbstractUserRepository {
     return stripeSubscription;
   }
 
-  async updateWeatherInfoId(weatherforecast_id: string, userId: string): Promise<any> {
+  async updateWeatherInfoId(
+    weatherforecast_id: string,
+    userId: string,
+  ): Promise<any> {
     const weatherforecast = await this.weatherforecastModel.findOne({
       _id: weatherforecast_id,
     });
