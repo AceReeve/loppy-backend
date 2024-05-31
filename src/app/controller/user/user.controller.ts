@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   UserRegisterDTO,
@@ -32,6 +32,13 @@ export class UserController {
   @ApiOperation({ summary: 'Get User Profile' })
   async profile(): Promise<any> {
     return this.userService.profile();
+  }
+
+  @Get('user/:id')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get User Profile' })
+  async getUser(@Param('id') id: string): Promise<any> {
+    return this.userService.getUser(id);
   }
   @Post('invite-user')
   @ApiBearerAuth('Bearer')

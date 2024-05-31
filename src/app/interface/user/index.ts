@@ -12,10 +12,14 @@ export abstract class AbstractUserRepository {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
   abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
   abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
+  abstract getUser(id: string): Promise<any>;
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract updateUserStripeId(stripeId: string, userId: string): Promise<any>;
-  abstract updateWeatherInfoId(weatherforecast_id: string, userId: string): Promise<any>;
+  abstract updateWeatherInfoId(
+    weatherforecast_id: string,
+    userId: string,
+  ): Promise<any>;
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any>;
@@ -24,9 +28,13 @@ export abstract class AbstractUserRepository {
 export abstract class AbstractUserService {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
   abstract profile(): Promise<any>;
+  abstract getUser(id: string): Promise<any>;
   abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
   abstract updateUserStripeId(stripeId: string, userId: string): Promise<any>;
-  abstract updateWeatherInfoId(weatherforecast_id: string, userId: string): Promise<any>;
+  abstract updateWeatherInfoId(
+    weatherforecast_id: string,
+    userId: string,
+  ): Promise<any>;
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(

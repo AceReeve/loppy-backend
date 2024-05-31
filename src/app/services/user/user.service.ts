@@ -25,7 +25,7 @@ export class UserService implements AbstractUserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
-  ) { }
+  ) {}
 
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     return await this.repository.createUser(userRegisterDto);
@@ -37,6 +37,9 @@ export class UserService implements AbstractUserService {
   async profile(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     return await this.repository.profile(user);
+  }
+  async getUser(id: string): Promise<any> {
+    return await this.repository.getUser(id);
   }
 
   async findByUserId(userId: string) {
@@ -55,7 +58,10 @@ export class UserService implements AbstractUserService {
     return this.repository.updateUserStripeId(stripeId, userId);
   }
 
-  async updateWeatherInfoId(weatherforecast_id: string, userId: string): Promise<any> {
+  async updateWeatherInfoId(
+    weatherforecast_id: string,
+    userId: string,
+  ): Promise<any> {
     return this.repository.updateWeatherInfoId(weatherforecast_id, userId);
   }
 
