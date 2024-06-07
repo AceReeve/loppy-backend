@@ -21,6 +21,12 @@ export class ContactsService implements AbstractContactsService {
   async createContacts(contactsDTO: ContactsDTO): Promise<any> {
     return this.abstractContactsRepository.createContacts(contactsDTO);
   }
+  async editContacts(contactsDTO: ContactsDTO, id: string): Promise<any> {
+    return this.abstractContactsRepository.editContacts(contactsDTO, id);
+  }
+  async removeContacts(id: string): Promise<any> {
+    return this.abstractContactsRepository.removeContacts(id);
+  }
 
   async importContacts(filePath: string): Promise<any> {
     return this.abstractContactsRepository.importContacts(filePath);

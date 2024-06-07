@@ -62,85 +62,76 @@ export class GoogleSaveDTO {
   token: string;
 }
 export class UserInfoDTO {
-  // @ApiProperty({ example: '63dcd70658eb9ca6a922df41' })
-  // @IsString()
-  // @IsNotEmpty()
-  // role?: string;
-
-  @ApiProperty({ example: 'JuanDelacuz' })
-  @IsString()
-  @MaxLength(256, { message: 'User name is too long (maximum 256 characters)' })
-  username: string;
-
   @ApiProperty({ example: 'Juan' })
   @IsString()
   @MaxLength(256, {
     message: 'First name is too long (maximum 256 characters)',
   })
   first_name: string;
-
-  @ApiProperty({ example: 'Omega' })
-  @IsString()
-  @IsOptional()
-  @MaxLength(256, {
-    message: 'Middle name is too long (maximum 256 characters)',
-  })
-  middle_name?: string;
-
   @ApiProperty({ example: 'Dela Cruz' })
   @IsString()
   @MaxLength(256, {
     message: 'Last First name is too long (maximum 256 characters)',
   })
-  last_name?: string;
-
-  @ApiProperty({ example: 'address' })
-  @IsString()
-  @IsNotEmpty()
-  address: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({ example: 2009 })
-  zipCode: number;
-
-  @ApiProperty({ example: 'city' })
-  @IsString()
-  @IsNotEmpty()
-  city: string;
-
-  @ApiProperty({ example: 'state' })
-  @IsString()
-  @IsNotEmpty()
-  state: string;
-
+  last_name: string;
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty({ example: 19123456789 })
   contact_no: number;
-
-  @ApiProperty({ example: 'Male' })
-  @IsString()
-  @IsNotEmpty()
-  gender: string;
 
   @IsDateString()
   @IsNotEmpty()
   @ApiProperty({ example: '2021-01-01' })
   birthday: Date;
 
-  @ApiProperty({ example: 'CEO Service Hero' })
+  @ApiProperty({ example: 'Male' })
   @IsString()
   @IsNotEmpty()
-  title: string;
+  gender: string;
+
+  // address optional
+  @ApiProperty({ example: 'address' })
+  @IsString()
+  @IsOptional()
+  address: string;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ example: 2009 })
+  zipCode: number;
+
+  @ApiProperty({ example: 'city' })
+  @IsString()
+  @IsOptional()
+  city: string;
+
+  @ApiProperty({ example: 'state' })
+  @IsString()
+  @IsOptional()
+  state: string;
 }
 
 export class UserRegisterDTO {
+  // @ApiProperty({ example: 'Juan' })
+  // @IsString()
+  // @MaxLength(256, {
+  //   message: 'First name is too long (maximum 256 characters)',
+  // })
+  // first_name: string;
+
+  // @ApiProperty({ example: 'Dela Cruz' })
+  // @IsString()
+  // @MaxLength(256, {
+  //   message: 'Last First name is too long (maximum 256 characters)',
+  // })
+  // last_name: string;
+
   @ApiProperty({ example: 'example@gmail.com' })
   @IsString()
   @IsNotEmpty()
   @IsEmail()
   email: string;
+
   @ApiProperty({ example: 'Password123!' })
   @IsString()
   @IsNotEmpty()
@@ -162,6 +153,11 @@ export class UserRegisterDTO {
     message: 'password must contain at least one number',
   })
   password: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  confirm_password: string;
 }
 
 export class InviteUserDTO {

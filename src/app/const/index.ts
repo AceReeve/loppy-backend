@@ -17,5 +17,11 @@ export enum UserStatus {
 export enum UserRole {
   OWNER = 'Owner',
   User = 'User',
-  Admin = 'Admin'
+  Admin = 'Admin',
+}
+
+export enum ContactStatus {
+  PENDING = 'Pending',
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
 }

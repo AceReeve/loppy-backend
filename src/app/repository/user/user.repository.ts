@@ -32,11 +32,13 @@ import { AuthRepository } from '../auth/auth.repository';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from 'src/app/const';
 import { WeatherForecast } from 'src/app/models/weatherforecast/weatherforecast.schema';
+import { Otp, OtpDocument } from 'src/app/models/otp/otp.schema';
 export class UserRepository implements AbstractUserRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(Role.name) private roleDocumentModel: Model<RoleDocument>,
+    @InjectModel(Otp.name) private otpModel: Model<OtpDocument>,
     @InjectModel(StripeEvent.name) private stripeEventModel: Model<StripeEvent>,
     @InjectModel(WeatherForecast.name)
     private weatherforecastModel: Model<StripeEvent>,
@@ -48,11 +50,30 @@ export class UserRepository implements AbstractUserRepository {
     private configService: ConfigService,
   ) {}
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
+    // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
+
+    // Remove OTP after verification
+    const isverified = await this.otpModel.findOne({
+      email: userRegisterDto.email,
+    });
+    if (!isverified || isverified.verified_email != true) {
+      throw new BadRequestException('Email is not yet Verified');
+    }
+    await this.otpModel.deleteOne({
+      email: userRegisterDto.email,
+    });
+    if (userRegisterDto.password != userRegisterDto.confirm_password) {
+      // Confirm passwords match
+      throw new BadRequestException('Password Does Not Match');
+    }
     const newUser = await this.userModel.create({
-      ...userRegisterDto,
+      email: userRegisterDto.email,
+      password: userRegisterDto.password,
+      verified_email: true,
       login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
       login_count: 1,
     });
+
     if (!newUser) throw new BadRequestException('Unable to register user');
 
     return { newUser };
@@ -271,5 +292,38 @@ export class UserRepository implements AbstractUserRepository {
       { new: true },
     );
     return { newUser, newUserInfo };
+  }
+
+  async sendOTP(email: string): Promise<any> {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Set OTP expiration time (10 minutes)
+
+    // Save OTP to the database
+    const otpEntry = new this.otpModel({ email, otp, expiresAt });
+    await otpEntry.save();
+
+    // Send OTP via email
+    await this.emailService.sendOTP(email, otp);
+  }
+
+  async verifyOTP(email: string, otp: string): Promise<any> {
+    const otpEntry = await this.otpModel.findOneAndUpdate(
+      { email, otp },
+      {
+        verified_email: true,
+      },
+    );
+
+    if (!otpEntry) {
+      throw new BadRequestException('Invalid OTP or email.');
+    }
+
+    const now = new Date();
+    if (otpEntry.expiresAt < now) {
+      await this.otpModel.deleteOne({ _id: otpEntry._id }); // Remove expired OTP
+      throw new BadRequestException('OTP has expired.');
+    }
+    return { message: 'OTP verified successfully' };
   }
 }

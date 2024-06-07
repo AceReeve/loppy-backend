@@ -15,6 +15,7 @@ import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { WeatherForecastSchema } from 'src/app/models/weatherforecast/weatherforecast.schema';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
+import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
     StripeEventSchemaModule,
     WeatherForecastSchemaModule,
     InvitedUserSchemaModule,
+    OtpSchemaModule,
   ],
   controllers: [UserController],
   providers: [
@@ -53,4 +55,4 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
     },
   ],
 })
-export class UserModule { }
+export class UserModule {}

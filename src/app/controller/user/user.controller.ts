@@ -1,5 +1,11 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+  ApiQueryOptions,
+} from '@nestjs/swagger';
 import {
   UserRegisterDTO,
   UserInfoDTO,
@@ -18,6 +24,35 @@ export class UserController {
   @ApiOperation({ summary: 'Register user' })
   async createUser(@Body() userRegisterDto: UserRegisterDTO): Promise<any> {
     return this.userService.createUser(userRegisterDto);
+  }
+
+  @Public()
+  @Post('send-otp')
+  @ApiOperation({ summary: 'One Time Password' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+  } as ApiQueryOptions)
+  async sendOTP(@Query('email') email: string): Promise<any> {
+    return await this.userService.sendOTP(email);
+  }
+
+  @Public()
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'One Time Password' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'otp',
+    required: true,
+  } as ApiQueryOptions)
+  async verifyOTP(
+    @Query('email') email: string,
+    @Query('otp') otp: string,
+  ): Promise<any> {
+    return await this.userService.verifyOTP(email, otp);
   }
 
   @Post('user-info')

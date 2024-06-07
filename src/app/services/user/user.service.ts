@@ -72,4 +72,11 @@ export class UserService implements AbstractUserService {
       invitedUserRegistrationDTO,
     );
   }
+
+  async sendOTP(email: string): Promise<any> {
+    return this.repository.sendOTP(email);
+  }
+  async verifyOTP(email: string, otp: string): Promise<any> {
+    return this.repository.verifyOTP(email, otp);
+  }
 }

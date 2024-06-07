@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Model, Schema as MongooseSchema, ObjectId } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
 export type ContactsDocument = Contacts & Document;
-
+import { ContactStatus } from 'src/app/const';
 @Schema()
 export class Tags {
   @Prop()
@@ -48,6 +48,9 @@ export class Contacts implements GenericSchema {
 
   @Prop({ type: [Tags] })
   tags?: Tags[];
+
+  @Prop({ default: ContactStatus.ACTIVE })
+  status: string;
 }
 
 export const ContactsSchema = SchemaFactory.createForClass(Contacts);

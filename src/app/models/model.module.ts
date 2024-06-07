@@ -7,6 +7,7 @@ import { RoleSchemaModule } from './role/role.schema.module';
 import { twilioSchemaModule } from './twilio/twilio.schema.module';
 import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.module';
 import { ContactsSchemaModule } from './contacts/contacts.schema.module';
+import { OtpSchemaModule } from './otp/otp.schema.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ContactsSchemaModule } from './contacts/contacts.schema.module';
     twilioSchemaModule,
     InvitedUserSchemaModule,
     ContactsSchemaModule,
+    OtpSchemaModule,
   ],
   providers: [],
   exports: [
@@ -29,6 +31,7 @@ import { ContactsSchemaModule } from './contacts/contacts.schema.module';
     twilioSchemaModule,
     InvitedUserSchemaModule,
     ContactsSchemaModule,
+    OtpSchemaModule,
   ],
 })
 export class ModelModule {}
