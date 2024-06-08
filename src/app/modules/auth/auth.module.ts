@@ -21,6 +21,7 @@ import { EmailerModule } from '@util/emailer/emailer';
 import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.schema.module';
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
+import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 @Module({
   imports: [
     ConfigModule,
@@ -33,7 +34,8 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
     EmailerModule,
     StripeEventSchemaModule,
     InvitedUserSchemaModule,
-    WeatherForecastSchemaModule
+    WeatherForecastSchemaModule,
+    OtpSchemaModule,
   ],
 
   controllers: [AuthController],
@@ -52,4 +54,4 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
     },
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

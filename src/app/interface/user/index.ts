@@ -23,6 +23,8 @@ export abstract class AbstractUserRepository {
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any>;
+  abstract verifyOTP(email: string, otp: string): Promise<any>;
+  abstract sendOTP(email: string): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -40,6 +42,8 @@ export abstract class AbstractUserService {
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any>;
+  abstract verifyOTP(email: string, otp: string): Promise<any>;
+  abstract sendOTP(email: string): Promise<any>;
 }
 export interface RegisterResponseData {
   _id: string;

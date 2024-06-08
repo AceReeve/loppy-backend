@@ -18,20 +18,43 @@ import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-us
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
+import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 @Module({
-  imports: [ConfigModule, StripeModule, UserModule, StripeEventSchemaModule, RoleSchemaModule, MailerModule, EmailerModule, InvitedUserSchemaModule, WeatherForecastSchemaModule],
+  imports: [
+    ConfigModule,
+    StripeModule,
+    UserModule,
+    StripeEventSchemaModule,
+    RoleSchemaModule,
+    MailerModule,
+    EmailerModule,
+    InvitedUserSchemaModule,
+    WeatherForecastSchemaModule,
+    OtpSchemaModule,
+  ],
   controllers: [StripeController],
-  providers: [StripeService, StripeWebhookService, StripeEventRepository, UserService, JwtService, OauthRepository,
+  providers: [
+    StripeService,
+    StripeWebhookService,
+    StripeEventRepository,
+    UserService,
+    JwtService,
+    OauthRepository,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
-    }, AuthRepository],
+    },
+    AuthRepository,
+  ],
 
-  exports: [StripeService, StripeWebhookService, StripeEventRepository,
+  exports: [
+    StripeService,
+    StripeWebhookService,
+    StripeEventRepository,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
-    }
+    },
   ],
 })
-export class StripeModule { }
+export class StripeModule {}

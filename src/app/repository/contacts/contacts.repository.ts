@@ -40,6 +40,7 @@ import {
   ContactsHistory,
   ContactsHistoryDocument,
 } from 'src/app/models/contacts/contacts-history.schema';
+import { ContactStatus } from 'src/app/const';
 @Injectable()
 export class ContactsRepository implements AbstractContactsRepository {
   constructor(
@@ -153,6 +154,46 @@ export class ContactsRepository implements AbstractContactsRepository {
     });
   }
 
+  async editContacts(contactsDTO: ContactsDTO, id: string): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    const updateContact = await this.contactsModel.findOneAndUpdate(
+      { _id: id, user_id: userData._id },
+      {
+        user_id: userData._id,
+        first_name: contactsDTO.first_name,
+        last_name: contactsDTO.last_name,
+        email: contactsDTO.email,
+        phone_number: contactsDTO.phone_number,
+        source: contactsDTO.source,
+        lifetime_value: contactsDTO.lifetime_value,
+        last_campaign_ran: contactsDTO.last_campaign_ran,
+        last_interaction: contactsDTO.last_interaction,
+        tags: contactsDTO.tags,
+      },
+    );
+    if (!updateContact) {
+      throw new BadRequestException('Contact Not Found');
+    }
+
+    return await this.contactsModel.findById(updateContact._id);
+  }
+
+  async removeContacts(id: string): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    const updateContact = await this.contactsModel.findOneAndUpdate(
+      { _id: id, user_id: userData._id },
+      {
+        status: ContactStatus.INACTIVE,
+      },
+    );
+    if (!updateContact) {
+      throw new BadRequestException('Contact Not Found');
+    }
+
+    return await this.contactsModel.findById(updateContact._id);
+  }
   async importContacts(filePath: string): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
@@ -312,7 +353,9 @@ export class ContactsRepository implements AbstractContactsRepository {
     const userId = userData._id;
     if (!userId) throw new BadRequestException('Invalid user id');
 
-    let query: Record<string, any> = { user_id: userId };
+    let query: Record<string, any> = {
+      user_id: userId,
+    };
 
     if (searchKey) {
       const regex = new RegExp(searchKey, 'i'); // Common regex for string fields

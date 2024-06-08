@@ -1,7 +1,7 @@
 import { Module, Global, forwardRef } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import { TwilioController } from 'src/app/controller/api/twilio/twilio.controller';
-import { UserSchemaModule } from 'src/app/models/user/user.schema.module'
+import { UserSchemaModule } from 'src/app/models/user/user.schema.module';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/app/services/user/user.service';
 import { UserModule } from 'src/app/modules/user/user.module';
@@ -15,19 +15,33 @@ import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-us
 import { AuthRepository } from 'src/app/repository/auth/auth.repository';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
+import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 
 @Global()
 @Module({
-  imports: [UserSchemaModule, UserModule, RoleSchemaModule, EmailerModule, twilioSchemaModule, StripeEventSchemaModule, InvitedUserSchemaModule, WeatherForecastSchemaModule],
+  imports: [
+    OtpSchemaModule,
+    UserSchemaModule,
+    UserModule,
+    RoleSchemaModule,
+    EmailerModule,
+    twilioSchemaModule,
+    StripeEventSchemaModule,
+    InvitedUserSchemaModule,
+    WeatherForecastSchemaModule,
+  ],
   providers: [
-    UserService, TwilioService, JwtService,
+    UserService,
+    TwilioService,
+    JwtService,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
-    AuthRepository, OauthRepository
+    AuthRepository,
+    OauthRepository,
   ],
   controllers: [TwilioController],
   exports: [TwilioService],
 })
-export class TwilioModule { }
+export class TwilioModule {}

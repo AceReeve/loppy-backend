@@ -3,6 +3,8 @@ import { ContactsDTO } from 'src/app/dto/contacts';
 export abstract class AbstractContactsService {
   abstract fileUpload(files: Files): Promise<any>;
   abstract createContacts(contactsDTO: ContactsDTO): Promise<any>;
+  abstract editContacts(contactsDTO: ContactsDTO, id: string): Promise<any>;
+  abstract removeContacts(id: string): Promise<any>;
   abstract importContacts(filePath: string): Promise<any>;
   abstract getAllContacts(
     searchKey?: string,
@@ -18,6 +20,8 @@ export abstract class AbstractContactsService {
 export abstract class AbstractContactsRepository {
   abstract fileUpload(files: Files): Promise<any>;
   abstract createContacts(contactsDTO: ContactsDTO): Promise<any>;
+  abstract removeContacts(id: string): Promise<any>;
+  abstract editContacts(contactsDTO: ContactsDTO, id: string): Promise<any>;
   abstract importContacts(filePath: string): Promise<any>;
   abstract getAllContacts(
     searchKey?: string,

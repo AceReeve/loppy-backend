@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   UploadedFile,
+  Put,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -80,6 +81,29 @@ export class ContactsController {
   @ApiBearerAuth('Bearer')
   async createContacts(@Body() contactsDTO: ContactsDTO) {
     return await this.abstractContactsService.createContacts(contactsDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('/:id')
+  @ApiOperation({
+    summary: 'Edit Contact',
+  })
+  @ApiBearerAuth('Bearer')
+  async editContacts(
+    @Param('id') id: string,
+    @Body() contactsDTO: ContactsDTO,
+  ) {
+    return await this.abstractContactsService.editContacts(contactsDTO, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('remove/:id')
+  @ApiOperation({
+    summary: 'Edit Contact',
+  })
+  @ApiBearerAuth('Bearer')
+  async removeContacts(@Param('id') id: string) {
+    return await this.abstractContactsService.removeContacts(id);
   }
 
   @UseGuards(JwtAuthGuard)
