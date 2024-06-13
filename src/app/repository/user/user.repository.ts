@@ -178,7 +178,6 @@ export class UserRepository implements AbstractUserRepository {
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
-
     return invitedUser;
   }
 

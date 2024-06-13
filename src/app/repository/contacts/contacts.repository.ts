@@ -272,7 +272,7 @@ export class ContactsRepository implements AbstractContactsRepository {
     return { message: 'All Contacts imported successfully' };
   }
 
-  async exportContacts(from?: Date, to?: Date): Promise<Buffer> {
+  async exportContacts(from?: Date, to?: Date, all?: Boolean): Promise<Buffer> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
     if (!userData) {
@@ -280,7 +280,7 @@ export class ContactsRepository implements AbstractContactsRepository {
     }
 
     let query: any = { user_id: userData._id };
-    if (from && to) {
+    if (from && to && all !== true) {
       const fromStartOfDay = new Date(from);
       fromStartOfDay.setUTCHours(0, 0, 0, 0);
       const toEndOfDay = new Date(to);

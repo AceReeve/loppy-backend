@@ -53,10 +53,15 @@ export class ContactsService implements AbstractContactsService {
       tags,
     );
   }
-  async exportContacts(fromDate?: Date, toDate?: Date): Promise<Buffer> {
+  async exportContacts(
+    fromDate?: Date,
+    toDate?: Date,
+    all?: Boolean,
+  ): Promise<Buffer> {
     return await this.abstractContactsRepository.exportContacts(
       fromDate,
       toDate,
+      all,
     );
   }
 

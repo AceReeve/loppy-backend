@@ -131,7 +131,7 @@ export class ContactsController {
     let fromDate: Date | undefined;
     let toDate: Date | undefined;
 
-    if (all) {
+    if (all === true) {
       fromDate = undefined;
       toDate = undefined;
     } else {
@@ -153,6 +153,7 @@ export class ContactsController {
       const buffer = await this.abstractContactsService.exportContacts(
         fromDate,
         toDate,
+        all,
       );
 
       const filename = `contacts_export_${new Date().toISOString()}.xlsx`;

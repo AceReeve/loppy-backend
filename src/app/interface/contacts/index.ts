@@ -16,7 +16,11 @@ export abstract class AbstractContactsService {
   ): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
   abstract contactList(): Promise<any>;
-  abstract exportContacts(fromDate: Date, toDate: Date): Promise<any>;
+  abstract exportContacts(
+    fromDate: Date,
+    toDate: Date,
+    all: Boolean,
+  ): Promise<any>;
 }
 export abstract class AbstractContactsRepository {
   abstract contactList(): Promise<any>;
@@ -34,7 +38,11 @@ export abstract class AbstractContactsRepository {
     tags?: string | string[],
   ): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
-  abstract exportContacts(fromDate: Date, toDate: Date): Promise<any>;
+  abstract exportContacts(
+    fromDate: Date,
+    toDate: Date,
+    all: Boolean,
+  ): Promise<any>;
 }
 interface File {
   path: string;
