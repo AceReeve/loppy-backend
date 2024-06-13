@@ -25,6 +25,7 @@ export abstract class AbstractUserRepository {
   ): Promise<any>;
   abstract verifyOTP(email: string, otp: string): Promise<any>;
   abstract sendOTP(email: string): Promise<any>;
+  abstract getInvitedUser(): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -38,6 +39,7 @@ export abstract class AbstractUserService {
     userId: string,
   ): Promise<any>;
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract getInvitedUser(): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,

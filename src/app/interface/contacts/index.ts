@@ -15,9 +15,11 @@ export abstract class AbstractContactsService {
     tags?: string | string[],
   ): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
+  abstract contactList(): Promise<any>;
   abstract exportContacts(fromDate: Date, toDate: Date): Promise<any>;
 }
 export abstract class AbstractContactsRepository {
+  abstract contactList(): Promise<any>;
   abstract fileUpload(files: Files): Promise<any>;
   abstract createContacts(contactsDTO: ContactsDTO): Promise<any>;
   abstract removeContacts(id: string): Promise<any>;

@@ -247,6 +247,13 @@ export class ContactsController {
       tags,
     );
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('list')
+  @ApiOperation({ summary: 'Contact List' })
+  @ApiBearerAuth('Bearer')
+  async contactList(): Promise<any> {
+    return await this.abstractContactsService.contactList();
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:id')

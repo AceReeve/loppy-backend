@@ -32,7 +32,7 @@ export class Contacts implements GenericSchema {
   email: string;
 
   @Prop()
-  phone_number: number;
+  phone_number: string;
 
   @Prop()
   source: string;

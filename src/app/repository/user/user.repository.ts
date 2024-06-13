@@ -49,6 +49,11 @@ export class UserRepository implements AbstractUserRepository {
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
   ) {}
+
+  async getLoggedInUserDetails(): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    return await this.userModel.findOne({ email: user.email });
+  }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
 
@@ -155,6 +160,15 @@ export class UserRepository implements AbstractUserRepository {
       },
     );
     return saveInvitedUser;
+  }
+  async getInvitedUser(): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    console.log('user', user);
+    const invitedUser = await this.invitedUserModel.find({
+      invited_by: user._id,
+    });
+
+    return invitedUser;
   }
 
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {

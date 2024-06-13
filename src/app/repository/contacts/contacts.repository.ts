@@ -416,4 +416,22 @@ export class ContactsRepository implements AbstractContactsRepository {
     }
     return contactDetails;
   }
+  async contactList(): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+    const contactDetails = await this.contactsModel.find({
+      user_id: userData._id,
+    });
+
+    const transformedContacts = contactDetails.reduce(
+      (acc: any, contact: any) => {
+        acc[contact.phone_number] =
+          `${contact.first_name} ${contact.last_name}`;
+        return acc;
+      },
+      {},
+    );
+
+    return transformedContacts;
+  }
 }

@@ -82,6 +82,13 @@ export class UserController {
     return this.userService.inviteUser(inviteUserDTO);
   }
 
+  @Get('get-invited-user')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get Invite User' })
+  async getInviteUser(): Promise<any> {
+    return this.userService.getInvitedUser();
+  }
+
   @Post('validate-invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })

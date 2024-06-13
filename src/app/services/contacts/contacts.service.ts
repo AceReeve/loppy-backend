@@ -18,6 +18,10 @@ export class ContactsService implements AbstractContactsService {
     return this.abstractContactsRepository.fileUpload(files);
   }
 
+  async contactList(): Promise<any> {
+    return this.abstractContactsRepository.contactList();
+  }
+
   async createContacts(contactsDTO: ContactsDTO): Promise<any> {
     return this.abstractContactsRepository.createContacts(contactsDTO);
   }
