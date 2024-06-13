@@ -49,6 +49,11 @@ export class UserRepository implements AbstractUserRepository {
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
   ) {}
+
+  async getLoggedInUserDetails(): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    return await this.userModel.findOne({ email: user.email });
+  }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
 
@@ -143,18 +148,37 @@ export class UserRepository implements AbstractUserRepository {
     const emails = inviteUserDTO.email.map((emailAddress) => ({
       email: emailAddress,
       status: UserStatus.PENDING,
+      date: new Date(),
     }));
-    const saveInvitedUser = await this.invitedUserModel.create({
-      emails: emails,
+    const existingInvitedUser = await this.invitedUserModel.findOne({
       invited_by: userData._id,
     });
+    let result: any;
+    if (!existingInvitedUser) {
+      result = await this.invitedUserModel.create({
+        emails: emails,
+        invited_by: userData._id,
+      });
+    } else {
+      const updatedEmails = existingInvitedUser.emails.concat(emails);
+      existingInvitedUser.emails = updatedEmails;
+      result = await existingInvitedUser.save();
+    }
+
     const updateUser = await this.userModel.findOneAndUpdate(
       { _id: userData._id },
       {
         already_send_invites: true,
       },
     );
-    return saveInvitedUser;
+    return result;
+  }
+  async getInvitedUser(): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel.findOne({
+      invited_by: user._id,
+    });
+    return invitedUser;
   }
 
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {

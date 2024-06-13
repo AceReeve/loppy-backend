@@ -18,6 +18,10 @@ export class ContactsService implements AbstractContactsService {
     return this.abstractContactsRepository.fileUpload(files);
   }
 
+  async contactList(): Promise<any> {
+    return this.abstractContactsRepository.contactList();
+  }
+
   async createContacts(contactsDTO: ContactsDTO): Promise<any> {
     return this.abstractContactsRepository.createContacts(contactsDTO);
   }
@@ -49,10 +53,15 @@ export class ContactsService implements AbstractContactsService {
       tags,
     );
   }
-  async exportContacts(fromDate?: Date, toDate?: Date): Promise<Buffer> {
+  async exportContacts(
+    fromDate?: Date,
+    toDate?: Date,
+    all?: Boolean,
+  ): Promise<Buffer> {
     return await this.abstractContactsRepository.exportContacts(
       fromDate,
       toDate,
+      all,
     );
   }
 

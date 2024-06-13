@@ -41,6 +41,9 @@ export class UserService implements AbstractUserService {
   async getUser(id: string): Promise<any> {
     return await this.repository.getUser(id);
   }
+  async getInvitedUser(): Promise<any> {
+    return await this.repository.getInvitedUser();
+  }
 
   async findByUserId(userId: string) {
     const userInfo = await this.userInfoModel.findOne({ user_id: userId });
