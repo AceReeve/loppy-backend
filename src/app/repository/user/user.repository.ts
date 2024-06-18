@@ -148,15 +148,16 @@ export class UserRepository implements AbstractUserRepository {
     const allInvitedByUser = await this.invitedUserModel.findOne({
       invited_by: userData._id,
     });
+    if (allInvitedByUser) {
+      let totalInvitedEmails = 0;
+      allInvitedByUser.emails.forEach((emailObj) => {
+        if (emailObj.status !== UserStatus.CANCELLED) {
+          totalInvitedEmails++;
+        }
+      });
 
-    let totalInvitedEmails = 0;
-    allInvitedByUser.emails.forEach((emailObj) => {
-      if (emailObj.status !== UserStatus.CANCELLED) {
-        totalInvitedEmails++;
-      }
-    });
-
-    await this.userPlanValidation(userData._id, totalInvitedEmails);
+      await this.userPlanValidation(userData._id, totalInvitedEmails);
+    }
     //
     for (const email of inviteUserDTO.email) {
       const payload = { email: email };
@@ -305,12 +306,12 @@ export class UserRepository implements AbstractUserRepository {
       'emails.email': user.email,
     });
     // Check if the user is invited
-    if (!isInvited)
+    if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
+    }
     // Confirm passwords match
-
     const isverified = await this.otpModel.findOne({
-      email: invitedUserRegistrationDTO.email,
+      email: user.email,
     });
     if (!isverified || isverified.verified_email != true) {
       throw new BadRequestException('Email is not yet Verified');
