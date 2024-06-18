@@ -53,6 +53,10 @@ export class UserService implements AbstractUserService {
     return await this.repository.inviteUser(inviteUserDTO);
   }
 
+  async cancelInviteUser(email: string): Promise<any> {
+    return await this.repository.cancelInviteUser(email);
+  }
+
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
     return await this.repository.validateInviteUser(inviteUserDTO);
   }
