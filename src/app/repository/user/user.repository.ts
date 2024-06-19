@@ -30,7 +30,7 @@ import {
 import { UserStatus } from 'src/app/const';
 import { AuthRepository } from '../auth/auth.repository';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from 'src/app/const';
+import { UserRole, PlanSubscription } from 'src/app/const';
 import { WeatherForecast } from 'src/app/models/weatherforecast/weatherforecast.schema';
 import { Otp, OtpDocument } from 'src/app/models/otp/otp.schema';
 export class UserRepository implements AbstractUserRepository {
@@ -56,6 +56,13 @@ export class UserRepository implements AbstractUserRepository {
   }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
+
+    const validateEmail = await this.userModel.findOne({
+      email: userRegisterDto.email,
+    });
+    if (validateEmail) {
+      throw new BadRequestException('Email is already Registered');
+    }
 
     // Remove OTP after verification
     const isverified = await this.otpModel.findOne({
@@ -95,10 +102,41 @@ export class UserRepository implements AbstractUserRepository {
       user_id: userData._id,
       role: role._id,
     };
-    const newUserInfo = await this.userInfoModel.create(userInfoDTO);
-    if (!newUserInfo)
+    const userInfo = await this.userInfoModel.findOne({
+      user_id: userData._id,
+    });
+    let result: any;
+    if (userInfo) {
+      result = await this.userInfoModel.findOneAndUpdate(
+        {
+          user_id: userData._id,
+        },
+        {
+          $set: {
+            ...userInfoDTODto,
+          },
+        },
+      );
+    } else {
+      result = await this.userInfoModel.create(userInfoDTO);
+    }
+    //update the invitation documents
+    const updateIvitedUser = await this.invitedUserModel.findOneAndUpdate(
+      { 'emails.email': user.email },
+      //update status for specific email that matches to invited user
+      {
+        $set: {
+          'emails.$.first_name': userInfoDTO.first_name,
+          'emails.$.last_name': userInfoDTO.last_name,
+        },
+      },
+      { new: true },
+    );
+
+    if (!result) {
       throw new BadRequestException('Unable to register user Information');
-    return { newUserInfo };
+    }
+    return { result };
   }
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
     const userDetails = await this.userModel.findById(user.sub);
@@ -136,6 +174,22 @@ export class UserRepository implements AbstractUserRepository {
         `These emails are already invited: ${matchedEmails.join(', ')}.`,
       );
     }
+    //plan validation
+
+    const allInvitedByUser = await this.invitedUserModel.findOne({
+      invited_by: userData._id,
+    });
+    if (allInvitedByUser) {
+      let totalInvitedEmails = 0;
+      allInvitedByUser.emails.forEach((emailObj) => {
+        if (emailObj.status !== UserStatus.CANCELLED) {
+          totalInvitedEmails++;
+        }
+      });
+
+      await this.userPlanValidation(userData._id, totalInvitedEmails);
+    }
+    //
     for (const email of inviteUserDTO.email) {
       const payload = { email: email };
       const access_token = await this.authRepository.generateJWT(
@@ -173,6 +227,29 @@ export class UserRepository implements AbstractUserRepository {
     );
     return result;
   }
+
+  async userPlanValidation(id: string, totalInvited: number) {
+    const getPlan = await this.stripeEventModel.findOne({ user_id: id });
+    if (
+      getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN &&
+      totalInvited === 2
+    ) {
+      throw new BadRequestException(
+        'You have reached the maximum number of users allowed by your subscription(2). Please upgrade your plan.',
+      );
+    }
+    if (
+      getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN &&
+      totalInvited === 5
+    ) {
+      throw new BadRequestException(
+        'You have reached the maximum number of users allowed by your subscription(5). Please upgrade your plan.',
+      );
+    }
+    if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
+    }
+  }
+
   async getInvitedUser(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel.findOne({
@@ -251,20 +328,6 @@ export class UserRepository implements AbstractUserRepository {
   async invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any> {
-    const {
-      username,
-      first_name,
-      middle_name,
-      last_name,
-      address,
-      zipCode,
-      city,
-      state,
-      contact_no,
-      gender,
-      birthday,
-      title,
-    } = invitedUserRegistrationDTO;
     const user = this.request.user as Partial<User>;
     const role = await this.roleDocumentModel.findOne({
       role_name: UserRole.User,
@@ -274,9 +337,17 @@ export class UserRepository implements AbstractUserRepository {
       'emails.email': user.email,
     });
     // Check if the user is invited
-    if (!isInvited)
+    if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
+    }
     // Confirm passwords match
+    const isverified = await this.otpModel.findOne({
+      email: user.email,
+    });
+    if (!isverified || isverified.verified_email != true) {
+      throw new BadRequestException('Email is not yet Verified');
+    }
+
     if (
       invitedUserRegistrationDTO.password !=
       invitedUserRegistrationDTO.confirm_password
@@ -292,33 +363,23 @@ export class UserRepository implements AbstractUserRepository {
       password: invitedUserRegistrationDTO.password,
     });
     if (!newUser) throw new BadRequestException('error registration user');
-    const newUserInfo = await this.userInfoModel.create({
-      username,
-      user_id: newUser._id,
-      first_name,
-      middle_name,
-      last_name,
-      address,
-      zipCode,
-      city,
-      state,
-      contact_no,
-      gender,
-      birthday,
-      title,
-      role: role._id,
-    });
-    if (!newUser) throw new BadRequestException('error registration user info');
     await this.invitedUserModel.findOneAndUpdate(
       { 'emails.email': user.email },
       //update status for specific email that matches to invited user
       { $set: { 'emails.$.status': UserStatus.ACCEPTED } },
       { new: true },
     );
-    return { newUser, newUserInfo };
+    return { newUser };
   }
 
   async sendOTP(email: string): Promise<any> {
+    const validateEmail = await this.userModel.findOne({ email: email });
+    if (validateEmail) {
+      throw new BadRequestException('Email is already Registered');
+    }
+    await this.otpModel.deleteOne({
+      email: email,
+    });
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Set OTP expiration time (10 minutes)
@@ -349,5 +410,18 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('OTP has expired.');
     }
     return { message: 'OTP verified successfully' };
+  }
+
+  async cancelInviteUser(email: string): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const updatedDocument = await this.invitedUserModel.findOneAndUpdate(
+      { 'emails.email': email, invited_by: user._id },
+      { $set: { 'emails.$.status': 'CANCELLED' } },
+      { new: true },
+    );
+    if (!updatedDocument) {
+      throw new Error('Email not found in invitations.');
+    }
+    return `Successfully cancelled the invitation for ${email}.`;
   }
 }

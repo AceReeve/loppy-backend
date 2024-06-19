@@ -12,6 +12,7 @@ export enum UserStatus {
   PENDING = 'Pending',
   ACTIVE = 'Active',
   ACCEPTED = 'Accepted',
+  CANCELLED = 'Cancelled',
 }
 
 export enum UserRole {
@@ -24,4 +25,9 @@ export enum ContactStatus {
   PENDING = 'Pending',
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
+}
+export enum PlanSubscription {
+  ESSENTIAL_PLAN = 'Essential',
+  PROFESSIONAL_PLAN = 'Professional',
+  CORPORATE_PLAN = 'Corporate',
 }

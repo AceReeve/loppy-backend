@@ -27,7 +27,7 @@ export class UserController {
   }
 
   @Public()
-  @Post('send-otp')
+  @Post('send-register-otp')
   @ApiOperation({ summary: 'One Time Password' })
   @ApiQuery({
     name: 'email',
@@ -80,6 +80,17 @@ export class UserController {
   @ApiOperation({ summary: 'Invite User' })
   async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
     return this.userService.inviteUser(inviteUserDTO);
+  }
+
+  @Post('cancel-invited-user')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Cancel Invited User' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+  } as ApiQueryOptions)
+  async cancelInviteUser(@Query('email') email: string): Promise<any> {
+    return this.userService.cancelInviteUser(email);
   }
 
   @Get('get-invited-user')

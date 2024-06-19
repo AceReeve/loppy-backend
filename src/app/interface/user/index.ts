@@ -14,6 +14,7 @@ export abstract class AbstractUserRepository {
   abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
   abstract getUser(id: string): Promise<any>;
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract cancelInviteUser(email: string): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract updateUserStripeId(stripeId: string, userId: string): Promise<any>;
   abstract updateWeatherInfoId(
@@ -39,6 +40,7 @@ export abstract class AbstractUserService {
     userId: string,
   ): Promise<any>;
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract cancelInviteUser(email: string): Promise<any>;
   abstract getInvitedUser(): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(
