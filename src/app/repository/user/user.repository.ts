@@ -102,10 +102,41 @@ export class UserRepository implements AbstractUserRepository {
       user_id: userData._id,
       role: role._id,
     };
-    const newUserInfo = await this.userInfoModel.create(userInfoDTO);
-    if (!newUserInfo)
+    const userInfo = await this.userInfoModel.findOne({
+      user_id: userData._id,
+    });
+    let result: any;
+    if (userInfo) {
+      result = await this.userInfoModel.findOneAndUpdate(
+        {
+          user_id: userData._id,
+        },
+        {
+          $set: {
+            ...userInfoDTODto,
+          },
+        },
+      );
+    } else {
+      result = await this.userInfoModel.create(userInfoDTO);
+    }
+    //update the invitation documents
+    const updateIvitedUser = await this.invitedUserModel.findOneAndUpdate(
+      { 'emails.email': user.email },
+      //update status for specific email that matches to invited user
+      {
+        $set: {
+          'emails.$.first_name': userInfoDTO.first_name,
+          'emails.$.last_name': userInfoDTO.last_name,
+        },
+      },
+      { new: true },
+    );
+
+    if (!result) {
       throw new BadRequestException('Unable to register user Information');
-    return { newUserInfo };
+    }
+    return { result };
   }
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
     const userDetails = await this.userModel.findById(user.sub);
