@@ -154,10 +154,10 @@ export class UserRegisterDTO {
   })
   password: string;
 
-  @ApiProperty({ example: 'Password123!' })
-  @IsString()
-  @IsNotEmpty()
-  confirm_password: string;
+  // @ApiProperty({ example: 'Password123!' })
+  // @IsString()
+  // @IsNotEmpty()
+  // confirm_password: string;
 }
 
 export class InviteUserDTO {
@@ -197,8 +197,17 @@ export class InvitedUserRegistrationDTO {
   })
   password: string;
 
-  @ApiProperty({ example: 'Password123!' })
+  // @ApiProperty({ example: 'Password123!' })
+  // @IsString()
+  // @IsNotEmpty()
+  // confirm_password: string;
+}
+
+export class ProfileImageType {
+  @ApiProperty({
+    example: 'image_1',
+    required: true,
+  })
   @IsString()
-  @IsNotEmpty()
-  confirm_password: string;
+  type: any;
 }

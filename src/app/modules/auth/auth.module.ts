@@ -22,6 +22,8 @@ import { StripeEventSchemaModule } from 'src/app/models/stripe/stripe.event.sche
 import { InvitedUserSchemaModule } from 'src/app/models/invited-users/invited-users.schema.module';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
+import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
+import { S3Service } from 'src/app/services/s3/s3.service';
 @Module({
   imports: [
     ConfigModule,
@@ -36,6 +38,7 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
     InvitedUserSchemaModule,
     WeatherForecastSchemaModule,
     OtpSchemaModule,
+    FileUploadSchemaModule,
   ],
 
   controllers: [AuthController],
@@ -48,6 +51,7 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
     FacebookStrategy,
     JwtStrategy,
     OauthRepository,
+    S3Service,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

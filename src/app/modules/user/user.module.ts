@@ -16,6 +16,8 @@ import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { WeatherForecastSchema } from 'src/app/models/weatherforecast/weatherforecast.schema';
 import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weatherforecast.schema.module';
 import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
+import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
+import { S3Service } from 'src/app/services/s3/s3.service';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
     WeatherForecastSchemaModule,
     InvitedUserSchemaModule,
     OtpSchemaModule,
+    FileUploadSchemaModule,
   ],
   controllers: [UserController],
   providers: [
@@ -41,6 +44,7 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
     UserService,
     AuthRepository,
     OauthRepository,
+    S3Service,
   ],
 
   exports: [

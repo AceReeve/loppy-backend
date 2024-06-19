@@ -4,7 +4,6 @@ import { PaginateResponse } from 'src/app/interface';
 import {
   AbstractContactsRepository,
   AbstractContactsService,
-  Files,
 } from 'src/app/interface/contacts';
 import { ContactsDocument } from 'src/app/models/contacts/contacts.schema';
 
@@ -13,10 +12,6 @@ export class ContactsService implements AbstractContactsService {
   constructor(
     private readonly abstractContactsRepository: AbstractContactsRepository,
   ) {}
-
-  async fileUpload(files: Files): Promise<any> {
-    return this.abstractContactsRepository.fileUpload(files);
-  }
 
   async contactList(): Promise<any> {
     return this.abstractContactsRepository.contactList();

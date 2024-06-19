@@ -25,7 +25,7 @@ import {
   ApiQueryOptions,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/app/guard/auth';
-import { AbstractContactsService, Files } from 'src/app/interface/contacts';
+import { AbstractContactsService } from 'src/app/interface/contacts';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
 import { ContactsDTO, FilterTags } from 'src/app/dto/contacts';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -38,40 +38,6 @@ export class ContactsController {
   constructor(
     private readonly abstractContactsService: AbstractContactsService,
   ) {}
-
-  @UseGuards(JwtAuthGuard)
-  @Post('file/save')
-  @ApiOperation({
-    summary: 'Upload Files',
-  })
-  @ApiBearerAuth('Bearer')
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully upload service document collection',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Missing required fields - Bad Request',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'An internal error occured',
-  })
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'image_1' },
-      { name: 'image_2' },
-      { name: 'image_3' },
-      { name: 'image_4' },
-      { name: 'image_5' },
-    ]),
-  )
-  @ApiConsumes('multipart/form-data')
-  async updateNonCatalogLineItemImageUpload(
-    @UploadedFiles(FileUploadPipe) files: Files,
-  ) {
-    return await this.abstractContactsService.fileUpload(files);
-  }
 
   @UseGuards(JwtAuthGuard)
   @Post()

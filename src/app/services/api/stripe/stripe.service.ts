@@ -1,8 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { StripeDTO, StripePaymentIntentDTO, SummarizePaymentDTO } from 'src/app/dto/api/stripe';
-import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
+import {
+  StripeDTO,
+  StripePaymentIntentDTO,
+  SummarizePaymentDTO,
+} from 'src/app/dto/api/stripe';
+import {
+  UserInfo,
+  UserInfoDocument,
+} from 'src/app/models/user/user-info.schema';
 import { Public } from 'src/app/decorators/public.decorator';
 
 @Injectable()
@@ -45,7 +52,7 @@ export class StripeService {
           use_stripe_sdk: true,
           metadata: { userId: userId.toString() },
         });
-        console.log("asdasdassda", paymentIntent)
+
         if (paymentIntent.status)
           return {
             client_secret: paymentIntent.client_secret,
@@ -71,22 +78,20 @@ export class StripeService {
     }
   }
 
-
   constructEventFromPayload(signature: string, payload: Buffer) {
     const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET');
-    console.log(webhookSecret)
+    console.log(webhookSecret);
     try {
       const result = this.stripe.webhooks.constructEvent(
         payload,
         signature,
-        webhookSecret
+        webhookSecret,
       );
       return result;
     } catch (e) {
-      console.log("e", e)
+      console.log('e', e);
     }
 
     return null;
   }
-
 }
