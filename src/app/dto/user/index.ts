@@ -202,3 +202,12 @@ export class InvitedUserRegistrationDTO {
   @IsNotEmpty()
   confirm_password: string;
 }
+
+export class ProfileImageType {
+  @ApiProperty({
+    example: 'image_1',
+    required: true,
+  })
+  @IsString()
+  type: any;
+}

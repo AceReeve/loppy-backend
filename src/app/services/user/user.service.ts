@@ -1,4 +1,9 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  UnauthorizedException,
+  StreamableFile,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as _ from 'lodash';
@@ -8,7 +13,7 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
 } from 'src/app/dto/user';
-import { AbstractUserService } from 'src/app/interface/user';
+import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
 import { Request } from 'express';
@@ -17,7 +22,7 @@ import {
   UserInfo,
   UserInfoDocument,
 } from 'src/app/models/user/user-info.schema';
-
+import { Response } from 'express';
 @Injectable()
 export class UserService implements AbstractUserService {
   constructor(
@@ -85,5 +90,17 @@ export class UserService implements AbstractUserService {
   }
   async verifyOTP(email: string, otp: string): Promise<any> {
     return this.repository.verifyOTP(email, otp);
+  }
+  async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
+    return this.repository.uploadProfile(files, userInfoId);
+  }
+
+  async getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile> {
+    return this.repository.getProfile(id, path, res, type);
   }
 }

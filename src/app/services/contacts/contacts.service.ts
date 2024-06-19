@@ -14,10 +14,6 @@ export class ContactsService implements AbstractContactsService {
     private readonly abstractContactsRepository: AbstractContactsRepository,
   ) {}
 
-  async fileUpload(files: Files): Promise<any> {
-    return this.abstractContactsRepository.fileUpload(files);
-  }
-
   async contactList(): Promise<any> {
     return this.abstractContactsRepository.contactList();
   }

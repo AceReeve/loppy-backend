@@ -50,8 +50,8 @@ export class UserInfo implements GenericSchema {
   @Prop()
   title?: string;
 
-  @Prop()
-  picture?: string;
+  @Prop({ type: Object })
+  profile: any;
 
   @Prop()
   twillio_number?: number;

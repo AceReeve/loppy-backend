@@ -1,24 +1,46 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  UseInterceptors,
+  UploadedFiles,
+  Res,
+  StreamableFile,
+  UseGuards,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiTags,
   ApiQuery,
   ApiQueryOptions,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import {
   UserRegisterDTO,
   UserInfoDTO,
   InviteUserDTO,
   InvitedUserRegistrationDTO,
+  ProfileImageType,
 } from 'src/app/dto/user';
-import { AbstractUserService } from 'src/app/interface/user';
+import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
+import { FileUpload } from 'src/app/models/file-upload/file-upload.schema';
+import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
+import { Response } from 'express';
+import { S3Service } from 'src/app/services/s3/s3.service';
+import { JwtAuthGuard } from 'src/app/guard/auth';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: AbstractUserService) {}
-
+  constructor(
+    private readonly userService: AbstractUserService,
+    private readonly s3Service: S3Service,
+  ) {}
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register user' })
@@ -55,6 +77,7 @@ export class UserController {
     return await this.userService.verifyOTP(email, otp);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('user-info')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Create user info' })
@@ -62,6 +85,7 @@ export class UserController {
     return this.userService.createUserInfo(userInfoDTO);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get User Profile' })
@@ -69,12 +93,15 @@ export class UserController {
     return this.userService.profile();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('user/:id')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get User Profile' })
   async getUser(@Param('id') id: string): Promise<any> {
     return this.userService.getUser(id);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Post('invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
@@ -82,6 +109,7 @@ export class UserController {
     return this.userService.inviteUser(inviteUserDTO);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('cancel-invited-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Cancel Invited User' })
@@ -93,6 +121,7 @@ export class UserController {
     return this.userService.cancelInviteUser(email);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('get-invited-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get Invite User' })
@@ -100,6 +129,7 @@ export class UserController {
     return this.userService.getInvitedUser();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('validate-invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
@@ -107,6 +137,7 @@ export class UserController {
     return this.userService.validateInviteUser(inviteUserDTO);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('invited-user/register')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invited User Registration' })
@@ -114,5 +145,34 @@ export class UserController {
     @Body() invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any> {
     return this.userService.invitedUserRegistration(invitedUserRegistrationDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('upload-profile')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({
+    summary: 'Update service document upload in vendor accreditation request',
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
+  @ApiConsumes('multipart/form-data')
+  async updateNonCatalogLineItemImageUpload(
+    @UploadedFiles(FileUploadPipe) files: ProfileImages,
+    @Query('id') userInfoId?: string,
+  ) {
+    if (!userInfoId) userInfoId = '';
+
+    return await this.userService.uploadProfile(files, userInfoId);
+  }
+
+  @Public()
+  @Get('images/:id/image/:path(*)')
+  @ApiOperation({ summary: 'Get catalog item default image' })
+  async getNonCatalogLineItemImage(
+    @Param('id') id: string,
+    @Param('path') path: string,
+    @Res({ passthrough: true }) res: Response,
+    @Query() { type }: ProfileImageType,
+  ): Promise<StreamableFile | void> {
+    return await this.userService.getProfile(id, path, res, type);
   }
 }
