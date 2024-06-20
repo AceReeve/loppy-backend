@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Inject,
+  StreamableFile,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import {
   AbstractUserRepository,
+  ProfileImages,
   RegisterResponseData,
 } from 'src/app/interface/user';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
@@ -33,6 +40,12 @@ import { ConfigService } from '@nestjs/config';
 import { UserRole, PlanSubscription } from 'src/app/const';
 import { WeatherForecast } from 'src/app/models/weatherforecast/weatherforecast.schema';
 import { Otp, OtpDocument } from 'src/app/models/otp/otp.schema';
+import {
+  FileUpload,
+  FileUploadDocument,
+} from 'src/app/models/file-upload/file-upload.schema';
+import { S3Service } from 'src/app/services/s3/s3.service';
+import { Response } from 'express';
 export class UserRepository implements AbstractUserRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -48,6 +61,9 @@ export class UserRepository implements AbstractUserRepository {
     private readonly emailService: EmailerService,
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
+    @InjectModel(FileUpload.name)
+    private fileUploadModel: Model<FileUploadDocument>,
+    private readonly s3: S3Service,
   ) {}
 
   async getLoggedInUserDetails(): Promise<any> {
@@ -74,10 +90,10 @@ export class UserRepository implements AbstractUserRepository {
     await this.otpModel.deleteOne({
       email: userRegisterDto.email,
     });
-    if (userRegisterDto.password != userRegisterDto.confirm_password) {
-      // Confirm passwords match
-      throw new BadRequestException('Password Does Not Match');
-    }
+    // if (userRegisterDto.password != userRegisterDto.confirm_password) {
+    //   // Confirm passwords match
+    //   throw new BadRequestException('Password Does Not Match');
+    // }
     const newUser = await this.userModel.create({
       email: userRegisterDto.email,
       password: userRegisterDto.password,
@@ -348,11 +364,11 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('Email is not yet Verified');
     }
 
-    if (
-      invitedUserRegistrationDTO.password !=
-      invitedUserRegistrationDTO.confirm_password
-    )
-      throw new BadRequestException('Password Does Not Match');
+    // if (
+    //   invitedUserRegistrationDTO.password !=
+    //   invitedUserRegistrationDTO.confirm_password
+    // )
+    //   throw new BadRequestException('Password Does Not Match');
     const isExisting = await this.userModel.findOne({ email: user.email });
     //check email if existing
     if (isExisting) {
@@ -423,5 +439,159 @@ export class UserRepository implements AbstractUserRepository {
       throw new Error('Email not found in invitations.');
     }
     return `Successfully cancelled the invitation for ${email}.`;
+  }
+
+  async uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any | null> {
+    const images: any = {};
+    const user = await this.getLoggedInUserDetails();
+    if (files === undefined)
+      throw new BadRequestException('Image files cannot be empty.');
+
+    if (files) {
+      // s3 bucket upload and insertion in fileuploads collection
+      const s3 = await this.UploadtoS3Bucket(files, userInfoId);
+
+      for (const image of Object.keys(s3)) {
+        images[image] = s3[image];
+      }
+    }
+
+    await this.userInfoModel.findOneAndUpdate(
+      { _id: userInfoId },
+      { $set: { profile: {} } },
+    );
+
+    await this.invitedUserModel.findOneAndUpdate(
+      { 'emails.email': user.email },
+      { $set: { 'emails.$.profile': images } },
+      { new: true },
+    );
+
+    return await this.userInfoModel.findOneAndUpdate(
+      { _id: userInfoId },
+      {
+        $set: {
+          profile: images,
+        },
+      },
+      { new: true },
+    );
+  }
+
+  private async UploadtoS3Bucket(files: any, id: string): Promise<any> {
+    const domain = this.getDomainHost(id.toString());
+    const today = new Date();
+
+    const uploadedFiles: any = {};
+
+    for (const key of Object.keys(files)) {
+      const file = files[key][0];
+
+      if (!file) continue;
+
+      const { originalname, mimetype, fieldname } = file;
+      const parts = originalname.split('.');
+      const s3Route = this.s3.defaultImagePath(id, originalname);
+      const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
+
+      if (!defaultPhotoPath)
+        throw new InternalServerErrorException(
+          'Unable to upload document to S3 Bucket',
+        );
+
+      const fileUpload = await this.fileUploadModel.create({
+        original_filename: originalname,
+        extension: parts[parts.length - 1],
+        name: fieldname,
+        mimetype: mimetype,
+        path: defaultPhotoPath,
+      });
+
+      const fileInformation = {
+        path: `${domain}/${defaultPhotoPath.replace(
+          `/${originalname}`,
+          '',
+        )}?type=${file.fieldname}`,
+        filename: originalname,
+        mimetype: mimetype,
+        created_at: today.toISOString(),
+        file_id: fileUpload?._id,
+        extension: fileUpload.extension,
+      };
+
+      uploadedFiles[key] = fileInformation;
+    }
+
+    return uploadedFiles;
+  }
+
+  private host =
+    this.configService.get<string>('HOST') ||
+    ('http://localhost:8080' as string);
+  private getDomainHost(id: string): string {
+    return `${this.host}/api/user/images/${id}/image`;
+  }
+
+  async getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile> {
+    let streamFileDetails = { mimetype: '', filename: '', path: '' };
+    streamFileDetails = await this.getImageInfo(type, id, path);
+
+    if (
+      _.isEmpty(streamFileDetails?.filename) &&
+      _.isEmpty(streamFileDetails?.mimetype)
+    )
+      throw new BadRequestException('Unable to find file!');
+
+    const readStream = this.s3.downloadFile(streamFileDetails?.path);
+    if (!readStream)
+      throw new InternalServerErrorException(
+        'Unable to download file from S3!',
+      );
+
+    res.set('Content-Type', `${streamFileDetails?.mimetype}`);
+    res.set(
+      'Content-Disposition',
+      `attachment; filename="${streamFileDetails?.filename}"`,
+    );
+
+    return new StreamableFile(readStream);
+  }
+
+  private async getImageInfo(
+    type: string,
+    id: string,
+    path: string,
+  ): Promise<any> {
+    const findUserInfo = await this.userInfoModel.findOne({
+      _id: new Types.ObjectId(id),
+    });
+
+    if (!findUserInfo)
+      throw new BadRequestException(`Invalid user information id: ${id}`);
+
+    const { profile } = findUserInfo;
+
+    const image = profile[type];
+
+    if (!image) throw new BadRequestException(`Invalid document image`);
+
+    const filename = image?.filename ?? '';
+
+    const result = {
+      file: this.getDomainHost(id) + '/' + path + '?type=' + type,
+      filename,
+      mimetype: image?.mimetype ?? '',
+      path: `${path}/${filename}`,
+    };
+
+    return result;
   }
 }

@@ -8,9 +8,17 @@ import { JwtService } from '@nestjs/jwt';
 import { OauthRepository } from './oauth/oauth.repository';
 import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.module';
 import { WeatherForecastSchemaModule } from '../models/weatherforecast/weatherforecast.schema.module';
+import { FileUploadSchemaModule } from '../models/file-upload/file-upload.schema.module';
+import { S3Service } from '../services/s3/s3.service';
 
 @Module({
-  imports: [ModelModule, EmailerModule, StripeEventSchemaModule, WeatherForecastSchemaModule],
+  imports: [
+    ModelModule,
+    EmailerModule,
+    StripeEventSchemaModule,
+    WeatherForecastSchemaModule,
+    FileUploadSchemaModule,
+  ],
   controllers: [],
   // Inversion
   providers: [
@@ -21,6 +29,7 @@ import { WeatherForecastSchemaModule } from '../models/weatherforecast/weatherfo
     AuthRepository,
     JwtService,
     OauthRepository,
+    S3Service,
   ],
 
   exports: [
@@ -33,4 +42,4 @@ import { WeatherForecastSchemaModule } from '../models/weatherforecast/weatherfo
     AuthRepository,
   ],
 })
-export class RepositoryModule { }
+export class RepositoryModule {}

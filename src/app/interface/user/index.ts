@@ -7,6 +7,8 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
 } from 'src/app/dto/user';
+import { StreamableFile } from '@nestjs/common';
+import { Response } from 'express';
 
 export abstract class AbstractUserRepository {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
@@ -27,6 +29,16 @@ export abstract class AbstractUserRepository {
   abstract verifyOTP(email: string, otp: string): Promise<any>;
   abstract sendOTP(email: string): Promise<any>;
   abstract getInvitedUser(): Promise<any>;
+  abstract uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any>;
+  abstract getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile>;
 }
 
 export abstract class AbstractUserService {
@@ -48,6 +60,17 @@ export abstract class AbstractUserService {
   ): Promise<any>;
   abstract verifyOTP(email: string, otp: string): Promise<any>;
   abstract sendOTP(email: string): Promise<any>;
+  abstract uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any>;
+
+  abstract getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile>;
 }
 export interface RegisterResponseData {
   _id: string;
@@ -65,3 +88,20 @@ export interface LoginResponseData {
   email?: string;
   status?: string;
 }
+
+interface File {
+  path: string;
+  filename: string;
+  mimetype: string;
+  created_at: string;
+  file_id: any;
+  extension: string;
+}
+
+export type ProfileImages = {
+  image_1: File[];
+  image_2: File[];
+  image_3: File[];
+  image_4: File[];
+  image_5: File[];
+};
