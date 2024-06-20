@@ -464,6 +464,12 @@ export class UserRepository implements AbstractUserRepository {
       { $set: { profile: {} } },
     );
 
+    await this.invitedUserModel.findOneAndUpdate(
+      { 'emails.email': user.email },
+      { $set: { 'emails.$.profile': images } },
+      { new: true },
+    );
+
     return await this.userInfoModel.findOneAndUpdate(
       { _id: userInfoId },
       {
