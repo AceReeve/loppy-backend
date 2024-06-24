@@ -37,8 +37,8 @@ export class Contacts implements GenericSchema {
   @Prop()
   source: string;
 
-  @Prop()
-  lifetime_value: number;
+  // @Prop()
+  // lifetime_value: number;
 
   @Prop()
   last_campaign_ran: string;

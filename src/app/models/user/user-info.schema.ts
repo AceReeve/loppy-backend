@@ -44,6 +44,9 @@ export class UserInfo implements GenericSchema {
   @Prop()
   gender: string;
 
+  @Prop()
+  company?: string;
+
   @Prop({ type: Date })
   birthday: Date;
 

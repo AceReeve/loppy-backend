@@ -89,6 +89,11 @@ export class UserInfoDTO {
   @IsNotEmpty()
   gender: string;
 
+  @ApiProperty({ example: 'service hero' })
+  @IsString()
+  @IsOptional()
+  company: string;
+
   // address optional
   @ApiProperty({ example: 'address' })
   @IsString()
