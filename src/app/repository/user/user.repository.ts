@@ -432,7 +432,7 @@ export class UserRepository implements AbstractUserRepository {
     const user = await this.getLoggedInUserDetails();
     const updatedDocument = await this.invitedUserModel.findOneAndUpdate(
       { 'emails.email': email, invited_by: user._id },
-      { $set: { 'emails.$.status': 'CANCELLED' } },
+      { $set: { 'emails.$.status': UserStatus.CANCELLED } },
       { new: true },
     );
     if (!updatedDocument) {

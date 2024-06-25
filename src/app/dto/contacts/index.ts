@@ -55,10 +55,10 @@ export class ContactsDTO {
   @IsNotEmpty()
   source: string;
 
-  @ApiProperty({ example: '2323' })
-  @IsNumber()
-  @IsNotEmpty()
-  lifetime_value: number;
+  // @ApiProperty({ example: '2323' })
+  // @IsNumber()
+  // @IsNotEmpty()
+  // lifetime_value: number;
 
   @ApiProperty({ example: 'delacruz' })
   @IsString()
