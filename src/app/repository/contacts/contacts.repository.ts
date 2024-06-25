@@ -54,9 +54,42 @@ export class ContactsRepository implements AbstractContactsRepository {
     @InjectModel(ContactsHistory.name)
     private contactsHistoryModel: Model<ContactsHistoryDocument>,
   ) {}
+  async validateContacts(
+    user_id: string,
+    email: string,
+    number: number,
+    id?: string,
+  ): Promise<any> {
+    let existingContact: any;
+    if (id) {
+      existingContact = await this.contactsModel.findOne({
+        _id: { $ne: id }, // Exclude the current contact being updated
+        user_id: user_id,
+        $or: [{ email: email }, { phone_number: number }],
+      });
+    } else {
+      existingContact = await this.contactsModel.findOne({
+        user_id: user_id,
+        $or: [{ email: email }, { phone_number: number }],
+      });
+    }
+
+    if (existingContact) {
+      // If an existing contact is found with the same email or phone number
+      throw new BadRequestException('Email or phone number already exists');
+    }
+  }
+
   async createContacts(contactsDTO: ContactsDTO): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
+
+    await this.validateContacts(
+      userData._id,
+      contactsDTO.email,
+      contactsDTO.phone_number,
+    );
+
     return await this.contactsModel.create({
       user_id: userData._id,
       first_name: contactsDTO.first_name,
@@ -74,6 +107,13 @@ export class ContactsRepository implements AbstractContactsRepository {
   async editContacts(contactsDTO: ContactsDTO, id: string): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
+    await this.validateContacts(
+      userData._id,
+      contactsDTO.email,
+      contactsDTO.phone_number,
+      id,
+    );
+
     const updateContact = await this.contactsModel.findOneAndUpdate(
       { _id: id, user_id: userData._id },
       {
@@ -88,6 +128,7 @@ export class ContactsRepository implements AbstractContactsRepository {
         last_interaction: contactsDTO.last_interaction,
         tags: contactsDTO.tags,
       },
+      { new: true },
     );
     if (!updateContact) {
       throw new BadRequestException('Contact Not Found');
@@ -218,7 +259,7 @@ export class ContactsRepository implements AbstractContactsRepository {
       email: contact.email,
       phone_number: contact.phone_number,
       source: contact.source,
-      lifetime_value: contact.lifetime_value,
+      // lifetime_value: contact.lifetime_value,
       last_campaign_ran: contact.last_campaign_ran,
       last_interaction: contact.last_interaction,
     }));
@@ -290,7 +331,7 @@ export class ContactsRepository implements AbstractContactsRepository {
       if (searchKeyIsNumeric) {
         // Use numericSearchKey for numeric fields
         query.$or.push({ phone_number: numericSearchKey });
-        query.$or.push({ lifetime_value: numericSearchKey });
+        // query.$or.push({ lifetime_value: numericSearchKey });
       }
     }
 
