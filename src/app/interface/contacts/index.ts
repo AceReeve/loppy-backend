@@ -48,7 +48,7 @@ export interface ExcelContactData {
   email: string;
   phone_number: number;
   source: string;
-  lifetime_value: number;
+  // lifetime_value: number;
   last_campaign_ran: string;
   last_interaction: string;
   tags: string;
