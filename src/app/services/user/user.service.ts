@@ -12,6 +12,7 @@ import {
   UserInfoDTO,
   InviteUserDTO,
   InvitedUserRegistrationDTO,
+  ResetPasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
@@ -102,5 +103,11 @@ export class UserService implements AbstractUserService {
     type: string,
   ): Promise<void | StreamableFile> {
     return this.repository.getProfile(id, path, res, type);
+  }
+  async forgotPassword(email: string): Promise<any> {
+    return this.repository.forgotPassword(email);
+  }
+  async resetPassword(resetPasswordDTO: ResetPasswordDto): Promise<any> {
+    return this.repository.resetPassword(resetPasswordDTO);
   }
 }

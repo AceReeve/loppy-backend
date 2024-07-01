@@ -23,6 +23,7 @@ import {
   UserInfoDTO,
   InviteUserDTO,
   InvitedUserRegistrationDTO,
+  ResetPasswordDto,
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { SignInBy } from 'src/app/const';
@@ -46,6 +47,8 @@ import {
 } from 'src/app/models/file-upload/file-upload.schema';
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { Response } from 'express';
+import * as bcrypt from 'bcrypt';
+
 export class UserRepository implements AbstractUserRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -593,5 +596,39 @@ export class UserRepository implements AbstractUserRepository {
     };
 
     return result;
+  }
+
+  async forgotPassword(email: string): Promise<any> {
+    const validateEmail = await this.userModel.findOne({ email: email });
+    if (!validateEmail) {
+      throw new BadRequestException('Email not found in the system');
+    }
+
+    const payload = { email: email };
+    const access_token = await this.authRepository.generateJWT(
+      payload,
+      this.configService.get<string>('JWT_EXPIRATION'),
+    );
+    await this.emailService.forgotPassword(email, access_token);
+
+    return 'Reset Password Link Sent';
+  }
+
+  async resetPassword(resetPasswordDTO: ResetPasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(resetPasswordDTO.password, 12);
+
+    const resetPassword = await this.userModel.findOneAndUpdate(
+      { email: user.email },
+      { $set: { password: hashedPassword } },
+      { new: true },
+    );
+    if (!resetPassword) {
+      throw new BadRequestException(
+        "Password couldn't be reset. Please try again later.",
+      );
+    }
+    return resetPassword;
   }
 }

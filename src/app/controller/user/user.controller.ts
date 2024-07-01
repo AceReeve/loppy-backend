@@ -26,6 +26,7 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ProfileImageType,
+  ResetPasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
@@ -174,5 +175,26 @@ export class UserController {
     @Query() { type }: ProfileImageType,
   ): Promise<StreamableFile | void> {
     return await this.userService.getProfile(id, path, res, type);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Forgot Password' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+  } as ApiQueryOptions)
+  async forgotPassword(@Query('email') email: string): Promise<any> {
+    return this.userService.forgotPassword(email);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('reset-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Reset Password' })
+  async resetPassword(
+    @Body() resetPasswordDTO: ResetPasswordDto,
+  ): Promise<any> {
+    return this.userService.resetPassword(resetPasswordDTO);
   }
 }
