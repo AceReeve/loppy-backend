@@ -46,4 +46,21 @@ export class EmailerService {
       throw new InternalServerErrorException(errorMessage);
     }
   }
+
+  async forgotPassword(email: string, access_token: string): Promise<any> {
+    const link = `https://example.com/forgot-password?token=${access_token}`;
+
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: `Reset your Password`,
+        html: `We received a request to reset the password for your account. To proceed with the password reset, please follow the link below:: <br><a href="${link}">Password Reset</a><br><br> If you did not request this change, you can safely ignore this email. Your password will remain unchanged.<br> Thank you.`,
+      });
+    } catch (error) {
+      const errorMessage = 'Error Sending invite';
+
+      this.logger.error(errorMessage, error);
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
 }

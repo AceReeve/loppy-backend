@@ -18,6 +18,7 @@ import {
   MinLength,
   ValidateNested,
   IsDateString,
+  Validate,
 } from 'class-validator';
 import { Schema } from 'mongoose';
 import { CommonFilter } from '..';
@@ -171,6 +172,13 @@ export class InviteUserDTO {
   @IsNotEmpty()
   @IsEmail({}, { each: true })
   email: string[];
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
 
 export class InvitedUserRegistrationDTO {
