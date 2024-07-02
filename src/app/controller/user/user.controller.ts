@@ -10,6 +10,7 @@ import {
   Res,
   StreamableFile,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
@@ -65,9 +66,10 @@ export class UserController {
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Reset Password' })
   async resetPassword(
+    @Req() request,
     @Body() resetPasswordDTO: ResetPasswordDto,
   ): Promise<any> {
-    return this.userService.resetPassword(resetPasswordDTO);
+    return this.userService.resetPassword(request, resetPasswordDTO);
   }
 
   @Public()

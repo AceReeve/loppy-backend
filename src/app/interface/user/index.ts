@@ -41,7 +41,10 @@ export abstract class AbstractUserRepository {
     type: string,
   ): Promise<void | StreamableFile>;
   abstract forgotPassword(email: string): Promise<any>;
-  abstract resetPassword(resetPasswordDTO: ResetPasswordDto): Promise<any>;
+  abstract resetPassword(
+    request: any,
+    resetPasswordDTO: ResetPasswordDto,
+  ): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -76,7 +79,10 @@ export abstract class AbstractUserService {
   ): Promise<void | StreamableFile>;
 
   abstract forgotPassword(email: string): Promise<any>;
-  abstract resetPassword(resetPasswordDTO: ResetPasswordDto): Promise<any>;
+  abstract resetPassword(
+    request: any,
+    resetPasswordDTO: ResetPasswordDto,
+  ): Promise<any>;
 }
 export interface RegisterResponseData {
   _id: string;

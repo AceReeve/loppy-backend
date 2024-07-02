@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
@@ -8,8 +13,8 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private configService: ConfigService,
-    private userService: UserService
-  ) { }
+    private userService: UserService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -21,12 +26,16 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const decodedToken = this.jwtService.verify(token, {
-        secret: this.configService.get<string>('JWT_SECRET')
+        secret: this.configService.get<string>('JWT_SECRET'),
       });
       request.user = decodedToken;
+      request.token = token;
       return true;
     } catch (error) {
-      if (error instanceof JsonWebTokenError || error instanceof TokenExpiredError) {
+      if (
+        error instanceof JsonWebTokenError ||
+        error instanceof TokenExpiredError
+      ) {
         throw new UnauthorizedException('Invalid token');
       } else {
         throw new UnauthorizedException('Token verification failed');
@@ -37,7 +46,7 @@ export class JwtAuthGuard implements CanActivate {
 
 @Injectable()
 export class VerifyProfile implements CanActivate {
-  constructor() { }
+  constructor() {}
 
   canActivate(context: ExecutionContext): boolean {
     // Implement your logic to check if the user has a user profile

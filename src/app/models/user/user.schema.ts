@@ -35,6 +35,9 @@ export class User implements GenericSchema {
 
   @Prop()
   already_send_invites?: boolean;
+
+  @Prop()
+  reset_password_token?: string;
 }
 
 async function hashPasswordHook(next: () => void): Promise<void> {
