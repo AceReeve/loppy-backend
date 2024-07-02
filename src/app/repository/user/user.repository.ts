@@ -73,6 +73,14 @@ export class UserRepository implements AbstractUserRepository {
     const user = this.request.user as Partial<User> & { sub: string };
     return await this.userModel.findOne({ email: user.email });
   }
+
+  async validateResetPassToken(request: any): Promise<any> {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userDetails = await this.userModel.findOne({ email: user.email });
+    if (userDetails.reset_password_token !== request.token) {
+      throw new BadRequestException('Invalid Token');
+    }
+  }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
 
@@ -610,18 +618,25 @@ export class UserRepository implements AbstractUserRepository {
       this.configService.get<string>('JWT_EXPIRATION'),
     );
     await this.emailService.forgotPassword(email, access_token);
-
+    await this.userModel.findOneAndUpdate(
+      { email: email },
+      { $set: { reset_password_token: access_token } },
+      { new: true },
+    );
     return 'Reset Password Link Sent';
   }
 
-  async resetPassword(resetPasswordDTO: ResetPasswordDto): Promise<any> {
+  async resetPassword(
+    request: any,
+    resetPasswordDTO: ResetPasswordDto,
+  ): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     // Hash the new password
     const hashedPassword = await bcrypt.hash(resetPasswordDTO.password, 12);
-
+    await this.validateResetPassToken(request);
     const resetPassword = await this.userModel.findOneAndUpdate(
       { email: user.email },
-      { $set: { password: hashedPassword } },
+      { $set: { password: hashedPassword, reset_password_token: null } },
       { new: true },
     );
     if (!resetPassword) {

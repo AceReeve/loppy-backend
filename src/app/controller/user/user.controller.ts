@@ -10,6 +10,7 @@ import {
   Res,
   StreamableFile,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
@@ -47,6 +48,28 @@ export class UserController {
   @ApiOperation({ summary: 'Register user' })
   async createUser(@Body() userRegisterDto: UserRegisterDTO): Promise<any> {
     return this.userService.createUser(userRegisterDto);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Forgot Password' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+  } as ApiQueryOptions)
+  async forgotPassword(@Query('email') email: string): Promise<any> {
+    return this.userService.forgotPassword(email);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('reset-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Reset Password' })
+  async resetPassword(
+    @Req() request,
+    @Body() resetPasswordDTO: ResetPasswordDto,
+  ): Promise<any> {
+    return this.userService.resetPassword(request, resetPasswordDTO);
   }
 
   @Public()
@@ -175,26 +198,5 @@ export class UserController {
     @Query() { type }: ProfileImageType,
   ): Promise<StreamableFile | void> {
     return await this.userService.getProfile(id, path, res, type);
-  }
-
-  @Public()
-  @Post('forgot-password')
-  @ApiOperation({ summary: 'Forgot Password' })
-  @ApiQuery({
-    name: 'email',
-    required: true,
-  } as ApiQueryOptions)
-  async forgotPassword(@Query('email') email: string): Promise<any> {
-    return this.userService.forgotPassword(email);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('reset-password')
-  @ApiBearerAuth('Bearer')
-  @ApiOperation({ summary: 'Reset Password' })
-  async resetPassword(
-    @Body() resetPasswordDTO: ResetPasswordDto,
-  ): Promise<any> {
-    return this.userService.resetPassword(resetPasswordDTO);
   }
 }
