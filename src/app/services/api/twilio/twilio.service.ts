@@ -34,12 +34,15 @@ export class TwilioService {
     if (!twilioInfo) {
       throw new Error('Twilio information not found for the user');
     }
-    const { ssid, auth_token } = twilioInfo;
-    this.twilioClient = new Twilio(ssid, auth_token);
+    const { twilio_account_sid, twilio_auth_token } = twilioInfo;
+    this.twilioClient = new Twilio(twilio_account_sid, twilio_auth_token);
   }
   async twilioCredentials(
-    ssid: string,
-    auth_token: string,
+    twilio_account_sid: string,
+    twilio_chat_service_sid: string,
+    twilio_api_key_sid: string,
+    twilio_api_key_secret: string,
+    twilio_auth_token: string,
     twilio_number: string,
   ) {
     const user = this.request.user as Partial<User> & { sub: string };
@@ -48,12 +51,28 @@ export class TwilioService {
       .findOne({ user_id: userData._id })
       .exec();
     if (twilioInfo) {
-      throw new Error('Already have Twilio information for this user');
+      return await this.twilioModel.findOneAndUpdate(
+        { user_id: userData._id },
+        {
+          $set: {
+            twilio_account_sid: twilio_account_sid,
+            twilio_chat_service_sid: twilio_chat_service_sid,
+            twilio_api_key_sid: twilio_api_key_sid,
+            twilio_api_key_secret: twilio_api_key_secret,
+            twilio_auth_token: twilio_auth_token,
+            twilio_number: twilio_number,
+          },
+        },
+        { new: true },
+      );
     }
     return await this.twilioModel.create({
-      user_id: new Types.ObjectId(userData._id),
-      ssid: ssid,
-      auth_token: auth_token,
+      user_id: userData._id,
+      twilio_account_sid: twilio_account_sid,
+      twilio_chat_service_sid: twilio_chat_service_sid,
+      twilio_api_key_sid: twilio_api_key_sid,
+      twilio_api_key_secret: twilio_api_key_secret,
+      twilio_auth_token: twilio_auth_token,
       twilio_number: twilio_number,
     });
   }

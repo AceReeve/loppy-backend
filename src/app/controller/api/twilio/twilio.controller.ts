@@ -14,15 +14,24 @@ import { MessageDTO } from 'src/app/dto/api/stripe';
 @ApiBearerAuth('Bearer')
 export class TwilioController {
   constructor(private twilioService: TwilioService) {}
-  @Post('twilio-credentials/:ssid/:auth_token/:twilio_number')
+
+  @Post(
+    'twilio-credentials/:twilio_account_sid/:twilio_chat_service_sid/:twilio_api_key_sid/:twilio_api_key_secret/:twilio_auth_token/:twilio_number',
+  )
   async twilioCredentials(
-    @Param('ssid') ssid: string,
-    @Param('auth_token') auth_token: string,
+    @Param('twilio_account_sid') twilio_account_sid: string,
+    @Param('twilio_chat_service_sid') twilio_chat_service_sid: string,
+    @Param('twilio_api_key_sid') twilio_api_key_sid: string,
+    @Param('twilio_api_key_secret') twilio_api_key_secret: string,
+    @Param('twilio_auth_token') twilio_auth_token: string,
     @Param('twilio_number') twilio_number: string,
   ) {
     return this.twilioService.twilioCredentials(
-      ssid,
-      auth_token,
+      twilio_account_sid,
+      twilio_chat_service_sid,
+      twilio_api_key_sid,
+      twilio_api_key_secret,
+      twilio_auth_token,
       twilio_number,
     );
   }
