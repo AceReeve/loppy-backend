@@ -42,7 +42,7 @@ export abstract class AbstractUserRepository {
   ): Promise<void | StreamableFile>;
   abstract forgotPassword(email: string): Promise<any>;
   abstract resetPassword(
-    request: any,
+    token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
 }
@@ -80,7 +80,7 @@ export abstract class AbstractUserService {
 
   abstract forgotPassword(email: string): Promise<any>;
   abstract resetPassword(
-    request: any,
+    token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
 }

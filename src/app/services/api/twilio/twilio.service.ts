@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { jwt, Twilio } from 'twilio';
 import { ConfigService } from '@nestjs/config';
-import { MessageDTO } from 'src/app/dto/api/stripe';
+import { MessageDTO, TwilioCredDTO } from 'src/app/dto/api/stripe';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
 import {
   UserInfo,
@@ -37,14 +37,7 @@ export class TwilioService {
     const { twilio_account_sid, twilio_auth_token } = twilioInfo;
     this.twilioClient = new Twilio(twilio_account_sid, twilio_auth_token);
   }
-  async twilioCredentials(
-    twilio_account_sid: string,
-    twilio_chat_service_sid: string,
-    twilio_api_key_sid: string,
-    twilio_api_key_secret: string,
-    twilio_auth_token: string,
-    twilio_number: string,
-  ) {
+  async twilioCredentials(twilioCredDTO: TwilioCredDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
     const twilioInfo = await this.twilioModel
@@ -55,12 +48,12 @@ export class TwilioService {
         { user_id: userData._id },
         {
           $set: {
-            twilio_account_sid: twilio_account_sid,
-            twilio_chat_service_sid: twilio_chat_service_sid,
-            twilio_api_key_sid: twilio_api_key_sid,
-            twilio_api_key_secret: twilio_api_key_secret,
-            twilio_auth_token: twilio_auth_token,
-            twilio_number: twilio_number,
+            twilio_account_sid: twilioCredDTO.twilio_account_sid,
+            twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
+            twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
+            twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
+            twilio_auth_token: twilioCredDTO.twilio_auth_token,
+            twilio_number: twilioCredDTO.twilio_number,
           },
         },
         { new: true },
@@ -68,12 +61,12 @@ export class TwilioService {
     }
     return await this.twilioModel.create({
       user_id: userData._id,
-      twilio_account_sid: twilio_account_sid,
-      twilio_chat_service_sid: twilio_chat_service_sid,
-      twilio_api_key_sid: twilio_api_key_sid,
-      twilio_api_key_secret: twilio_api_key_secret,
-      twilio_auth_token: twilio_auth_token,
-      twilio_number: twilio_number,
+      twilio_account_sid: twilioCredDTO.twilio_account_sid,
+      twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
+      twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
+      twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
+      twilio_auth_token: twilioCredDTO.twilio_auth_token,
+      twilio_number: twilioCredDTO.twilio_number,
     });
   }
   async getTwilioAccessToken() {

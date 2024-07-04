@@ -11,6 +11,7 @@ import {
   StreamableFile,
   UseGuards,
   Req,
+  Request,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
@@ -36,6 +37,8 @@ import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
 import { Response } from 'express';
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { JwtAuthGuard } from 'src/app/guard/auth';
+import { AuthInfoRequest } from 'src/app/interface/auth';
+import { User } from 'aws-sdk/clients/budgets';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
@@ -61,15 +64,18 @@ export class UserController {
     return this.userService.forgotPassword(email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('reset-password')
-  @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Reset Password' })
+  @ApiQuery({
+    name: 'token',
+    required: true,
+  } as ApiQueryOptions)
   async resetPassword(
-    @Req() request,
+    @Query('token') token: string,
     @Body() resetPasswordDTO: ResetPasswordDto,
   ): Promise<any> {
-    return this.userService.resetPassword(request, resetPasswordDTO);
+    return this.userService.resetPassword(token, resetPasswordDTO);
   }
 
   @Public()
