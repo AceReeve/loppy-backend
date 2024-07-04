@@ -634,6 +634,7 @@ export class UserRepository implements AbstractUserRepository {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(resetPasswordDTO.password, 12);
     await this.validateResetPassToken(token);
+
     const resetPassword = await this.userModel.findOneAndUpdate(
       { reset_password_token: token },
       { $set: { password: hashedPassword, reset_password_token: null } },
