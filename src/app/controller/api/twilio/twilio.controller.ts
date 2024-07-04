@@ -39,6 +39,11 @@ export class TwilioController {
     return this.twilioService.getAllContacts();
   }
 
+  @Get('get-twilio-credentials')
+  async getTwilioCredentials() {
+    return this.twilioService.getTwilioCredentials();
+  }
+
   @Get('get-twilio-access-token')
   async getTwilioAccessToken() {
     return this.twilioService.getTwilioAccessToken();

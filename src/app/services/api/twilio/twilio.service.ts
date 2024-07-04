@@ -71,18 +71,21 @@ export class TwilioService {
   }
   async getTwilioAccessToken() {
     const user = this.request.user as Partial<User> & { sub: string };
-
+    const userDetails = await this.userModel.findOne({ email: user.email });
+    const twilioCred = await this.twilioModel.findOne({
+      user_id: userDetails._id,
+    });
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;
 
     // Used when generating any kind of tokens
     // To set up environmental variables, see http://twil.io/secure
-    const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-    const twilioApiKey = process.env.TWILIO_API_KEY_SID;
-    const twilioApiSecret = process.env.TWILIO_API_KEY_SECRET;
+    const twilioAccountSid = twilioCred.twilio_account_sid;
+    const twilioApiKey = twilioCred.twilio_api_key_sid;
+    const twilioApiSecret = twilioCred.twilio_api_key_secret;
 
     // Used specifically for creating Chat tokens
-    const serviceSid = process.env.TWILIO_CHAT_SERVICE_SID;
+    const serviceSid = twilioCred.twilio_chat_service_sid;
     const identity = user.email;
 
     // Create a "grant" which enables a client to use Chat as a given user,
@@ -206,5 +209,12 @@ export class TwilioService {
 
     // Return the random message
     return messages[randomIndex];
+  }
+
+  async getTwilioCredentials() {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+
+    return await this.twilioModel.findOne({ user_id: userData._id });
   }
 }
