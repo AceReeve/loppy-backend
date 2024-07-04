@@ -74,10 +74,11 @@ export class UserRepository implements AbstractUserRepository {
     return await this.userModel.findOne({ email: user.email });
   }
 
-  async validateResetPassToken(request: any): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    const userDetails = await this.userModel.findOne({ email: user.email });
-    if (userDetails.reset_password_token !== request.token) {
+  async validateResetPassToken(token: string): Promise<any> {
+    const userDetails = await this.userModel.findOne({
+      reset_password_token: token,
+    });
+    if (!userDetails || userDetails.reset_password_token !== token) {
       throw new BadRequestException('Invalid Token');
     }
   }
@@ -627,15 +628,14 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async resetPassword(
-    request: any,
+    token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
     // Hash the new password
     const hashedPassword = await bcrypt.hash(resetPasswordDTO.password, 12);
-    await this.validateResetPassToken(request);
+    await this.validateResetPassToken(token);
     const resetPassword = await this.userModel.findOneAndUpdate(
-      { email: user.email },
+      { reset_password_token: token },
       { $set: { password: hashedPassword, reset_password_token: null } },
       { new: true },
     );

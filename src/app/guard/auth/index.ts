@@ -43,7 +43,6 @@ export class JwtAuthGuard implements CanActivate {
     }
   }
 }
-
 @Injectable()
 export class VerifyProfile implements CanActivate {
   constructor() {}

@@ -48,33 +48,54 @@ export class MessageDTO {
   body: string;
 }
 
+export class TwilioCredDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  twilio_account_sid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  twilio_chat_service_sid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  twilio_api_key_sid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  twilio_api_key_secret: string;
+
+  @ApiProperty({ example: '+0000000' })
+  @IsString()
+  twilio_auth_token: string;
+
+  @ApiProperty({ example: '+18015203693' })
+  @IsString()
+  twilio_number: string;
+}
 
 export class StripePaymentIntentDTO {
-    @ApiProperty({
-        example: 'essential',
-        description:
-            'Type of subscription. Can be `essential`, `professional`, or `corporate`',
-    })
-    @IsString()
-    type: 'essential' | 'professional' | 'corporate';
+  @ApiProperty({
+    example: 'essential',
+    description:
+      'Type of subscription. Can be `essential`, `professional`, or `corporate`',
+  })
+  @IsString()
+  type: 'essential' | 'professional' | 'corporate';
 
-    @ApiProperty({
-        description: 'Confirmation token sent from the client`',
-    })
-    @IsString()
-    confirmationToken: string;
+  @ApiProperty({
+    description: 'Confirmation token sent from the client`',
+  })
+  @IsString()
+  confirmationToken: string;
 
-    metadata?: { [key: string]: string };
+  metadata?: { [key: string]: string };
 }
-
 
 export class SummarizePaymentDTO {
-    @ApiProperty({
-        description: 'Confirmation token sent from the client`',
-    })
-    @IsString()
-    confirmationToken: string;
+  @ApiProperty({
+    description: 'Confirmation token sent from the client`',
+  })
+  @IsString()
+  confirmationToken: string;
 }
-
-
-
