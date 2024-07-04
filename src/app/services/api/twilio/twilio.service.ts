@@ -207,4 +207,11 @@ export class TwilioService {
     // Return the random message
     return messages[randomIndex];
   }
+
+  async getTwilioCredentials() {
+    const user = this.request.user as Partial<User> & { sub: string };
+    const userData = await this.userModel.findOne({ email: user.email });
+
+    return await this.twilioModel.findOne({ user_id: userData._id });
+  }
 }
