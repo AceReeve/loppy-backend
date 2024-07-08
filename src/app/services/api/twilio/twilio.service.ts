@@ -40,34 +40,70 @@ export class TwilioService {
   async twilioCredentials(twilioCredDTO: TwilioCredDTO) {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
-    const twilioInfo = await this.twilioModel
-      .findOne({ user_id: userData._id })
-      .exec();
-    if (twilioInfo) {
-      return await this.twilioModel.findOneAndUpdate(
-        { user_id: userData._id },
-        {
-          $set: {
-            twilio_account_sid: twilioCredDTO.twilio_account_sid,
-            twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
-            twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
-            twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
-            twilio_auth_token: twilioCredDTO.twilio_auth_token,
-            twilio_number: twilioCredDTO.twilio_number,
+
+    try {
+      // Check if any of the Twilio credentials already exist for another user
+      const existingTwilio = await this.twilioModel.findOne({
+        $or: [
+          { twilio_account_sid: twilioCredDTO.twilio_account_sid },
+          { twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid },
+          { twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid },
+          { twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret },
+          { twilio_auth_token: twilioCredDTO.twilio_auth_token },
+          { twilio_number: twilioCredDTO.twilio_number },
+        ],
+        user_id: { $ne: userData._id }, // Exclude current user's credentials
+      });
+
+      if (existingTwilio) {
+        throw new Error(
+          'One or more Twilio credentials already exist for another user.',
+        );
+      }
+
+      // Check if twilio credentials already exist for the user
+      const twilioInfo = await this.twilioModel.findOne({
+        user_id: userData._id,
+      });
+
+      if (twilioInfo) {
+        // Update existing twilio credentials
+        const updatedTwilio = await this.twilioModel.findOneAndUpdate(
+          { user_id: userData._id },
+          {
+            $set: {
+              twilio_account_sid: twilioCredDTO.twilio_account_sid,
+              twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
+              twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
+              twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
+              twilio_auth_token: twilioCredDTO.twilio_auth_token,
+              twilio_number: twilioCredDTO.twilio_number,
+            },
           },
-        },
-        { new: true },
+          { runValidators: true, new: true }, // Ensure validation and return updated document
+        );
+
+        return updatedTwilio;
+      } else {
+        // Create new twilio credentials if none exist
+        const newTwilio = await this.twilioModel.create({
+          user_id: userData._id,
+          twilio_account_sid: twilioCredDTO.twilio_account_sid,
+          twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
+          twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
+          twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
+          twilio_auth_token: twilioCredDTO.twilio_auth_token,
+          twilio_number: twilioCredDTO.twilio_number,
+        });
+
+        return newTwilio;
+      }
+    } catch (error) {
+      // Handle any validation or database errors
+      throw new Error(
+        `Failed to update/create twilio credentials: ${error.message}`,
       );
     }
-    return await this.twilioModel.create({
-      user_id: userData._id,
-      twilio_account_sid: twilioCredDTO.twilio_account_sid,
-      twilio_chat_service_sid: twilioCredDTO.twilio_chat_service_sid,
-      twilio_api_key_sid: twilioCredDTO.twilio_api_key_sid,
-      twilio_api_key_secret: twilioCredDTO.twilio_api_key_secret,
-      twilio_auth_token: twilioCredDTO.twilio_auth_token,
-      twilio_number: twilioCredDTO.twilio_number,
-    });
   }
   async getTwilioAccessToken() {
     const user = this.request.user as Partial<User> & { sub: string };
