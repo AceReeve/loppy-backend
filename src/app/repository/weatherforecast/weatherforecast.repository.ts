@@ -48,4 +48,11 @@ export class WeatherForecastRepository {
         return weatherforecastLocation
     }
 
+    async getWeatherNotificationData(
+        user_id: string,
+    ): Promise<any> {
+        const weatherforecastLocation = await this.weatherForecastModel.findOne({ user_id: user_id });
+        return weatherforecastLocation
+    }
+
 }
