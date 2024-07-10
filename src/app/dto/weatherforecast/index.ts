@@ -8,14 +8,13 @@ export class WeatherForecastNotificationDTO {
     @IsString()
     temperature?: string;
 
-    @ApiProperty({
-        example: 'essential',
-        description:
-            'Type of subscription. Can be `essential`, `professional`, or `corporate`',
-    })
+    @ApiProperty({})
     @IsString()
     notificationType?: 'daily' | 'weekly';
+}
 
+
+export class WeatherForecastUpdateDTO {
     @ApiProperty({
         description: 'Location you wanted to get the weather data',
     })
