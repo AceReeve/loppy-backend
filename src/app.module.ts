@@ -16,6 +16,7 @@ import { DashboardModule } from './app/modules/dashboard/dashboard.module';
 import { EmailNotificationModule } from './app/modules/email-notification/email.notification.module';
 import { ContactsModule } from './app/modules/contacts/contacts.module';
 import { WeatherForecastModule } from './app/models/weatherforecast/weatherforecast.module';
+import { ServiceTitanModule } from './app/modules/service-titan/service-titan.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { WeatherForecastModule } from './app/models/weatherforecast/weatherforec
     DashboardModule,
     EmailNotificationModule,
     ContactsModule,
-    WeatherForecastModule
+    WeatherForecastModule,
+    ServiceTitanModule,
   ],
 
   providers: [
