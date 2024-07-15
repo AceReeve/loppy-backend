@@ -7,7 +7,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { MessageDTO, TwilioCredDTO } from 'src/app/dto/api/stripe';
+import {
+  MessageDTO,
+  TwilioCreateSubAccount,
+  TwilioCredDTO,
+} from 'src/app/dto/api/stripe';
 
 @ApiTags('Messages')
 @Controller('messages')
@@ -47,5 +51,22 @@ export class TwilioController {
   @Get('get-twilio-access-token')
   async getTwilioAccessToken() {
     return this.twilioService.getTwilioAccessToken();
+  }
+
+  @Post('create-subaccount')
+  async createSubAccount(
+    @Body() twilioCreateSubAccountme: TwilioCreateSubAccount,
+  ) {
+    return this.twilioService.createSubAccount(twilioCreateSubAccountme.name);
+  }
+
+  @Get('subaccount/:sid')
+  async getSubAccount(@Param('sid') sid: string) {
+    return this.twilioService.getSubAccount(sid);
+  }
+
+  @Get('subaccounts')
+  async getAllSubAccounts() {
+    return this.twilioService.getAllSubAccounts();
   }
 }

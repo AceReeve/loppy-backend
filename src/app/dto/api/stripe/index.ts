@@ -99,3 +99,10 @@ export class SummarizePaymentDTO {
   @IsString()
   confirmationToken: string;
 }
+
+export class TwilioCreateSubAccount {
+  @ApiProperty({ example: 'Juan' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}

@@ -22,7 +22,11 @@ export class TwilioService {
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(twilio.name) private twilioModel: Model<twilioDocument>,
-  ) {}
+  ) {
+    const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
+    const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
+    this.twilioClient = new Twilio(accountSid, authToken);
+  }
   private async initializeTwilioClient(userId: string) {
     const userData = await this.userModel.findById(userId).exec();
     if (!userData) {
@@ -252,5 +256,34 @@ export class TwilioService {
     const userData = await this.userModel.findOne({ email: user.email });
 
     return await this.twilioModel.findOne({ user_id: userData._id });
+  }
+
+  async createSubAccount(friendlyName: string): Promise<any> {
+    try {
+      const subAccount = await this.twilioClient.api.accounts.create({
+        friendlyName,
+      });
+      return subAccount;
+    } catch (error) {
+      throw new Error(`Failed to create subaccount: ${error.message}`);
+    }
+  }
+
+  async getSubAccount(sid: string): Promise<any> {
+    try {
+      const subAccount = await this.twilioClient.api.accounts(sid).fetch();
+      return subAccount;
+    } catch (error) {
+      throw new Error(`Failed to fetch subaccount: ${error.message}`);
+    }
+  }
+
+  async getAllSubAccounts(): Promise<any> {
+    try {
+      const subAccounts = await this.twilioClient.api.accounts.list();
+      return subAccounts;
+    } catch (error) {
+      throw new Error(`Failed to fetch subaccounts: ${error.message}`);
+    }
   }
 }
