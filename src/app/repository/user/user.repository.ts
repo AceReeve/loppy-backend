@@ -624,7 +624,7 @@ export class UserRepository implements AbstractUserRepository {
       { $set: { reset_password_token: access_token } },
       { new: true },
     );
-    return { message: 'All Contacts imported successfully' };
+    return { message: 'Reset Password Link Sent' };
   }
 
   async resetPassword(
