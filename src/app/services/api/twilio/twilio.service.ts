@@ -260,10 +260,43 @@ export class TwilioService {
 
   async createSubAccount(friendlyName: string): Promise<any> {
     try {
+      const user = this.request.user as Partial<User> & { sub: string };
+      const userData = await this.userModel.findOne({ email: user.email });
+
+      // Create the subaccount
       const subAccount = await this.twilioClient.api.accounts.create({
         friendlyName,
       });
-      return subAccount;
+
+      // Initialize Twilio client for the subaccount
+      const subAccountClient = new Twilio(subAccount.sid, subAccount.authToken);
+
+      // Create an API Key for the subaccount
+      const apiKey = await subAccountClient.newKeys.create();
+
+      // Create a Chat Service for the subaccount
+      const chatService = await subAccountClient.chat.services.create({
+        friendlyName: `${friendlyName} Chat Service`,
+      });
+
+      // Save the details in your database (e.g., twilioModel)
+      const twilioData = new this.twilioModel({
+        user_id: userData._id,
+        twilio_account_sid: subAccount.sid,
+        twilio_auth_token: subAccount.authToken,
+        twilio_api_key_sid: apiKey.sid,
+        twilio_api_key_secret: apiKey.secret,
+        twilio_chat_service_sid: chatService.sid,
+        status: subAccount.status,
+      });
+      await twilioData.save();
+
+      return {
+        TWILIO_ACCOUNT_SID: subAccount.sid,
+        TWILIO_API_KEY_SID: apiKey.sid,
+        TWILIO_API_KEY_SECRET: apiKey.secret,
+        TWILIO_CHAT_SERVICE_SID: chatService.sid,
+      };
     } catch (error) {
       throw new Error(`Failed to create subaccount: ${error.message}`);
     }
@@ -284,6 +317,25 @@ export class TwilioService {
       return subAccounts;
     } catch (error) {
       throw new Error(`Failed to fetch subaccounts: ${error.message}`);
+    }
+  }
+
+  async deleteSubAccount(sid: string): Promise<any> {
+    try {
+      const closeSubAcc = await this.twilioClient.api
+        .accounts(sid)
+        .update({ status: 'closed' });
+      await this.twilioModel.findOneAndUpdate(
+        { twilio_account_sid: sid },
+        {
+          $set: {
+            status: closeSubAcc.status,
+          },
+        },
+      );
+      return { message: `Subaccount with SID ${sid} deleted successfully` };
+    } catch (error) {
+      throw new Error(`Failed to delete subaccount: ${error.message}`);
     }
   }
 }

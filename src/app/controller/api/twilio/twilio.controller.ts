@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  UseGuards,
+  Delete,
+} from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import {
   ApiBearerAuth,
@@ -54,10 +62,8 @@ export class TwilioController {
   }
 
   @Post('create-subaccount')
-  async createSubAccount(
-    @Body() twilioCreateSubAccountme: TwilioCreateSubAccount,
-  ) {
-    return this.twilioService.createSubAccount(twilioCreateSubAccountme.name);
+  async createSubAccount(@Body('friendlyName') friendlyName: string) {
+    return this.twilioService.createSubAccount(friendlyName);
   }
 
   @Get('subaccount/:sid')
@@ -68,5 +74,10 @@ export class TwilioController {
   @Get('subaccounts')
   async getAllSubAccounts() {
     return this.twilioService.getAllSubAccounts();
+  }
+
+  @Delete('subaccount/:sid')
+  async deleteSubAccount(@Param('sid') sid: string) {
+    return this.twilioService.deleteSubAccount(sid);
   }
 }
