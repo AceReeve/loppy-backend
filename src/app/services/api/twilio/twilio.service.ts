@@ -279,6 +279,17 @@ export class TwilioService {
         friendlyName: `${friendlyName} Chat Service`,
       });
 
+      // Fetch the first available phone number (free number for trial account)
+      const phoneNumbers = await subAccountClient.incomingPhoneNumbers.list();
+      let phoneNumber;
+      if (phoneNumbers.length > 0) {
+        phoneNumber = phoneNumbers[0];
+      } else {
+        // If no free number, purchase a new phone number
+        // phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
+        //   phoneNumber: '+1234567890', // inprogress implementation
+        // });
+      }
       // Save the details in your database (e.g., twilioModel)
       const twilioData = new this.twilioModel({
         user_id: userData._id,
@@ -288,6 +299,7 @@ export class TwilioService {
         twilio_api_key_secret: apiKey.secret,
         twilio_chat_service_sid: chatService.sid,
         status: subAccount.status,
+        twilio_number: phoneNumber.phoneNumber,
       });
       await twilioData.save();
 
@@ -296,6 +308,7 @@ export class TwilioService {
         TWILIO_API_KEY_SID: apiKey.sid,
         TWILIO_API_KEY_SECRET: apiKey.secret,
         TWILIO_CHAT_SERVICE_SID: chatService.sid,
+        phoneNumber: phoneNumber.phoneNumber,
       };
     } catch (error) {
       throw new Error(`Failed to create subaccount: ${error.message}`);
@@ -305,7 +318,16 @@ export class TwilioService {
   async getSubAccount(sid: string): Promise<any> {
     try {
       const subAccount = await this.twilioClient.api.accounts(sid).fetch();
+      const twilioData = await this.twilioModel.findOne({ accountSid: sid });
+
       return subAccount;
+
+      // return {
+      //   ...subAccount,
+      //   apiKeySid: twilioData?.twilio_api_key_sid,
+      //   apiKeySecret: twilioData?.twilio_api_key_secret,
+      //   chatServiceSid: twilioData?.twilio_chat_service_sid,
+      // };
     } catch (error) {
       throw new Error(`Failed to fetch subaccount: ${error.message}`);
     }
@@ -314,12 +336,33 @@ export class TwilioService {
   async getAllSubAccounts(): Promise<any> {
     try {
       const subAccounts = await this.twilioClient.api.accounts.list();
+      // const twilioData = await this.twilioModel.find();
+
+      // return subAccounts.map((subAccount) => {
+      //   const data = twilioData.find(
+      //     (t) => t.twilio_account_sid === subAccount.sid,
+      //   );
       return subAccounts;
+      //   return {
+      //     ...subAccount,
+      //     // apiKeySid: data?.twilio_api_key_sid,
+      //     // apiKeySecret: data?.twilio_api_key_secret,
+      //     // chatServiceSid: data?.twilio_chat_service_sid,
+      //   };
+      // });
     } catch (error) {
       throw new Error(`Failed to fetch subaccounts: ${error.message}`);
     }
   }
 
+  async getAllSubAccountsInDatabase(): Promise<any> {
+    try {
+      const twilioData = await this.twilioModel.find();
+      return twilioData;
+    } catch (error) {
+      throw new Error(`Failed to fetch subaccount: ${error.message}`);
+    }
+  }
   async deleteSubAccount(sid: string): Promise<any> {
     try {
       const closeSubAcc = await this.twilioClient.api

@@ -76,6 +76,10 @@ export class TwilioController {
     return this.twilioService.getAllSubAccounts();
   }
 
+  @Get('get-all-subaccounts-database')
+  async getAllSubAccountsInDatabase() {
+    return this.twilioService.getAllSubAccountsInDatabase();
+  }
   @Delete('subaccount/:sid')
   async deleteSubAccount(@Param('sid') sid: string) {
     return this.twilioService.deleteSubAccount(sid);
