@@ -29,8 +29,11 @@ export class twilio implements GenericSchema {
   @Prop({ unique: true, required: [true, 'Missing required field'] })
   twilio_auth_token: string;
 
-  @Prop({ unique: true, required: [true, 'Missing required field'] })
+  @Prop({ unique: true, required: false })
   twilio_number: string;
+
+  @Prop()
+  status: string;
 }
 
 export const twilioSchema = SchemaFactory.createForClass(twilio);
