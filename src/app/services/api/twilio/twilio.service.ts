@@ -12,6 +12,23 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+const algorithm = 'aes-256-ctr';
+
+const encrypt = (text: string): string => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), iv);
+  const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+  return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+};
+
+const decrypt = (hash: string): string => {
+  const [iv, encrypted] = hash.split(':');
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), Buffer.from(iv, 'hex'));
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(encrypted, 'hex')), decipher.final()]);
+  return decrypted.toString();
+};
 
 @Injectable()
 export class TwilioService {
@@ -280,26 +297,34 @@ export class TwilioService {
       });
 
       // Fetch the first available phone number (free number for trial account)
-      const phoneNumbers = await subAccountClient.incomingPhoneNumbers.list();
-      let phoneNumber;
-      if (phoneNumbers.length > 0) {
-        phoneNumber = phoneNumbers[0];
-      } else {
-        // If no free number, purchase a new phone number
-        // phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
-        //   phoneNumber: '+1234567890', // inprogress implementation
-        // });
-      }
+      // const phoneNumbers = await subAccountClient.incomingPhoneNumbers.list();
+      // let phoneNumber;
+      // if (phoneNumbers.length > 0) {
+      //   phoneNumber = phoneNumbers[0];
+      // } else {
+      //   // If no free number, purchase a new phone number
+      //   // phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
+      //   //   phoneNumber: '+1234567890', // inprogress implementation
+      //   // });
+      // }
       // Save the details in your database (e.g., twilioModel)
+
+      // Encrypt fields before saving
+      const encryptedAccountSid = encrypt(subAccount.sid);
+      const encryptedAuthToken = encrypt(subAccount.authToken);
+      const encryptedApiKeySid = encrypt(apiKey.sid);
+      const encryptedApiKeySecret = encrypt(apiKey.secret);
+      const encryptedChatServiceSid = encrypt(chatService.sid);
+      
       const twilioData = new this.twilioModel({
         user_id: userData._id,
-        twilio_account_sid: subAccount.sid,
-        twilio_auth_token: subAccount.authToken,
-        twilio_api_key_sid: apiKey.sid,
-        twilio_api_key_secret: apiKey.secret,
-        twilio_chat_service_sid: chatService.sid,
+        twilio_account_sid: encryptedAccountSid,
+        twilio_auth_token: encryptedAuthToken,
+        twilio_api_key_sid: encryptedApiKeySid,
+        twilio_api_key_secret: encryptedApiKeySecret,
+        twilio_chat_service_sid: encryptedChatServiceSid,
         status: subAccount.status,
-        twilio_number: phoneNumber.phoneNumber,
+        twilio_number: '0000000',
       });
       await twilioData.save();
 
@@ -308,26 +333,27 @@ export class TwilioService {
         TWILIO_API_KEY_SID: apiKey.sid,
         TWILIO_API_KEY_SECRET: apiKey.secret,
         TWILIO_CHAT_SERVICE_SID: chatService.sid,
-        phoneNumber: phoneNumber.phoneNumber,
+        // phoneNumber: phoneNumber.phoneNumber,
       };
     } catch (error) {
       throw new Error(`Failed to create subaccount: ${error.message}`);
     }
   }
-
-  async getSubAccount(sid: string): Promise<any> {
+  async getSubAccount(id: string): Promise<any> {
     try {
-      const subAccount = await this.twilioClient.api.accounts(sid).fetch();
-      const twilioData = await this.twilioModel.findOne({ accountSid: sid });
+      const twilioData = await this.twilioModel.findById(id);
+      if (!twilioData) {
+        throw new Error('Subaccount not found');
+      }
 
-      return subAccount;
-
-      // return {
-      //   ...subAccount,
-      //   apiKeySid: twilioData?.twilio_api_key_sid,
-      //   apiKeySecret: twilioData?.twilio_api_key_secret,
-      //   chatServiceSid: twilioData?.twilio_chat_service_sid,
-      // };
+      return {
+        sid: decrypt(twilioData.twilio_account_sid),
+        authToken: decrypt(twilioData.twilio_auth_token),
+        apiKeySid: decrypt(twilioData.twilio_api_key_sid),
+        apiKeySecret: decrypt(twilioData.twilio_api_key_secret),
+        chatServiceSid: decrypt(twilioData.twilio_chat_service_sid),
+        phoneNumber: twilioData.twilio_number,
+      };
     } catch (error) {
       throw new Error(`Failed to fetch subaccount: ${error.message}`);
     }
@@ -336,20 +362,26 @@ export class TwilioService {
   async getAllSubAccounts(): Promise<any> {
     try {
       const subAccounts = await this.twilioClient.api.accounts.list();
-      // const twilioData = await this.twilioModel.find();
+      const twilioData = await this.twilioModel.find();
 
-      // return subAccounts.map((subAccount) => {
-      //   const data = twilioData.find(
-      //     (t) => t.twilio_account_sid === subAccount.sid,
-      //   );
-      return subAccounts;
-      //   return {
-      //     ...subAccount,
-      //     // apiKeySid: data?.twilio_api_key_sid,
-      //     // apiKeySecret: data?.twilio_api_key_secret,
-      //     // chatServiceSid: data?.twilio_chat_service_sid,
-      //   };
-      // });
+      return subAccounts.map((subAccount) => {
+        const data = twilioData.find((t) => decrypt(t.twilio_account_sid) === subAccount.sid);
+        return {
+          sid: subAccount.sid,
+          authToken: subAccount.authToken,
+          dateCreated: subAccount.dateCreated,
+          dateUpdated: subAccount.dateUpdated,
+          friendlyName: subAccount.friendlyName,
+          ownerAccountSid: subAccount.ownerAccountSid,
+          status: subAccount.status,
+          type: subAccount.type,
+          uri: subAccount.uri,
+          apiKeySid: data ? decrypt(data.twilio_api_key_sid) : undefined,
+          apiKeySecret: data ? decrypt(data.twilio_api_key_secret) : undefined,
+          chatServiceSid: data ? decrypt(data.twilio_chat_service_sid) : undefined,
+          phoneNumber: data ? data.twilio_number : undefined,
+        };
+      });
     } catch (error) {
       throw new Error(`Failed to fetch subaccounts: ${error.message}`);
     }

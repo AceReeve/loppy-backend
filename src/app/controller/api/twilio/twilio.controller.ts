@@ -66,9 +66,9 @@ export class TwilioController {
     return this.twilioService.createSubAccount(friendlyName);
   }
 
-  @Get('subaccount/:sid')
-  async getSubAccount(@Param('sid') sid: string) {
-    return this.twilioService.getSubAccount(sid);
+  @Get('subaccount/:id')
+  async getSubAccount(@Param('id') id: string) {
+    return this.twilioService.getSubAccount(id);
   }
 
   @Get('subaccounts')
