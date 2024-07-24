@@ -12,7 +12,6 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-
 @Injectable()
 export class TwilioService {
   private twilioClient: Twilio;
@@ -281,6 +280,7 @@ export class TwilioService {
 
       // Fetch the first available phone number (free number for trial account)
       const phoneNumbers = await subAccountClient.incomingPhoneNumbers.list();
+      console.log('phoneNumbers', phoneNumbers);
       let phoneNumber;
       if (phoneNumbers.length > 0) {
         phoneNumber = phoneNumbers[0];
@@ -290,6 +290,8 @@ export class TwilioService {
         //   phoneNumber: '+1234567890', // inprogress implementation
         // });
       }
+      console.log('phoneNumber123', phoneNumber);
+
       // Save the details in your database (e.g., twilioModel)
       const twilioData = new this.twilioModel({
         user_id: userData._id,
@@ -336,20 +338,7 @@ export class TwilioService {
   async getAllSubAccounts(): Promise<any> {
     try {
       const subAccounts = await this.twilioClient.api.accounts.list();
-      // const twilioData = await this.twilioModel.find();
-
-      // return subAccounts.map((subAccount) => {
-      //   const data = twilioData.find(
-      //     (t) => t.twilio_account_sid === subAccount.sid,
-      //   );
       return subAccounts;
-      //   return {
-      //     ...subAccount,
-      //     // apiKeySid: data?.twilio_api_key_sid,
-      //     // apiKeySecret: data?.twilio_api_key_secret,
-      //     // chatServiceSid: data?.twilio_chat_service_sid,
-      //   };
-      // });
     } catch (error) {
       throw new Error(`Failed to fetch subaccounts: ${error.message}`);
     }
@@ -380,5 +369,51 @@ export class TwilioService {
     } catch (error) {
       throw new Error(`Failed to delete subaccount: ${error.message}`);
     }
+  }
+
+  async getPhoneNumbersForSubAccounts() {
+    try {
+      const subAccounts = await this.getAllSubAccounts();
+      const phoneNumbers = await Promise.all(
+        subAccounts.map(async (subAccount) => {
+          const subAccountSid = subAccount.sid;
+          const subAccountAuthToken = subAccount.authToken;
+          console.log(
+            'Fetching phone numbers for sub-account SID:',
+            subAccountSid,
+          );
+
+          // Assuming each sub-account has its own auth token stored
+          // const subAccountAuthToken =
+          //   await this.getSubAccountAuthToken(subAccountSid);
+
+          try {
+            const subClient = new Twilio(subAccountSid, subAccountAuthToken);
+            const numbers = await subClient.incomingPhoneNumbers.list();
+            return {
+              subAccountSid: subAccountSid,
+              phoneNumbers: numbers.map((number) => number.phoneNumber),
+            };
+          } catch (innerError) {
+            console.error(
+              `Failed to fetch phone numbers for sub-account SID: ${subAccountSid}`,
+              innerError,
+            );
+            return {
+              subAccountSid: subAccountSid,
+              phoneNumbers: [],
+              error: innerError.message,
+            };
+          }
+        }),
+      );
+      return phoneNumbers;
+    } catch (error) {
+      throw new Error(`Failed to fetch phone numbers: ${error.message}`);
+    }
+  }
+
+  async getSubAccountAuthToken(subAccountSid: string): Promise<string> {
+    return this.configService.get<string>('TWILIO_AUTH_TOKEN');
   }
 }

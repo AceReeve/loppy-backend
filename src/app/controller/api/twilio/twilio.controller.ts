@@ -84,4 +84,8 @@ export class TwilioController {
   async deleteSubAccount(@Param('sid') sid: string) {
     return this.twilioService.deleteSubAccount(sid);
   }
+  @Get('get-all-subaccounts-numbers')
+  async getPhoneNumbersForSubAccounts() {
+    return this.twilioService.getPhoneNumbersForSubAccounts();
+  }
 }
