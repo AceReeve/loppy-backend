@@ -15,4 +15,12 @@ export class CreateRoleDTO {
     description: 'Required field when creating a role',
   })
   role_name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Admin',
+    description: 'Required field when creating a role',
+  })
+  description: string;
 }

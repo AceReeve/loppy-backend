@@ -18,7 +18,6 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 import { OauthRepository } from '../oauth/oauth.repository';
 import { SignInBy } from '../../const';
-import { Email } from 'src/app/models/invited-users/invited-users.schema';
 import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthRepository {
@@ -59,8 +58,8 @@ export class AuthRepository {
   async login(userLoginDTO: UserLoginDTO) {
     let user: User | any;
     user = await this.validateUser(userLoginDTO.email, userLoginDTO.password);
-    const { _id, first_name, last_name, email, status } = user;
-    const payload = { email: user.email, sub: user._id };
+    const { _id, first_name, last_name, email, status, role } = user;
+    const payload = { email: user.email, sub: user._id, role };
     const access_token = this.generateJWT(
       payload,
       this.configService.get<string>('JWT_EXPIRATION'),

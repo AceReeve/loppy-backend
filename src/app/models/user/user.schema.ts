@@ -38,6 +38,9 @@ export class User implements GenericSchema {
 
   @Prop()
   reset_password_token?: string;
+
+  @Prop()
+  role: string;
 }
 
 async function hashPasswordHook(next: () => void): Promise<void> {

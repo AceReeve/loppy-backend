@@ -14,6 +14,9 @@ export class Role implements GenericSchema {
   @Prop({ unique: true, required: [true, 'Missing required field'] })
   role_name: string;
 
+  @Prop()
+  description?: string;
+
   @Prop({ default: 'ACTIVE' })
   role_status: string;
 }

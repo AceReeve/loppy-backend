@@ -16,6 +16,7 @@ import { DashboardModule } from './app/modules/dashboard/dashboard.module';
 import { EmailNotificationModule } from './app/modules/email-notification/email.notification.module';
 import { ContactsModule } from './app/modules/contacts/contacts.module';
 import { WeatherForecastModule } from './app/models/weatherforecast/weatherforecast.module';
+import { ManageTeamModule } from './app/modules/settings/manage-team/manage-team.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { WeatherForecastModule } from './app/models/weatherforecast/weatherforec
     DashboardModule,
     EmailNotificationModule,
     ContactsModule,
-    WeatherForecastModule
+    WeatherForecastModule,
+    ManageTeamModule
   ],
 
   providers: [
