@@ -166,14 +166,36 @@ export class UserRegisterDTO {
   // confirm_password: string;
 }
 
-export class InviteUserDTO {
-  @ApiProperty({ example: ['example@gmail.com', 'example1@gmail.com'] })
-  @IsString({ each: true })
+// export class InviteUserDTO {
+//   @ApiProperty({ example: ['example@gmail.com', 'example1@gmail.com'] })
+//   @IsString({ each: true })
+//   @IsNotEmpty()
+//   @IsEmail({}, { each: true })
+//   email: string[];
+// }
+class EmailRole {
+  @ApiProperty({ example: 'example@gmail.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'role_id' })
   @IsNotEmpty()
-  @IsEmail({}, { each: true })
-  email: string[];
+  role: string;
 }
 
+export class InviteUserDTO {
+  @ApiProperty({
+    type: [EmailRole],
+    example: [
+      { email: 'example@gmail.com', role: 'role_id' },
+      { email: 'example1@gmail.com', role: 'role_id' },
+    ],
+  })
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => EmailRole)
+  email: EmailRole[];
+}
 export class ResetPasswordDto {
   @ApiProperty({ example: 'Password123!' })
   @IsString()

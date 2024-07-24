@@ -15,10 +15,11 @@ export enum UserStatus {
   CANCELLED = 'Cancelled',
 }
 
-export enum UserRole {
-  OWNER = 'Owner',
-  User = 'User',
-  Admin = 'Admin',
+export enum DefaultUserRole {
+  ADMIN = 'Admin',
+  MEMBER = 'Member',
+  MANAGER = 'Manager',
+  GUEST = 'Guest',
 }
 
 export enum ContactStatus {
@@ -30,4 +31,8 @@ export enum PlanSubscription {
   ESSENTIAL_PLAN = 'Essential',
   PROFESSIONAL_PLAN = 'Professional',
   CORPORATE_PLAN = 'Corporate',
+}
+
+export enum UserRole {
+  ADMIN = 'Admin',
 }
