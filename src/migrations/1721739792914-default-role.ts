@@ -8,6 +8,12 @@ export const up = async () => {
     const defaultRole = [
       {
         _id: new ObjectId(),
+        role_name: 'Owner',
+        description:
+          'Highest level of access with full control over the system',
+      },
+      {
+        _id: new ObjectId(),
         role_name: 'Admin',
         description:
           'Highest level of access with full control over the system',
