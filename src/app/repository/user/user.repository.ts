@@ -26,7 +26,7 @@ import {
   ResetPasswordDto,
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
-import { SignInBy } from 'src/app/const';
+import { DefaultUserRole, SignInBy } from 'src/app/const';
 import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { EmailerService } from '@util/emailer/emailer';
@@ -123,7 +123,7 @@ export class UserRepository implements AbstractUserRepository {
     const userData = await this.userModel.findOne({ email: user.email });
     //set default role
     const role = await this.roleDocumentModel.findOne({
-      role_name: UserRole.OWNER,
+      role_name: DefaultUserRole.ADMIN,
     });
     const userInfoDTO = {
       ...userInfoDTODto,
@@ -180,80 +180,137 @@ export class UserRepository implements AbstractUserRepository {
     return { userDetails, userInfo };
   }
 
-  async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    const userData = await this.userModel.findOne({ email: user.email });
-    const isInvitedAlready = await this.invitedUserModel.find(
-      { 'emails.email': { $in: inviteUserDTO.email } },
+  // async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
+  //   const user = this.request.user as Partial<User> & { sub: string };
+  //   const userData = await this.userModel.findOne({ email: user.email });
+  //   const isInvitedAlready = await this.invitedUserModel.find(
+  //     { 'emails.email': { $in: inviteUserDTO.email } },
+  //     'emails.email',
+  //   );
+  //   // Extract all emails from the matched documents
+  //   let matchedEmails = isInvitedAlready.flatMap((doc) =>
+  //     doc.emails.map((emailObj) => emailObj.email),
+  //   );
+  //   // Filter out only those that were in the DTO's email list
+  //   matchedEmails = matchedEmails.filter((email) =>
+  //     inviteUserDTO.email.includes(email.),
+  //   );
+
+  //   if (matchedEmails.length > 0) {
+  //     //print the emails that already invited
+  //     throw new BadRequestException(
+  //       `These emails are already invited: ${matchedEmails.join(', ')}.`,
+  //     );
+  //   }
+  //   //plan validation
+
+  //   const allInvitedByUser = await this.invitedUserModel.findOne({
+  //     invited_by: userData._id,
+  //   });
+  //   if (allInvitedByUser) {
+  //     let totalInvitedEmails = 0;
+  //     allInvitedByUser.emails.forEach((emailObj) => {
+  //       if (emailObj.status !== UserStatus.CANCELLED) {
+  //         totalInvitedEmails++;
+  //       }
+  //     });
+
+  //     await this.userPlanValidation(userData._id, totalInvitedEmails);
+  //   }
+  //   //
+  //   for (const email of inviteUserDTO.email) {
+  //     const payload = { email: email };
+  //     const access_token = await this.authRepository.generateJWT(
+  //       payload,
+  //       this.configService.get<string>('JWT_EXPIRATION'),
+  //     );
+  //     await this.emailService.inviteUser(email, access_token);
+  //   }
+
+  //   const emails = inviteUserDTO.email.map((emailAddress) => ({
+  //     email: emailAddress,
+  //     status: UserStatus.PENDING,
+  //     date: new Date(),
+  //   }));
+  //   const existingInvitedUser = await this.invitedUserModel.findOne({
+  //     invited_by: userData._id,
+  //   });
+  //   let result: any;
+  //   if (!existingInvitedUser) {
+  //     result = await this.invitedUserModel.create({
+  //       emails: emails,
+  //       invited_by: userData._id,
+  //     });
+  //   } else {
+  //     const updatedEmails = existingInvitedUser.emails.concat(emails);
+  //     existingInvitedUser.emails = updatedEmails;
+  //     result = await existingInvitedUser.save();
+  //   }
+
+  //   const updateUser = await this.userModel.findOneAndUpdate(
+  //     { _id: userData._id },
+  //     {
+  //       already_send_invites: true,
+  //     },
+  //   );
+  //   return result;
+  // }
+
+  async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
+    const loggedInUser = await this.getLoggedInUserDetails();
+    // Validate if emails are already invited
+    const alreadyInvitedEmails = await this.invitedUserModel.find(
+      {
+        'emails.email': { $in: inviteUserDTO.email.map((e) => e.email) },
+      },
       'emails.email',
     );
-    // Extract all emails from the matched documents
-    let matchedEmails = isInvitedAlready.flatMap((doc) =>
-      doc.emails.map((emailObj) => emailObj.email),
+
+    const existingEmails = alreadyInvitedEmails.flatMap((doc) =>
+      doc.emails.map((e) => e.email),
     );
-    // Filter out only those that were in the DTO's email list
-    matchedEmails = matchedEmails.filter((email) =>
-      inviteUserDTO.email.includes(email),
+    const duplicatedEmails = inviteUserDTO.email.filter((e) =>
+      existingEmails.includes(e.email),
     );
 
-    if (matchedEmails.length > 0) {
-      //print the emails that already invited
+    if (duplicatedEmails.length > 0) {
       throw new BadRequestException(
-        `These emails are already invited: ${matchedEmails.join(', ')}.`,
+        `These emails are already invited: ${duplicatedEmails.map((e) => e.email).join(', ')}`,
       );
     }
-    //plan validation
 
-    const allInvitedByUser = await this.invitedUserModel.findOne({
-      invited_by: userData._id,
+    // Prepare invited users data
+    const invitedUsers = inviteUserDTO.email.map(({ email, role }) => ({
+      email,
+      role,
+      status: UserStatus.PENDING, // Assuming you have a status field
+    }));
+
+    // Create or update invited users
+    let invitedUser = await this.invitedUserModel.findOne({
+      invited_by: loggedInUser._id,
     });
-    if (allInvitedByUser) {
-      let totalInvitedEmails = 0;
-      allInvitedByUser.emails.forEach((emailObj) => {
-        if (emailObj.status !== UserStatus.CANCELLED) {
-          totalInvitedEmails++;
-        }
-      });
 
-      await this.userPlanValidation(userData._id, totalInvitedEmails);
+    if (!invitedUser) {
+      invitedUser = await this.invitedUserModel.create({
+        emails: invitedUsers,
+        invited_by: loggedInUser._id,
+      });
+    } else {
+      invitedUser.emails.push(...invitedUsers);
+      invitedUser = await invitedUser.save();
     }
-    //
-    for (const email of inviteUserDTO.email) {
+
+    for (const { email } of inviteUserDTO.email) {
       const payload = { email: email };
-      const access_token = await this.authRepository.generateJWT(
+      const accessToken = await this.authRepository.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      await this.emailService.inviteUser(email, access_token);
+      await this.emailService.inviteUser(email, accessToken);
     }
 
-    const emails = inviteUserDTO.email.map((emailAddress) => ({
-      email: emailAddress,
-      status: UserStatus.PENDING,
-      date: new Date(),
-    }));
-    const existingInvitedUser = await this.invitedUserModel.findOne({
-      invited_by: userData._id,
-    });
-    let result: any;
-    if (!existingInvitedUser) {
-      result = await this.invitedUserModel.create({
-        emails: emails,
-        invited_by: userData._id,
-      });
-    } else {
-      const updatedEmails = existingInvitedUser.emails.concat(emails);
-      existingInvitedUser.emails = updatedEmails;
-      result = await existingInvitedUser.save();
-    }
-
-    const updateUser = await this.userModel.findOneAndUpdate(
-      { _id: userData._id },
-      {
-        already_send_invites: true,
-      },
-    );
-    return result;
+    return invitedUser;
   }
 
   async userPlanValidation(id: string, totalInvited: number) {
@@ -287,39 +344,45 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    const userData = await this.userModel.findOne({ email: user.email });
-    const isInvitedAlready = await this.invitedUserModel.find(
-      { 'emails.email': { $in: inviteUserDTO.email } },
+    const loggedInUser = this.request.user as User; // Assuming User type for logged-in user
+    const userData = await this.userModel.findOne({
+      email: loggedInUser.email,
+    });
+
+    if (userData && userData.already_send_invites) {
+      throw new BadRequestException('You have already sent invites.');
+    }
+
+    const invitedEmails = inviteUserDTO.email.map((item) => item.email);
+    const alreadyInvitedUsers = await this.invitedUserModel.find(
+      {
+        'emails.email': { $in: invitedEmails },
+      },
       'emails.email',
     );
-    if (userData.already_send_invites === true) {
-      //validate if already send invites
-      throw new BadRequestException(`you already send invites`);
-    }
-    // Extract all emails from the matched documents
-    let matchedEmails = isInvitedAlready.flatMap((doc) =>
+
+    const matchedEmails = alreadyInvitedUsers.flatMap((doc) =>
       doc.emails.map((emailObj) => emailObj.email),
     );
-    // Filter out only those that were in the DTO's email list
-    matchedEmails = matchedEmails.filter((email) =>
-      inviteUserDTO.email.includes(email),
+
+    const alreadyInvited = invitedEmails.filter((email) =>
+      matchedEmails.includes(email),
     );
 
-    if (matchedEmails.length > 0) {
-      //print the emails that already invited
+    if (alreadyInvited.length > 0) {
       throw new BadRequestException(
-        `These emails are already invited: ${matchedEmails.join(', ')}.`,
+        `These emails are already invited: ${alreadyInvited.join(', ')}.`,
       );
     }
-    const emails = inviteUserDTO.email.map((emailAddress) => ({
-      email: emailAddress,
+
+    const emails = inviteUserDTO.email.map(({ email, role }) => ({
+      email,
+      role,
       status: UserStatus.PENDING,
     }));
 
     return emails;
   }
-
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {
     const stripeEvent = await this.stripeEventModel.findOne({
       stripe_event_id: stripeId,
@@ -357,10 +420,7 @@ export class UserRepository implements AbstractUserRepository {
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any> {
     const user = this.request.user as Partial<User>;
-    const role = await this.roleDocumentModel.findOne({
-      role_name: UserRole.User,
-    });
-    if (!role) throw new BadRequestException('Role does not exist!');
+
     const isInvited = await this.invitedUserModel.findOne({
       'emails.email': user.email,
     });
@@ -368,6 +428,24 @@ export class UserRepository implements AbstractUserRepository {
     if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
     }
+
+    // Find the specific email entry within the emails array
+    const emailEntry = isInvited.emails.find(
+      (email) => email.email === user.email,
+    );
+    let role: any;
+    if (emailEntry && emailEntry.role) {
+      role = await this.roleDocumentModel.findOne({
+        _id: emailEntry.role,
+      });
+
+      if (!role) {
+        throw new BadRequestException('Role does not exist!');
+      }
+    } else {
+      throw new BadRequestException('Role not found for the given email.');
+    }
+
     // Confirm passwords match
     const isverified = await this.otpModel.findOne({
       email: user.email,
@@ -376,10 +454,6 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('Email is not yet Verified');
     }
 
-    // if (
-    //   invitedUserRegistrationDTO.password !=
-    //   invitedUserRegistrationDTO.confirm_password
-    // )
     //   throw new BadRequestException('Password Does Not Match');
     const isExisting = await this.userModel.findOne({ email: user.email });
     //check email if existing
@@ -388,6 +462,7 @@ export class UserRepository implements AbstractUserRepository {
     }
     const newUser = await this.userModel.create({
       email: user.email,
+      role: role._id,
       password: invitedUserRegistrationDTO.password,
     });
     if (!newUser) throw new BadRequestException('error registration user');
@@ -646,5 +721,19 @@ export class UserRepository implements AbstractUserRepository {
       );
     }
     return resetPassword;
+  }
+
+  async findUsersByIds(
+    userIds: string[],
+  ): Promise<{ users: User[]; userInfos: UserInfo[] }> {
+    const usersPromise = this.userModel.find({ _id: { $in: userIds } }).exec();
+    const userInfosPromise = this.userInfoModel
+      .find({ user_id: { $in: userIds } })
+      .exec();
+    const [users, userInfos] = await Promise.all([
+      usersPromise,
+      userInfosPromise,
+    ]);
+    return { users, userInfos };
   }
 }

@@ -8,6 +8,10 @@ import { JwtService } from '@nestjs/jwt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/app/services/user/user.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Role, RoleDocument } from 'src/app/models/role/role.schema';
+import { Model } from 'mongoose';
+import { UserRole } from 'src/app/const';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -41,6 +45,36 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Token verification failed');
       }
     }
+  }
+}
+
+@Injectable()
+export class AdminAuthGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private configService: ConfigService,
+    private userService: UserService,
+    @InjectModel(Role.name) private roleModel: Model<RoleDocument>,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const token = request.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      throw new UnauthorizedException('Token not provided');
+    }
+    const decodedToken = this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+    });
+    request.user = decodedToken;
+    request.token = token;
+
+    const roleDetails = await this.roleModel.findById(request.user.role);
+    if (roleDetails.role_name !== UserRole.ADMIN) {
+      throw new UnauthorizedException('User must be an Admin');
+    }
+    return true;
   }
 }
 @Injectable()
