@@ -24,9 +24,11 @@ export const getDb = async () => {
     MONGO_DB_NAME &&
     MONGO_CLUSTER_NAME
   ) {
-    const uri = `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}/${MONGO_DB_NAME}?retryWrites=true&w=majority&appName=${MONGO_CLUSTER_NAME}`;
+    const uri = `${MONGO_HOSTNAME}://${MONGO_USERNAME}:${MONGO_PASSWORD}@cluster0.oh6xtoy.mongodb.net/${MONGO_DB_NAME}?retryWrites=true&w=majority&appName=${MONGO_CLUSTER_NAME}`;
+    // const uri = `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}/${MONGO_DB_NAME}?retryWrites=true&w=majority&appName=${MONGO_CLUSTER_NAME}`;
     client = await MongoClient.connect(uri, {
-      useUnifiedTopology: true,
+      ssl: true,
+      tlsAllowInvalidCertificates: true,
     } as MongoClientOptions);
   } else {
     throw new Error('MongoDB configuration missing for non-local environment.');
