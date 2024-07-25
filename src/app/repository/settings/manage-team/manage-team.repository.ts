@@ -146,15 +146,18 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       created_by: loggedInUser._id,
       team: createTeamDTO.team,
     });
+
     if (isTeamExisting) {
       throw new BadRequestException(
         `Team '${isTeamExisting.team}' already exists.`,
       );
     }
+
     // Fetch details of invited team members
     const { users, userInfos } = await this.userRepository.findUsersByIds(
       createTeamDTO.team_member,
     );
+
     // Check if all team members exist
     if (users.length !== createTeamDTO.team_member.length) {
       throw new BadRequestException('One or more team members not found');
@@ -170,9 +173,9 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
         // Fetch role details for the current user
         const roleDetails = await this.roleModel
-          .findOne({ user_id: user.role })
-          .exec();
-
+          .findOne({ _id: user.role })
+          .exec()
+          
         return {
           user_id: user._id.toString(),
           first_name: userInfo ? userInfo.first_name : '',

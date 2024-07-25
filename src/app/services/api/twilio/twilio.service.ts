@@ -12,6 +12,22 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import * as crypto from 'crypto';
+const algorithm = 'aes-256-ctr';
+
+const encrypt = (text: string): string => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), iv);
+  const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+  return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+};
+
+const decrypt = (hash: string): string => {
+  const [iv, encrypted] = hash.split(':');
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), Buffer.from(iv, 'hex'));
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(encrypted, 'hex')), decipher.final()]);
+  return decrypted.toString();
+};
 
 @Injectable()
 export class TwilioService {
@@ -285,19 +301,35 @@ export class TwilioService {
       if (phoneNumbers.length > 0) {
         phoneNumber = phoneNumbers[0];
       } else {
-        // If no free number, purchase a new phone number
-        // phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
-        //   phoneNumber: '+1234567890', // inprogress implementation
-        // });
+        // Search for available phone numbers
+        const availableNumbers = await subAccountClient
+          .availablePhoneNumbers('US')
+          .local.list({
+            limit: 1,
+          });
+
+        if (availableNumbers.length > 0) {
+          // Purchase the first available phone number
+          phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
+            phoneNumber: availableNumbers[0].phoneNumber,
+          });
+        } else {
+          throw new Error('No available phone numbers found.');
+        }
       }
+      const encryptedAccountSid = encrypt(subAccount.sid);
+      const encryptedAuthToken = encrypt(subAccount.authToken);
+      const encryptedApiKeySid = encrypt(apiKey.sid);
+      const encryptedApiKeySecret = encrypt(apiKey.secret);
+      const encryptedChatServiceSid = encrypt(chatService.sid);
       // Save the details in your database (e.g., twilioModel)
       const twilioData = new this.twilioModel({
         user_id: userData._id,
-        twilio_account_sid: subAccount.sid,
-        twilio_auth_token: subAccount.authToken,
-        twilio_api_key_sid: apiKey.sid,
-        twilio_api_key_secret: apiKey.secret,
-        twilio_chat_service_sid: chatService.sid,
+        twilio_account_sid: encryptedAccountSid,
+        twilio_auth_token: encryptedAuthToken,
+        twilio_api_key_sid: encryptedApiKeySid,
+        twilio_api_key_secret: encryptedApiKeySecret,
+        twilio_chat_service_sid: encryptedChatServiceSid,
         status: subAccount.status,
         twilio_number: phoneNumber.phoneNumber,
       });
@@ -320,14 +352,15 @@ export class TwilioService {
       const subAccount = await this.twilioClient.api.accounts(sid).fetch();
       const twilioData = await this.twilioModel.findOne({ accountSid: sid });
 
-      return subAccount;
+      // return subAccount;
 
-      // return {
-      //   ...subAccount,
-      //   apiKeySid: twilioData?.twilio_api_key_sid,
-      //   apiKeySecret: twilioData?.twilio_api_key_secret,
-      //   chatServiceSid: twilioData?.twilio_chat_service_sid,
-      // };
+      return {
+        ...subAccount,
+        apiKeySid: decrypt(twilioData.twilio_api_key_sid),
+        apiKeySecret: decrypt(twilioData.twilio_api_key_secret),
+        chatServiceSid: decrypt(twilioData.twilio_chat_service_sid),
+        phoneNumber: twilioData.twilio_number,
+      };
     } catch (error) {
       throw new Error(`Failed to fetch subaccount: ${error.message}`);
     }
@@ -336,20 +369,7 @@ export class TwilioService {
   async getAllSubAccounts(): Promise<any> {
     try {
       const subAccounts = await this.twilioClient.api.accounts.list();
-      // const twilioData = await this.twilioModel.find();
-
-      // return subAccounts.map((subAccount) => {
-      //   const data = twilioData.find(
-      //     (t) => t.twilio_account_sid === subAccount.sid,
-      //   );
       return subAccounts;
-      //   return {
-      //     ...subAccount,
-      //     // apiKeySid: data?.twilio_api_key_sid,
-      //     // apiKeySecret: data?.twilio_api_key_secret,
-      //     // chatServiceSid: data?.twilio_chat_service_sid,
-      //   };
-      // });
     } catch (error) {
       throw new Error(`Failed to fetch subaccounts: ${error.message}`);
     }
@@ -379,6 +399,124 @@ export class TwilioService {
       return { message: `Subaccount with SID ${sid} deleted successfully` };
     } catch (error) {
       throw new Error(`Failed to delete subaccount: ${error.message}`);
+    }
+  }
+
+  async getPhoneNumbersForSubAccounts() {
+    try {
+      const subAccounts = await this.getAllSubAccounts();
+      const phoneNumbers = await Promise.all(
+        subAccounts.map(async (subAccount) => {
+          const subAccountSid = subAccount.sid;
+          const subAccountAuthToken = subAccount.authToken;
+          console.log(
+            'Fetching phone numbers for sub-account SID:',
+            subAccountSid,
+          );
+
+          // Assuming each sub-account has its own auth token stored
+          // const subAccountAuthToken =
+          //   await this.getSubAccountAuthToken(subAccountSid);
+
+          try {
+            const subClient = new Twilio(subAccountSid, subAccountAuthToken);
+            const numbers = await subClient.incomingPhoneNumbers.list();
+            return {
+              subAccountSid: subAccountSid,
+              phoneNumbers: numbers.map((number) => number.phoneNumber),
+            };
+          } catch (innerError) {
+            console.error(
+              `Failed to fetch phone numbers for sub-account SID: ${subAccountSid}`,
+              innerError,
+            );
+            return {
+              subAccountSid: subAccountSid,
+              phoneNumbers: [],
+              error: innerError.message,
+            };
+          }
+        }),
+      );
+      return phoneNumbers;
+    } catch (error) {
+      throw new Error(`Failed to fetch phone numbers: ${error.message}`);
+    }
+  }
+
+  async getSubAccountAuthToken(subAccountSid: string): Promise<string> {
+    return this.configService.get<string>('TWILIO_AUTH_TOKEN');
+  }
+
+async fetchAvailableNumbers(countryCode: string, type: 'local' | 'tollFree', limit: string): Promise<any> {
+  const parsedLimit = parseInt(limit, 10);
+    const validCountryCodes = ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'IN', 'JP', 'CN', 'MX', 'BR', 'ZA', 'NZ'];
+    const validTypes = ['local', 'tollFree'];
+
+    if (!validCountryCodes.includes(countryCode)) {
+      throw new Error(`Invalid country code: ${countryCode}. Valid country codes are: ${validCountryCodes.join(', ')}`);
+    }
+
+    if (!validTypes.includes(type)) {
+      throw new Error(`Invalid type: ${type}. Valid types are: ${validTypes.join(', ')}`);
+    }
+
+    if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+      throw new Error('Parameter limit must be a positive integer');
+    }
+
+    try {
+      const listParams: { limit: number } = { limit: parsedLimit };
+      const numbers = await (this.twilioClient.availablePhoneNumbers(countryCode)[type].list as any)(listParams);
+      return numbers;
+    } catch (error) {
+      throw new Error(`Failed to fetch available numbers: ${error.message}`);
+    }
+  }
+
+  async buyNumber(phoneNumber: string, subAccountSid: string, authToken: string): Promise<any> {
+    try {
+      const subAccountClient = new Twilio(subAccountSid, authToken);
+      const purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({ phoneNumber });
+      return purchasedNumber;
+    } catch (error) {
+      throw new Error(`Failed to purchase number: ${error.message}`);
+    }
+  }
+
+  async fetchPurchasedNumbers(subAccountSid: string, authToken: string): Promise<any> {
+    try {
+      const subAccountClient = new Twilio(subAccountSid, authToken);
+      const numbers = await subAccountClient.incomingPhoneNumbers.list();
+      return numbers;
+    } catch (error) {
+      throw new Error(`Failed to fetch purchased numbers: ${error.message}`);
+    }
+  }
+  async fetchAllPurchasedNumbers(): Promise<any> {
+    try {
+      const parentAccountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
+      const subAccounts = await this.twilioClient.api.accounts.list({ limit: 100 });
+      const allNumbers = [];
+
+      for (const subAccount of subAccounts) {
+        try {
+        if (subAccount.ownerAccountSid === parentAccountSid) {
+          
+          const subAccountClient = new Twilio(subAccount.sid, subAccount.authToken);
+          const numbers = await subAccountClient.incomingPhoneNumbers.list();
+
+          allNumbers.push(...numbers);
+        }
+      } catch (authError) {
+        console.log(`Failed to fetch purchased numbers: ${authError.message}`);
+        continue;
+      }
+      }
+
+      return allNumbers;
+    } catch (error) {
+      throw new Error(`Failed to fetch all purchased numbers: ${error.message}`);
     }
   }
 }
