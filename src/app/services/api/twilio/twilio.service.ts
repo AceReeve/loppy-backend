@@ -12,6 +12,23 @@ import { Request } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import * as crypto from 'crypto';
+const algorithm = 'aes-256-ctr';
+
+const encrypt = (text: string): string => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), iv);
+  const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+  return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+};
+
+const decrypt = (hash: string): string => {
+  const [iv, encrypted] = hash.split(':');
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(process.env.TWILIO_API_KEY_SECRET), Buffer.from(iv, 'hex'));
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(encrypted, 'hex')), decipher.final()]);
+  return decrypted.toString();
+};
+
 @Injectable()
 export class TwilioService {
   private twilioClient: Twilio;
@@ -300,15 +317,19 @@ export class TwilioService {
           throw new Error('No available phone numbers found.');
         }
       }
-
+      const encryptedAccountSid = encrypt(subAccount.sid);
+      const encryptedAuthToken = encrypt(subAccount.authToken);
+      const encryptedApiKeySid = encrypt(apiKey.sid);
+      const encryptedApiKeySecret = encrypt(apiKey.secret);
+      const encryptedChatServiceSid = encrypt(chatService.sid);
       // Save the details in your database (e.g., twilioModel)
       const twilioData = new this.twilioModel({
         user_id: userData._id,
-        twilio_account_sid: subAccount.sid,
-        twilio_auth_token: subAccount.authToken,
-        twilio_api_key_sid: apiKey.sid,
-        twilio_api_key_secret: apiKey.secret,
-        twilio_chat_service_sid: chatService.sid,
+        twilio_account_sid: encryptedAccountSid,
+        twilio_auth_token: encryptedAuthToken,
+        twilio_api_key_sid: encryptedApiKeySid,
+        twilio_api_key_secret: encryptedApiKeySecret,
+        twilio_chat_service_sid: encryptedChatServiceSid,
         status: subAccount.status,
         twilio_number: phoneNumber.phoneNumber,
       });
@@ -335,9 +356,10 @@ export class TwilioService {
 
       return {
         ...subAccount,
-        apiKeySid: twilioData?.twilio_api_key_sid,
-        apiKeySecret: twilioData?.twilio_api_key_secret,
-        chatServiceSid: twilioData?.twilio_chat_service_sid,
+        apiKeySid: decrypt(twilioData.twilio_api_key_sid),
+        apiKeySecret: decrypt(twilioData.twilio_api_key_secret),
+        chatServiceSid: decrypt(twilioData.twilio_chat_service_sid),
+        phoneNumber: twilioData.twilio_number,
       };
     } catch (error) {
       throw new Error(`Failed to fetch subaccount: ${error.message}`);
