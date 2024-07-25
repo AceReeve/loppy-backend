@@ -280,17 +280,26 @@ export class TwilioService {
 
       // Fetch the first available phone number (free number for trial account)
       const phoneNumbers = await subAccountClient.incomingPhoneNumbers.list();
-      console.log('phoneNumbers', phoneNumbers);
       let phoneNumber;
       if (phoneNumbers.length > 0) {
         phoneNumber = phoneNumbers[0];
       } else {
-        // If no free number, purchase a new phone number
-        // phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
-        //   phoneNumber: '+1234567890', // inprogress implementation
-        // });
+        // Search for available phone numbers
+        const availableNumbers = await subAccountClient
+          .availablePhoneNumbers('US')
+          .local.list({
+            limit: 1,
+          });
+
+        if (availableNumbers.length > 0) {
+          // Purchase the first available phone number
+          phoneNumber = await subAccountClient.incomingPhoneNumbers.create({
+            phoneNumber: availableNumbers[0].phoneNumber,
+          });
+        } else {
+          throw new Error('No available phone numbers found.');
+        }
       }
-      console.log('phoneNumber123', phoneNumber);
 
       // Save the details in your database (e.g., twilioModel)
       const twilioData = new this.twilioModel({
@@ -322,14 +331,14 @@ export class TwilioService {
       const subAccount = await this.twilioClient.api.accounts(sid).fetch();
       const twilioData = await this.twilioModel.findOne({ accountSid: sid });
 
-      return subAccount;
+      // return subAccount;
 
-      // return {
-      //   ...subAccount,
-      //   apiKeySid: twilioData?.twilio_api_key_sid,
-      //   apiKeySecret: twilioData?.twilio_api_key_secret,
-      //   chatServiceSid: twilioData?.twilio_chat_service_sid,
-      // };
+      return {
+        ...subAccount,
+        apiKeySid: twilioData?.twilio_api_key_sid,
+        apiKeySecret: twilioData?.twilio_api_key_secret,
+        chatServiceSid: twilioData?.twilio_chat_service_sid,
+      };
     } catch (error) {
       throw new Error(`Failed to fetch subaccount: ${error.message}`);
     }
