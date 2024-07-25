@@ -6,12 +6,14 @@ import {
   Param,
   UseGuards,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -87,5 +89,49 @@ export class TwilioController {
   @Get('get-all-subaccounts-numbers')
   async getPhoneNumbersForSubAccounts() {
     return this.twilioService.getPhoneNumbersForSubAccounts();
+  }
+
+  ///////////
+  @Get('available-numbers')
+  @ApiQuery({
+    name: 'countryCode',
+    description: 'The country code for which to fetch available phone numbers.',
+    example: 'US, CA, GB, AU, DE, FR, ES, IT, IN, JP, CN, MX, BR, ZA, NZ',
+    required: true,
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'local or tollFree.',
+    example: 'local',
+    required: true,
+  })
+  async fetchAvailableNumbers(
+    @Query('countryCode') countryCode: string,
+    @Query('type') type: 'local' | 'tollFree',
+    @Query('limit') limit: string,
+  ) {
+    return this.twilioService.fetchAvailableNumbers(countryCode, type, limit);
+  }
+
+  @Post('buy-number')
+  async buyNumber(
+    @Query('phoneNumber') phoneNumber: string,
+    @Query('subAccountSid') subAccountSid: string,
+    @Query('authToken') authToken: string,
+  ) {
+    return this.twilioService.buyNumber(phoneNumber, subAccountSid, authToken);
+  }
+
+  @Get('purchased-numbers')
+  async fetchPurchasedNumbers(
+    @Query('subAccountSid') subAccountSid: string,
+    @Query('authToken') authToken: string,
+  ) {
+    return this.twilioService.fetchPurchasedNumbers(subAccountSid, authToken);
+  }
+
+  @Get('all-purchased-numbers')
+  async fetchAllPurchasedNumbers() {
+      return await this.twilioService.fetchAllPurchasedNumbers();
   }
 }
