@@ -11,8 +11,8 @@ export type InvitedUserDocument = InvitedUser & Document;
 export class InvitedUser implements GenericSchema {
   _id: string;
 
-  @Prop([{ email: String, role: { _id: MongooseSchema.Types.ObjectId, role_name: String, description: String }, status: String }])
-  emails: { email: string; role: { _id: MongooseSchema.Types.ObjectId, role_name: string, description: string }; status: string }[];
+  @Prop([{ email: String, role: Object, status: String }])
+  emails: { email: string; role: Object; status: string }[];
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   invited_by: MongooseSchema.Types.ObjectId;
