@@ -187,8 +187,8 @@ export class InviteUserDTO {
   @ApiProperty({
     type: [EmailRole],
     example: [
-      { email: 'example@gmail.com', role: 'role_id' },
-      { email: 'example1@gmail.com', role: 'role_id' },
+      { email: 'example@gmail.com', role: 'Manager' },
+      { email: 'example1@gmail.com', role: 'Member' },
     ],
   })
   @IsNotEmpty()
