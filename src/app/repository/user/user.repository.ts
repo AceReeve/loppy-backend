@@ -259,17 +259,22 @@ export class UserRepository implements AbstractUserRepository {
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
     const loggedInUser = await this.getLoggedInUserDetails();
     // Validate if emails are already invited
+    const roles = await Promise.all(
+      inviteUserDTO.users.map(({ role }) => this.roleDocumentModel.findOne({role_name: role}).exec())
+    );
+
     const alreadyInvitedEmails = await this.invitedUserModel.find(
       {
-        'emails.email': { $in: inviteUserDTO.email.map((e) => e.email) },
+        'emails.email': { $in: inviteUserDTO.users.map((e) => e.email) },
       },
       'emails.email',
     );
 
     const existingEmails = alreadyInvitedEmails.flatMap((doc) =>
-      doc.emails.map((e) => e.email),
+      doc.users.map((e) => e.email),
     );
-    const duplicatedEmails = inviteUserDTO.email.filter((e) =>
+
+    const duplicatedEmails = inviteUserDTO.users.filter((e) =>
       existingEmails.includes(e.email),
     );
 
@@ -280,28 +285,33 @@ export class UserRepository implements AbstractUserRepository {
     }
 
     // Prepare invited users data
-    const invitedUsers = inviteUserDTO.email.map(({ email, role }) => ({
-      email,
-      role,
-      status: UserStatus.PENDING, // Assuming you have a status field
-    }));
+    // Map the invited users with the fetched role data
+
+    const invitedUsers = inviteUserDTO.users.map(({ email, role }, index) => {
+      const roleData = roles[index];
+      return {
+        email,
+        role: roleData ? roleData.toObject() : null,
+        status: UserStatus.PENDING,
+      };
+    });
 
     // Create or update invited users
     let invitedUser = await this.invitedUserModel.findOne({
       invited_by: loggedInUser._id,
     });
 
-    if (!invitedUser) {
+    if (!invitedUser || invitedUser === null) {
       invitedUser = await this.invitedUserModel.create({
-        emails: invitedUsers,
+        users: invitedUsers,
         invited_by: loggedInUser._id,
       });
     } else {
-      invitedUser.emails.push(...invitedUsers);
+      invitedUser.users.push(...invitedUsers);
       invitedUser = await invitedUser.save();
     }
 
-    for (const { email } of inviteUserDTO.email) {
+    for (const { email } of inviteUserDTO.users) {
       const payload = { email: email };
       const accessToken = await this.authRepository.generateJWT(
         payload,
@@ -353,7 +363,7 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('You have already sent invites.');
     }
 
-    const invitedEmails = inviteUserDTO.email.map((item) => item.email);
+    const invitedEmails = inviteUserDTO.users.map((item) => item.email);
     const alreadyInvitedUsers = await this.invitedUserModel.find(
       {
         'emails.email': { $in: invitedEmails },
@@ -362,7 +372,7 @@ export class UserRepository implements AbstractUserRepository {
     );
 
     const matchedEmails = alreadyInvitedUsers.flatMap((doc) =>
-      doc.emails.map((emailObj) => emailObj.email),
+      doc.users.map((emailObj) => emailObj.email),
     );
 
     const alreadyInvited = invitedEmails.filter((email) =>
@@ -375,7 +385,7 @@ export class UserRepository implements AbstractUserRepository {
       );
     }
 
-    const emails = inviteUserDTO.email.map(({ email, role }) => ({
+    const emails = inviteUserDTO.users.map(({ email, role }) => ({
       email,
       role,
       status: UserStatus.PENDING,
@@ -430,7 +440,7 @@ export class UserRepository implements AbstractUserRepository {
     }
 
     // Find the specific email entry within the emails array
-    const emailEntry = isInvited.emails.find(
+    const emailEntry = isInvited.users.find(
       (email) => email.email === user.email,
     );
     let role: any;
