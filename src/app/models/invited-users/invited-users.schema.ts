@@ -12,7 +12,7 @@ export class InvitedUser implements GenericSchema {
   _id: string;
 
   @Prop([{ email: String, role: Object, status: String }])
-  emails: { email: string; role: Object; status: string }[];
+  users: { email: string; role: Object; status: string }[];
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   invited_by: MongooseSchema.Types.ObjectId;

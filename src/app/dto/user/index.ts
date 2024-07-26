@@ -194,7 +194,7 @@ export class InviteUserDTO {
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => EmailRole)
-  email: EmailRole[];
+  users: EmailRole[];
 }
 export class ResetPasswordDto {
   @ApiProperty({ example: 'Password123!' })

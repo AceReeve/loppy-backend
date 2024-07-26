@@ -17,6 +17,7 @@ export class Role implements GenericSchema {
   @Prop()
   description?: string;
 
+  
   @Prop({ default: 'ACTIVE' })
   role_status: string;
 }
