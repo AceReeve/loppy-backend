@@ -262,31 +262,44 @@ export class UserRepository implements AbstractUserRepository {
     const roles = await Promise.all(
       inviteUserDTO.users.map(({ role }) => this.roleDocumentModel.findOne({role_name: role}).exec())
     );
+ // Check for duplicate emails in the input
+   const emailSet = new Set();
+   const duplicateInputEmails = inviteUserDTO.users.filter(user => {
+   if (emailSet.has(user.email)) {
+     return true;
+   }
+   emailSet.add(user.email);
+   return false;
+   });
 
+   if (duplicateInputEmails.length > 0) {
+   throw new BadRequestException(
+     `These emails are duplicated in the input: ${duplicateInputEmails.map(e => e.email).join(', ')}`
+   );
+ }
+ 
     const alreadyInvitedEmails = await this.invitedUserModel.find(
       {
-        'emails.email': { $in: inviteUserDTO.users.map((e) => e.email) },
+        'users.email': { $in: inviteUserDTO.users.map((e) => e.email) },
       },
-      'emails.email',
+      'users.email'
     );
-
+  
     const existingEmails = alreadyInvitedEmails.flatMap((doc) =>
-      doc.users.map((e) => e.email),
+      doc.users.map((emailObj) => emailObj.email)
     );
-
+  
     const duplicatedEmails = inviteUserDTO.users.filter((e) =>
-      existingEmails.includes(e.email),
+      existingEmails.includes(e.email)
     );
-
+  
     if (duplicatedEmails.length > 0) {
       throw new BadRequestException(
-        `These emails are already invited: ${duplicatedEmails.map((e) => e.email).join(', ')}`,
+        `These emails are already invited: ${duplicatedEmails.map((e) => e.email).join(', ')}`
       );
     }
 
-    // Prepare invited users data
     // Map the invited users with the fetched role data
-
     const invitedUsers = inviteUserDTO.users.map(({ email, role }, index) => {
       const roleData = roles[index];
       return {
@@ -556,7 +569,8 @@ export class UserRepository implements AbstractUserRepository {
     if (!updatedDocument) {
     throw new Error('Failed to cancel the invitation. It may have already been accepted or does not exist.');
   }
-    return `Successfully cancelled the invitation for ${email}.`;
+
+    return   { message: 'Successfully cancelled the invitation for ${email}.' };
   }
 
   async uploadProfile(
