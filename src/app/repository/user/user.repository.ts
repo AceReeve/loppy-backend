@@ -569,7 +569,8 @@ export class UserRepository implements AbstractUserRepository {
     if (!updatedDocument) {
     throw new Error('Failed to cancel the invitation. It may have already been accepted or does not exist.');
   }
-    return `Successfully cancelled the invitation for ${email}.`;
+
+    return   { message: 'Successfully cancelled the invitation for ${email}.' };
   }
 
   async uploadProfile(
