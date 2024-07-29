@@ -527,14 +527,35 @@ export class UserRepository implements AbstractUserRepository {
 
   async cancelInviteUser(email: string): Promise<any> {
     const user = await this.getLoggedInUserDetails();
-    const updatedDocument = await this.invitedUserModel.findOneAndUpdate(
-      { 'emails.email': email, invited_by: user._id },
-      { $set: { 'emails.$.status': UserStatus.CANCELLED } },
-      { new: true },
-    );
-    if (!updatedDocument) {
-      throw new Error('Email not found in invitations.');
+    const invitation = await this.invitedUserModel.findOne({
+      'users.email': email,
+      invited_by: user._id,
+      'users.status': 'Pending'
+    });
+  
+    if (!invitation) {
+      throw new Error('No pending invitation found for this email.');
     }
+
+    const updatedDocument = await this.invitedUserModel.findOneAndUpdate(
+      {
+        invited_by: user._id,
+        users: {
+          $elemMatch: {
+            email: email,
+            status: 'Pending'
+          }
+        }
+      },
+      {
+        $set: { 'users.$.status': 'Cancelled' }
+      },
+      { new: true }
+    );
+
+    if (!updatedDocument) {
+    throw new Error('Failed to cancel the invitation. It may have already been accepted or does not exist.');
+  }
     return `Successfully cancelled the invitation for ${email}.`;
   }
 
