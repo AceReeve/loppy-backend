@@ -291,6 +291,16 @@ export class UserRepository implements AbstractUserRepository {
       );
     }
 
+    // Check if any of the emails match the logged-in user's email
+    const selfInvite = inviteUserDTO.users.find(
+      (user) => user.email === loggedInUser.email,
+    );
+    if (selfInvite) {
+      throw new BadRequestException(
+        `Cannot invite yourself: ${loggedInUser.email}`,
+      );
+    }
+
     const alreadyInvitedEmails = await this.invitedUserModel.find(
       {
         'users.email': { $in: inviteUserDTO.users.map((e) => e.email) },
