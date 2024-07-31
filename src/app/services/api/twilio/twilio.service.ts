@@ -448,8 +448,9 @@ export class TwilioService {
     return this.configService.get<string>('TWILIO_AUTH_TOKEN');
   }
 
-async fetchAvailableNumbers(countryCode: string, type: 'local' | 'tollFree', limit: string): Promise<any> {
-  const parsedLimit = parseInt(limit, 10);
+async fetchAvailableNumbers(countryCode: string, type: 'local' | 'tollFree', areaCode?: string,
+  limit?: string): Promise<any> {
+  const parsedLimit = limit ? parseInt(limit, 10): 10;
     const validCountryCodes = ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'IN', 'JP', 'CN', 'MX', 'BR', 'ZA', 'NZ'];
     const validTypes = ['local', 'tollFree'];
 
@@ -466,7 +467,10 @@ async fetchAvailableNumbers(countryCode: string, type: 'local' | 'tollFree', lim
     }
 
     try {
-      const listParams: { limit: number } = { limit: parsedLimit };
+      const listParams: { limit: number; areaCode?: string } = { limit: parsedLimit };
+      if (areaCode) {
+        listParams.areaCode = areaCode;
+      }
       const numbers = await (this.twilioClient.availablePhoneNumbers(countryCode)[type].list as any)(listParams);
       return numbers;
     } catch (error) {

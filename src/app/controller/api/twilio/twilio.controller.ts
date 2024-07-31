@@ -105,12 +105,25 @@ export class TwilioController {
     example: 'local',
     required: true,
   })
+  @ApiQuery({
+    name: 'areaCode',
+    description: 'The area code to filter available phone numbers.',
+    example: '510',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'The limit on the number of phone numbers to fetch.',
+    example: '10',
+    required: false,
+  })
   async fetchAvailableNumbers(
     @Query('countryCode') countryCode: string,
     @Query('type') type: 'local' | 'tollFree',
-    @Query('limit') limit: string,
+    @Query('areaCode') areaCode?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.twilioService.fetchAvailableNumbers(countryCode, type, limit);
+    return this.twilioService.fetchAvailableNumbers(countryCode, type, areaCode, limit);
   }
 
   @Post('buy-number')
