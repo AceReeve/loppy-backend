@@ -167,14 +167,21 @@ export class UserController {
     return this.userService.validateInviteUser(inviteUserDTO);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('invited-user/register')
-  @ApiBearerAuth('Bearer')
+  @ApiQuery({
+    name: 'token',
+    required: true,
+  } as ApiQueryOptions)
   @ApiOperation({ summary: 'Invited User Registration' })
   async invitedUserRegistration(
+    @Query('token') token: string,
     @Body() invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
   ): Promise<any> {
-    return this.userService.invitedUserRegistration(invitedUserRegistrationDTO);
+    return this.userService.invitedUserRegistration(
+      invitedUserRegistrationDTO,
+      token,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
