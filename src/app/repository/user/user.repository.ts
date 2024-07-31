@@ -264,6 +264,7 @@ export class UserRepository implements AbstractUserRepository {
         this.roleDocumentModel.findOne({ role_name: role }).exec(),
       ),
     );
+
     // Check for duplicate emails in the input
     const emailSet = new Set();
     const duplicateInputEmails = inviteUserDTO.users.filter((user) => {
@@ -277,6 +278,16 @@ export class UserRepository implements AbstractUserRepository {
     if (duplicateInputEmails.length > 0) {
       throw new BadRequestException(
         `These emails are duplicated in the input: ${duplicateInputEmails.map((e) => e.email).join(', ')}`,
+      );
+    }
+
+    // Check for invalid roles
+    const invalidRoles = inviteUserDTO.users.filter(
+      ({ role }, index) => !roles[index],
+    );
+    if (invalidRoles.length > 0) {
+      throw new BadRequestException(
+        `These roles are invalid: ${invalidRoles.map((e) => e.role).join(', ')}`,
       );
     }
 
