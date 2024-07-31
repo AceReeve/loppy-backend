@@ -48,6 +48,7 @@ import {
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 export class UserRepository implements AbstractUserRepository {
   constructor(
@@ -67,6 +68,7 @@ export class UserRepository implements AbstractUserRepository {
     @InjectModel(FileUpload.name)
     private fileUploadModel: Model<FileUploadDocument>,
     private readonly s3: S3Service,
+    private readonly jwtService: JwtService,
   ) {}
 
   async getLoggedInUserDetails(): Promise<any> {
@@ -501,15 +503,23 @@ export class UserRepository implements AbstractUserRepository {
 
   async invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
+    token: string,
   ): Promise<any> {
-    const user = this.request.user as Partial<User>;
-
+    const user = this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+    });
+    console.log('decoded user', user);
     const isInvited = await this.invitedUserModel.findOne({
-      'emails.email': user.email,
+      'users.email': user.email,
     });
     // Check if the user is invited
     if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
+    }
+    if (user.email !== invitedUserRegistrationDTO.email) {
+      throw new BadRequestException(
+        'Unable to Register, Inputted email is not matched to the decoded token',
+      );
     }
 
     // Find the specific email entry within the emails array
@@ -545,14 +555,14 @@ export class UserRepository implements AbstractUserRepository {
     }
     const newUser = await this.userModel.create({
       email: user.email,
-      role: role._id,
+      role: role,
       password: invitedUserRegistrationDTO.password,
     });
     if (!newUser) throw new BadRequestException('error registration user');
     await this.invitedUserModel.findOneAndUpdate(
-      { 'emails.email': user.email },
+      { 'users.email': user.email },
       //update status for specific email that matches to invited user
-      { $set: { 'emails.$.status': UserStatus.ACCEPTED } },
+      { $set: { 'users.$.status': UserStatus.ACCEPTED } },
       { new: true },
     );
     return { newUser };
