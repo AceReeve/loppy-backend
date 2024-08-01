@@ -283,6 +283,10 @@ export class UserRepository implements AbstractUserRepository {
       );
     }
 
+    const emailToRoleMap = new Map<string, any>(
+      inviteUserDTO.users.map(({ email, role }, index) => [email, roles[index]])
+    );
+
     // Check for invalid roles
     const invalidRoles = inviteUserDTO.users.filter(
       ({ role }, index) => !roles[index],
@@ -377,7 +381,7 @@ export class UserRepository implements AbstractUserRepository {
           // Add new user if they don't already exist
           invitedUser.users.push({
             email: newUser.email,
-            role: roles,
+            role: emailToRoleMap.get(newUser.email) ? emailToRoleMap.get(newUser.email).toObject() : null,
             status: UserStatus.PENDING,
           });
         }
