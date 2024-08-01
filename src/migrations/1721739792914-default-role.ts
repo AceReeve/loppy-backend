@@ -14,7 +14,7 @@ export const up = async () => {
       },
       {
         _id: new ObjectId(),
-        role_name: 'Admin',
+        role_name: 'Administrator',
         description:
           'Highest level of access with full control over the system',
       },

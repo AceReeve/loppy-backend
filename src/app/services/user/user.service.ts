@@ -80,9 +80,11 @@ export class UserService implements AbstractUserService {
 
   async invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
+    token: string,
   ): Promise<any> {
     return await this.repository.invitedUserRegistration(
       invitedUserRegistrationDTO,
+      token,
     );
   }
 
