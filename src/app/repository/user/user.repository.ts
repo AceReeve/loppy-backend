@@ -152,12 +152,12 @@ export class UserRepository implements AbstractUserRepository {
     }
     //update the invitation documents
     const updateIvitedUser = await this.invitedUserModel.findOneAndUpdate(
-      { 'emails.email': user.email },
+      { 'users.email': user.email },
       //update status for specific email that matches to invited user
       {
         $set: {
-          'emails.$.first_name': userInfoDTO.first_name,
-          'emails.$.last_name': userInfoDTO.last_name,
+          'users.$.first_name': userInfoDTO.first_name,
+          'users.$.last_name': userInfoDTO.last_name,
         },
       },
       { new: true },
@@ -369,9 +369,9 @@ export class UserRepository implements AbstractUserRepository {
     const invitedEmails = inviteUserDTO.users.map((item) => item.email);
     const alreadyInvitedUsers = await this.invitedUserModel.find(
       {
-        'emails.email': { $in: invitedEmails },
+        'users.email': { $in: invitedEmails },
       },
-      'emails.email',
+      'users.email',
     );
 
     const matchedEmails = alreadyInvitedUsers.flatMap((doc) =>
@@ -596,8 +596,8 @@ export class UserRepository implements AbstractUserRepository {
     );
 
     await this.invitedUserModel.findOneAndUpdate(
-      { 'emails.email': user.email },
-      { $set: { 'emails.$.profile': images } },
+      { 'users.email': user.email },
+      { $set: { 'users.$.profile': images } },
       { new: true },
     );
 

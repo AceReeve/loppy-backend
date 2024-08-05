@@ -18,7 +18,7 @@ export class EmailerService {
   private baseUrl = this.configService.get<string>('BASE_URL');
 
   async inviteUser(email: string, access_token: string): Promise<any> {
-    const link = `https://example.com/invitation?token=${access_token}`;
+    const link = `http://sandbox.servihero.com/auth/register?token=${access_token}`;
 
     try {
       await this.mailerService.sendMail({
