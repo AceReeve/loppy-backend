@@ -125,12 +125,12 @@ export class UserRepository implements AbstractUserRepository {
     const userData = await this.userModel.findOne({ email: user.email });
     //set default role
     const role = await this.roleDocumentModel.findOne({
-      role_name: DefaultUserRole.ADMIN,
+      role_name: DefaultUserRole.OWNER,
     });
     const userInfoDTO = {
       ...userInfoDTODto,
       user_id: userData._id,
-      role: role._id,
+      role: role,
     };
     const userInfo = await this.userInfoModel.findOne({
       user_id: userData._id,
@@ -181,82 +181,6 @@ export class UserRepository implements AbstractUserRepository {
     });
     return { userDetails, userInfo };
   }
-
-  // async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-  //   const user = this.request.user as Partial<User> & { sub: string };
-  //   const userData = await this.userModel.findOne({ email: user.email });
-  //   const isInvitedAlready = await this.invitedUserModel.find(
-  //     { 'emails.email': { $in: inviteUserDTO.email } },
-  //     'emails.email',
-  //   );
-  //   // Extract all emails from the matched documents
-  //   let matchedEmails = isInvitedAlready.flatMap((doc) =>
-  //     doc.emails.map((emailObj) => emailObj.email),
-  //   );
-  //   // Filter out only those that were in the DTO's email list
-  //   matchedEmails = matchedEmails.filter((email) =>
-  //     inviteUserDTO.email.includes(email.),
-  //   );
-
-  //   if (matchedEmails.length > 0) {
-  //     //print the emails that already invited
-  //     throw new BadRequestException(
-  //       `These emails are already invited: ${matchedEmails.join(', ')}.`,
-  //     );
-  //   }
-  //   //plan validation
-
-  //   const allInvitedByUser = await this.invitedUserModel.findOne({
-  //     invited_by: userData._id,
-  //   });
-  //   if (allInvitedByUser) {
-  //     let totalInvitedEmails = 0;
-  //     allInvitedByUser.emails.forEach((emailObj) => {
-  //       if (emailObj.status !== UserStatus.CANCELLED) {
-  //         totalInvitedEmails++;
-  //       }
-  //     });
-
-  //     await this.userPlanValidation(userData._id, totalInvitedEmails);
-  //   }
-  //   //
-  //   for (const email of inviteUserDTO.email) {
-  //     const payload = { email: email };
-  //     const access_token = await this.authRepository.generateJWT(
-  //       payload,
-  //       this.configService.get<string>('JWT_EXPIRATION'),
-  //     );
-  //     await this.emailService.inviteUser(email, access_token);
-  //   }
-
-  //   const emails = inviteUserDTO.email.map((emailAddress) => ({
-  //     email: emailAddress,
-  //     status: UserStatus.PENDING,
-  //     date: new Date(),
-  //   }));
-  //   const existingInvitedUser = await this.invitedUserModel.findOne({
-  //     invited_by: userData._id,
-  //   });
-  //   let result: any;
-  //   if (!existingInvitedUser) {
-  //     result = await this.invitedUserModel.create({
-  //       emails: emails,
-  //       invited_by: userData._id,
-  //     });
-  //   } else {
-  //     const updatedEmails = existingInvitedUser.emails.concat(emails);
-  //     existingInvitedUser.emails = updatedEmails;
-  //     result = await existingInvitedUser.save();
-  //   }
-
-  //   const updateUser = await this.userModel.findOneAndUpdate(
-  //     { _id: userData._id },
-  //     {
-  //       already_send_invites: true,
-  //     },
-  //   );
-  //   return result;
-  // }
 
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
     const loggedInUser = await this.getLoggedInUserDetails();
@@ -512,7 +436,6 @@ export class UserRepository implements AbstractUserRepository {
     const user = this.jwtService.verify(token, {
       secret: this.configService.get<string>('JWT_SECRET'),
     });
-    console.log('decoded user', user);
     const isInvited = await this.invitedUserModel.findOne({
       'users.email': user.email,
     });
