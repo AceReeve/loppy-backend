@@ -16,7 +16,8 @@ export enum UserStatus {
 }
 
 export enum DefaultUserRole {
-  ADMIN = 'Admin',
+  OWNER = 'Owner',
+  ADMIN = 'Administrator',
   MEMBER = 'Member',
   MANAGER = 'Manager',
   GUEST = 'Guest',

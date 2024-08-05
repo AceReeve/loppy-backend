@@ -11,7 +11,7 @@ import { UserService } from 'src/app/services/user/user.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 import { Model } from 'mongoose';
-import { UserRole } from 'src/app/const';
+import { DefaultUserRole, UserRole } from 'src/app/const';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -70,11 +70,11 @@ export class AdminAuthGuard implements CanActivate {
     request.user = decodedToken;
     request.token = token;
 
-    const roleDetails = await this.roleModel.findById(request.user.role);
+    const roleDetails = await this.roleModel.findById(request.user.role._id);
     if (!roleDetails) {
       throw new UnauthorizedException('Role not found');
     }
-    if (roleDetails.role_name !== UserRole.ADMIN) {
+    if (roleDetails.role_name !== DefaultUserRole.OWNER && roleDetails.role_name !== DefaultUserRole.ADMIN) {
       throw new UnauthorizedException('User must be an Admin');
     }
     return true;
