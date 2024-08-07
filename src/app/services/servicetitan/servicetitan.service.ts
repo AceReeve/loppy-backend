@@ -5,9 +5,10 @@ import axios, { AxiosInstance } from 'axios';
 @Injectable()
 export class ServiceTitanService {
     private serviceTitanAPI: AxiosInstance;
+    private serviceTitanTokenAPI: AxiosInstance;
 
     private serviceTitanUrl: string = "https://api.servicetitan.io/crm/v2";
-    private serviceTitanTokenUrl: string = "https://auth.servicetitan.io/connect/token/";
+    private serviceTitanTokenUrl: string = "https://auth.servicetitan.io";
 
     constructor(private configService: ConfigService) {
 
@@ -18,8 +19,12 @@ export class ServiceTitanService {
             },
         });
 
-    }
+        this.serviceTitanTokenAPI = axios.create({
+            baseURL: this.serviceTitanTokenUrl
+        });
 
+
+    }
 
 
     async requestToken(): Promise<any> {
@@ -34,15 +39,13 @@ export class ServiceTitanService {
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'https://auth.servicetitan.io/connect/token',
+                url: this.serviceTitanTokenUrl,
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: data
+                }
             };
-
-            const response = await axios.request(config);
-            return response.data.requestToken;
+            const response = await this.serviceTitanTokenAPI.post('/connect/token', data, config);
+            return response.data.access_token;
         } catch (error) {
             return {
                 success: false,
