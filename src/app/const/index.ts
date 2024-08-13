@@ -37,3 +37,7 @@ export enum PlanSubscription {
 export enum UserRole {
   ADMIN = 'Admin',
 }
+
+export enum OrganizationStatus {
+  ACTIVE = 'Active',
+}
