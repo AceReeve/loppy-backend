@@ -115,4 +115,7 @@ export class UserService implements AbstractUserService {
   ): Promise<any> {
     return this.repository.resetPassword(token, resetPasswordDTO);
   }
+  async getMember(): Promise<any> {
+    return this.repository.getMember();
+  }
 }

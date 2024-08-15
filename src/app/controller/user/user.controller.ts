@@ -212,4 +212,13 @@ export class UserController {
   ): Promise<StreamableFile | void> {
     return await this.userService.getProfile(id, path, res, type);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Bearer')
+  @Get('members')
+  @ApiOperation({ summary: 'Get all accepted members' })
+  async getMember(): Promise<any> {
+    return await this.userService.getMember();
+  }
+
 }

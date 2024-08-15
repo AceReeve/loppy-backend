@@ -17,15 +17,16 @@ import { EmailNotificationModule } from './app/modules/email-notification/email.
 import { ContactsModule } from './app/modules/contacts/contacts.module';
 import { WeatherForecastModule } from './app/models/weatherforecast/weatherforecast.module';
 import { ManageTeamModule } from './app/modules/settings/manage-team/manage-team.module';
+import { MessagingTwilioModule } from './app/modules/messaging-twilio/messaging-twilio.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    AuthModule,
     UserModule,
     ConfigurationModule,
     MongooseModule,
     DatabaseModule,
-    AuthModule,
     JwtModule.register({
       global: true,
     }),
@@ -36,7 +37,8 @@ import { ManageTeamModule } from './app/modules/settings/manage-team/manage-team
     EmailNotificationModule,
     ContactsModule,
     WeatherForecastModule,
-    ManageTeamModule
+    ManageTeamModule,
+    MessagingTwilioModule,
   ],
 
   providers: [

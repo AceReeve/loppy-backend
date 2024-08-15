@@ -19,6 +19,13 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { MessagingTwilioSchemaModule } from 'src/app/models/messaging-twilio/messaging-twilio.schema.module';
+import { MessagingTwilioController } from 'src/app/controller/messaging-twilio/messaging-twilio.controller';
+import {
+  AbstractMessagingTwilioRepository,
+  AbstractMessagingTwilioService,
+} from 'src/app/interface/messaging-twilio';
+import { MessagingTwilioRepository } from 'src/app/repository/messaging-twilio/messaging-twilio.repository';
+import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
 
 @Global()
 @Module({
@@ -33,22 +40,31 @@ import { MessagingTwilioSchemaModule } from 'src/app/models/messaging-twilio/mes
     InvitedUserSchemaModule,
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
-    MessagingTwilioSchemaModule
-    
+    MessagingTwilioSchemaModule,
   ],
   providers: [
     UserService,
     TwilioService,
     JwtService,
     S3Service,
+    UserRepository,
     {
       provide: AbstractUserRepository,
       useClass: UserRepository,
     },
+    {
+      provide: AbstractMessagingTwilioRepository,
+      useClass: MessagingTwilioRepository,
+    },
+    {
+      provide: AbstractMessagingTwilioService,
+      useClass: MessagingTwilioService,
+    },
+
     AuthRepository,
     OauthRepository,
   ],
-  controllers: [TwilioController],
-  exports: [TwilioService],
+  controllers: [MessagingTwilioController],
+  exports: [],
 })
-export class TwilioModule {}
+export class MessagingTwilioModule {}

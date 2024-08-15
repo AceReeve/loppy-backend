@@ -307,6 +307,8 @@ export class UserRepository implements AbstractUserRepository {
             email: newUser.email,
             role: emailToRoleMap.get(newUser.email) ? emailToRoleMap.get(newUser.email).toObject() : null,
             status: UserStatus.PENDING,
+            user_id: null,
+            invited_at: new Date()
           });
         }
       });
@@ -314,13 +316,14 @@ export class UserRepository implements AbstractUserRepository {
       invitedUser = await invitedUser.save();
     }
 
-    for (const { email } of inviteUserDTO.users) {
+    for (const { email, role } of inviteUserDTO.users) {
       const payload = { email: email };
       const accessToken = await this.authRepository.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      await this.emailService.inviteUser(email, accessToken);
+      console.log('tete',role)
+      await this.emailService.inviteUser(email, accessToken, role);
     }
 
     return invitedUser;
@@ -489,7 +492,7 @@ export class UserRepository implements AbstractUserRepository {
     await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       //update status for specific email that matches to invited user
-      { $set: { 'users.$.status': UserStatus.ACCEPTED } },
+      { $set: { 'users.$.status': UserStatus.ACCEPTED, 'users.user_id': newUser._id } },
       { new: true },
     );
     return { newUser };
@@ -779,5 +782,14 @@ export class UserRepository implements AbstractUserRepository {
       userInfosPromise,
     ]);
     return { users, userInfos };
+  }
+
+  async getMember(): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel.findOne({
+      invited_by: user._id
+    });
+    invitedUser.users = invitedUser.users.filter(user => user.status === UserStatus.ACCEPTED);
+    return invitedUser;
   }
 }

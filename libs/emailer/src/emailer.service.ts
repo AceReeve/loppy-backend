@@ -17,14 +17,15 @@ export class EmailerService {
 
   private baseUrl = this.configService.get<string>('BASE_URL');
 
-  async inviteUser(email: string, access_token: string): Promise<any> {
+  async inviteUser(email: string, access_token: string, role_name?: string): Promise<any> {
     const link = `http://sandbox.servihero.com/auth/register?token=${access_token}`;
 
     try {
       await this.mailerService.sendMail({
         to: email,
         subject: `You are invited testing`,
-        html: `Hello, <br><br> You are invited to join our platform. Please click on the link below to accept your invitation: <br><a href="${link}">Accept Invitation</a><br><br> If you did not request this invitation, please ignore this email.`,
+        html: `Hello, <br><br> You are invited to join our platform as a ${role_name}. Please click on the link below to accept your invitation:
+                      <br><a href="${link}">Accept Invitation</a><br><br> If you did not request this invitation, please ignore this email.`,
       });
     } catch (error) {
       const errorMessage = 'Error Sending invite';
