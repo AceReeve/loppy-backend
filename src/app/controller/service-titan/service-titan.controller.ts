@@ -1,10 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/app/decorators/public.decorator';
 import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
 
+@ApiTags('service-titan')
 @Controller('service-titan')
 @Public()
-export class InvoiceController {
+export class serviceTitanController {
   constructor(private readonly serviceTitanService: ServiceTitanService) {}
 
 @Get('inventory-bills')
