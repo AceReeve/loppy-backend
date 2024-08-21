@@ -132,6 +132,22 @@ export class UpdateSubscriptionDTO {
   type: 'essential' | 'professional' | 'corporate';
 }
 
+export class cancelSubscriptionDTO {
+  @ApiProperty({
+    description: 'Subscription ID`',
+  })
+  @IsString()
+  subscriptionId: string;
+
+  @ApiProperty({
+    example: 'essential',
+    description:
+      'Type of subscription. Can be `essential`, `professional`, or `corporate`',
+  })
+  @IsString()
+  type: 'essential' | 'professional' | 'corporate';
+}
+
 export class TwilioCreateSubAccount {
   @ApiProperty({ example: 'Juan' })
   @IsString()

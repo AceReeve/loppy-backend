@@ -10,6 +10,7 @@ import {
 import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, RawBodyRequest, Res, Get, Query } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import {
+  cancelSubscriptionDTO,
   StripeDTO,
   StripePaymentIntentDTO,
   SummarizePaymentDTO,
@@ -126,6 +127,32 @@ export class StripeController {
     try {
       const userId = request.user.sub;
       const subscription = await this.stripeService.updateSubscription(
+        stripeDTO,
+        userId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+
+  @ApiBearerAuth('Bearer')
+  @Post('cancel-subscription')
+  @ApiOperation({ summary: 'cancel subscription' })
+  async cancelSubscription(
+    @Req() request,
+    @Body() stripeDTO: cancelSubscriptionDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.cancelSubscription(
         stripeDTO,
         userId,
       );

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import {
+  cancelSubscriptionDTO,
   StripePaymentIntentDTO,
   SubscriptionResponseDTO,
   SummarizePaymentDTO,
@@ -188,6 +189,22 @@ export class StripeService {
           }
         );
       }
+
+      return subscription;
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  async cancelSubscription(
+    cancelSubscriptionDTO: cancelSubscriptionDTO,
+    userId: string,
+  ): Promise<any> {
+    try {
+
+      const subscription = await this.stripe.subscriptions.cancel(
+        cancelSubscriptionDTO.subscriptionId
+      );
 
       return subscription;
     } catch (e) {
