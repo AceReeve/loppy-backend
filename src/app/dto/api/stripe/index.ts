@@ -100,6 +100,38 @@ export class SummarizePaymentDTO {
   confirmationToken: string;
 }
 
+
+export class SubscriptionResponseDTO {
+  @ApiProperty({
+    description: 'Subscription ID`',
+  })
+  @IsString()
+  subscriptionId: string;
+
+  @ApiProperty({
+    description: 'Payment Intent Secret`',
+  })
+  @IsString()
+  clientSecret: string;
+}
+
+
+export class UpdateSubscriptionDTO {
+  @ApiProperty({
+    description: 'Subscription ID`',
+  })
+  @IsString()
+  subscriptionId: string;
+
+  @ApiProperty({
+    example: 'essential',
+    description:
+      'Type of subscription. Can be `essential`, `professional`, or `corporate`',
+  })
+  @IsString()
+  type: 'essential' | 'professional' | 'corporate';
+}
+
 export class TwilioCreateSubAccount {
   @ApiProperty({ example: 'Juan' })
   @IsString()
