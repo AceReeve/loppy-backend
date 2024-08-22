@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  development-be:
+    container_name: servihero-backend
+    image: development-version-1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env.dev
+    volumes:
+      - ./src:/usr/src/app/src
+    networks:
+      - frontend
+      - backend
+networks:
+  frontend:
+    external: false
+  backend:
+    external: false
