@@ -31,7 +31,7 @@ export class UserService implements AbstractUserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
-  ) {}
+  ) { }
 
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     return await this.repository.createUser(userRegisterDto);
@@ -46,6 +46,10 @@ export class UserService implements AbstractUserService {
   }
   async getUser(id: string): Promise<any> {
     return await this.repository.getUser(id);
+  }
+
+  async getUserByEmail(email: string): Promise<any> {
+    return await this.repository.getUserByEmail(email);
   }
   async getInvitedUser(): Promise<any> {
     return await this.repository.getInvitedUser();
@@ -68,7 +72,7 @@ export class UserService implements AbstractUserService {
   }
 
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {
-    return this.repository.updateUserStripeId(stripeId, userId);
+    return await this.repository.updateUserStripeId(stripeId, userId);
   }
 
   async updateWeatherInfoId(

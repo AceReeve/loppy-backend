@@ -183,19 +183,12 @@ export class StripeController {
       }
       const stripeEvent = this.stripeService.constructEventFromPayload(signature, request.rawBody);
 
+      await this.stripeWebhookService.processSubscriptionUpdate(stripeEvent);
 
-      // if (this.stripeEventTypes.includes(stripeEvent.type)) {
-      //   const stripePayment = stripeEvent.data.object as Stripe.PaymentIntent;
-      //   const userId = stripePayment.metadata.userId;
-      //   await this.stripeWebhookService.processSubscriptionUpdate(stripeEvent, userId);
-      // }
-
-      // switch (stripeEvent.type) { 
-      //   case 'checkout.session.completed': { }
-      //   case 'customer.subscription.deleted': { }
-      // }
-
-      return response.status(201).json({ received: true }).end();
+      return {
+        success: true,
+        response: response.status(201).json({ received: true }).end()
+      };
     } catch (error) {
       console.log("Error", error)
     }

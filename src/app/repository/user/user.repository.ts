@@ -69,7 +69,7 @@ export class UserRepository implements AbstractUserRepository {
     private fileUploadModel: Model<FileUploadDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async getLoggedInUserDetails(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
@@ -180,6 +180,11 @@ export class UserRepository implements AbstractUserRepository {
       user_id: new Types.ObjectId(id),
     });
     return { userDetails, userInfo };
+  }
+
+  async getUserByEmail(email: string): Promise<any> {
+    const userDetails = await this.userModel.findOne({ email: email });
+    return { userDetails };
   }
 
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
@@ -322,7 +327,7 @@ export class UserRepository implements AbstractUserRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      console.log('tete',role)
+      console.log('tete', role)
       await this.emailService.inviteUser(email, accessToken, role);
     }
 
