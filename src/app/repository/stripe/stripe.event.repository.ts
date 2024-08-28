@@ -17,18 +17,18 @@ export class StripeEventRepository {
   }
 
   async createUserStripeSubscriptionData(
-    stripeEventId: string,
+    id: ObjectId,
     stripeCustomerId: string,
     stripeProductId: string,
     userId: string,
     stripeSubscriptionType: string,
     stripeSubscriptionStatus: string,
-    stripeSubscriptionDate: Number,
-    stripeSubscriptionExpirationDate: Number,
+    stripeSubscriptionDate: string,
+    stripeSubscriptionExpirationDate: string,
     subscriptionPlan: string
   ): Promise<any> {
     const stripeSubscription = await this.stripeEventModel.findOneAndUpdate(
-      { stripe_event_id: stripeEventId },
+      { _id: id },
       {
         $set:
         {
@@ -47,6 +47,11 @@ export class StripeEventRepository {
 
   async findByUserStripeData(stripeId: ObjectId) {
     const stripeInfo = await this.stripeEventModel.findOne({ _id: stripeId })
+    return stripeInfo;
+  }
+
+  async findByStripeEventId(stripeEventId: string) {
+    const stripeInfo = await this.stripeEventModel.findOne({ stripe_event_id: stripeEventId })
     return stripeInfo;
   }
 
