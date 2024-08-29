@@ -8,6 +8,10 @@ import {
   WorkFlow,
   WorkFlowDocument,
 } from 'src/app/models/work-flow/work-flow.schema';
+import {
+  WorkFlowFolder,
+  WorkFlowFolderDocument,
+} from 'src/app/models/work-flow/work-flow-folder.schema';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -16,6 +20,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     protected readonly userRepository: UserRepository,
     @InjectModel(WorkFlow.name)
     private workFlowModel: Model<WorkFlowDocument>,
+    @InjectModel(WorkFlowFolder.name)
+    private workFlowFolderModel: Model<WorkFlowFolderDocument>,
   ) {}
 
   async generateUniqueName(): Promise<string> {
@@ -39,24 +45,40 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return uniqueName;
   }
 
-  async workFlow(): Promise<any> {
+  async workFlow(id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-
     // Generate a unique name
     const generatedName = await this.generateUniqueName.call(this);
+    if (id) {
+      const folder = await this.workFlowFolderModel.findOne({
+        _id: new Types.ObjectId(id),
+      });
+      if (!folder) {
+        throw new Error(`work flow folder ${id} not found`);
+      }
+      const createWorkFlow = new this.workFlowModel({
+        work_flow_name: generatedName,
+        created_by: user._id,
+        folder_id: new Types.ObjectId(id),
+      });
+
+      return await createWorkFlow.save();
+    }
     const createWorkFlow = new this.workFlowModel({
       work_flow_name: generatedName,
       created_by: user._id,
     });
+
     return await createWorkFlow.save();
   }
 
-  async getAllWorkFlow(): Promise<any> {
+  async getAllWorkFlow(folder_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const organizations = await this.workFlowModel.find({
+    const workflow = await this.workFlowModel.find({
       created_by: user._id,
+      folder_id: new Types.ObjectId(folder_id),
     });
-    return organizations;
+    return workflow;
   }
 
   async getWorkFlowById(id: string): Promise<any> {
@@ -95,6 +117,70 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
     if (!result) {
       throw new Error(`workflow failed to update `);
+    }
+    return result;
+  }
+
+  //folder
+  async folder(folder_name: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const validateFolderName = await this.workFlowFolderModel.findOne({
+      folder_name: folder_name,
+    });
+    if (validateFolderName) {
+      throw new Error(`folder  ${validateFolderName} is already exist `);
+    }
+    const createWorkFlowFolder = new this.workFlowFolderModel({
+      folder_name: folder_name,
+      created_by: user._id,
+    });
+    return await createWorkFlowFolder.save();
+  }
+
+  async getAllFolder(): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const workflow = await this.workFlowFolderModel.find({
+      created_by: user._id,
+    });
+    return workflow;
+  }
+
+  async getFolderById(id: string): Promise<any> {
+    const result = await this.workFlowFolderModel.findOne({
+      _id: new Types.ObjectId(id),
+    });
+    if (!result) {
+      throw new Error(`workflow folder with the ID: ${id} not found `);
+    }
+    return result;
+  }
+
+  async updateFolderById(id: string, folder_name: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const validateWorkFlowName = await this.workFlowFolderModel.findOne({
+      created_by: user._id,
+      folder_name: folder_name,
+    });
+    if (validateWorkFlowName) {
+      throw new Error(`workflow is already exist or it is same as before`);
+    }
+    const result = await this.workFlowFolderModel.findOneAndUpdate(
+      {
+        created_by: user._id,
+        _id: new Types.ObjectId(id),
+      },
+      {
+        $set: {
+          folder_name: folder_name,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!result) {
+      throw new Error(`workflow folder failed to update `);
     }
     return result;
   }

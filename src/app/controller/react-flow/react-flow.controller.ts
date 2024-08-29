@@ -27,14 +27,26 @@ export class WorkFlowController {
 
   @Post('workflow')
   @ApiOperation({ summary: 'Create Workflow' })
-  async organization() {
-    return this.service.workFlow();
+  @ApiQuery({
+    name: 'id',
+    description: 'folder id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async workflow(@Query('id') id: string) {
+    return this.service.workFlow(id);
   }
 
   @Get('workflows')
   @ApiOperation({ summary: 'List of WorkFlow' })
-  async getAllWorkFlow() {
-    return this.service.getAllWorkFlow();
+  @ApiQuery({
+    name: 'folder_id',
+    description: 'folder id',
+    example: '66b462060e61af2e685d6e55',
+    required: true,
+  })
+  async getAllWorkFlow(@Query('folder_id') folder_id: string) {
+    return this.service.getAllWorkFlow(folder_id);
   }
 
   @Get('workflow/:id')
@@ -68,5 +80,57 @@ export class WorkFlowController {
     @Query('work_flow_name') work_flow_name: string,
   ) {
     return this.service.updateWorkFlowById(id, work_flow_name);
+  }
+
+  //folder
+  @Post('folder')
+  @ApiOperation({ summary: 'Create folder' })
+  @ApiQuery({
+    name: 'folder_name',
+    description: 'Create folder',
+    example: 'my flows',
+    required: true,
+  })
+  async folder(@Query('folder_name') folder_name: string) {
+    return this.service.folder(folder_name);
+  }
+
+  @Get('folders')
+  @ApiOperation({ summary: 'List of folder' })
+  async getAllFolder() {
+    return this.service.getAllFolder();
+  }
+
+  @Get('folder/:id')
+  @ApiOperation({ summary: 'Get folder by ID' })
+  @ApiQuery({
+    name: 'id',
+    description: 'Get folder By ID',
+    example: '66b462060e61af2e685d6e55',
+    required: true,
+  })
+  async getFolderById(@Query('id') id: string) {
+    return this.service.getFolderById(id);
+  }
+
+  @Put('folder/:id')
+  @ApiOperation({ summary: 'Update folder by ID' })
+  @ApiQuery({
+    name: 'id',
+    description: 'Update folder By ID',
+    example: '66b462060e61af2e685d6e55',
+    required: true,
+  })
+  @ApiQuery({
+    name: 'folder_name',
+    description: 'Update folder By ID',
+    example: 'My WorkFlows',
+    required: true,
+  })
+  async updateFolderById(
+    @Query('id') id: string,
+    @Query('folder_name') folder_name: string,
+  ) {
+    return this.service.updateFolderById(id, folder_name);
   }
 }

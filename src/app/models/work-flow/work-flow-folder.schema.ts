@@ -2,23 +2,21 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
 
-export type WorkFlowDocument = WorkFlow & Document;
+export type WorkFlowFolderDocument = WorkFlowFolder & Document;
 @Schema({
   versionKey: false,
-  collection: 'workflow',
+  collection: 'workflowfolder',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
-export class WorkFlow implements GenericSchema {
+export class WorkFlowFolder implements GenericSchema {
   _id: string;
 
   @Prop()
-  work_flow_name: string;
-
-  @Prop()
-  folder_id: string;
+  folder_name: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   created_by: MongooseSchema.Types.ObjectId;
 }
 
-export const WorkFlowSchema = SchemaFactory.createForClass(WorkFlow);
+export const WorkFlowFolderSchema =
+  SchemaFactory.createForClass(WorkFlowFolder);
