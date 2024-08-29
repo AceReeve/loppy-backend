@@ -128,13 +128,22 @@ export class StripeService {
 
     try {
       let subscription;
+      let activeFlag = false;
       if (Object.keys(this.pricesEnum).includes(stripeSubscriptionDTO.type)) {
         const listOfSubscriptions = await this.stripe.subscriptions.list({
           customer: customerCreated.id,
         });
-        if (listOfSubscriptions.data[0].items.data[0].plan.id === this.pricesEnum[stripeSubscriptionDTO.type] &&
-          listOfSubscriptions.data[0].items.data[0].plan.active === true
-        ) {
+        if (listOfSubscriptions !== null && (listOfSubscriptions.data !== null && listOfSubscriptions.data.length !== 0)) {
+          for (const subscriptionDataList of listOfSubscriptions.data) {
+            for (const subscriptionData of subscriptionDataList.items.data) {
+              if (subscriptionData.plan.id === this.pricesEnum[stripeSubscriptionDTO.type] && subscriptionData.plan.active === true) {
+                activeFlag = true;
+              }
+            }
+          }
+        }
+
+        if (activeFlag) {
           throw new BadRequestException('There is already an active subscription with this plan');
         } else {
           subscription = await this.stripe.subscriptions.create({

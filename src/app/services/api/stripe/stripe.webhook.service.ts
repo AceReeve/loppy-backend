@@ -44,7 +44,35 @@ export class StripeWebhookService {
     let product;
 
     switch (eventType) {
-      case 'customer.subscription.updated': {
+
+      case 'payment_intent.succeeded' || 'payment_intent.created': {
+        await this.addStripeEvent(event.id);
+        data = event.data as Stripe.PaymentIntent;
+        session = await this.stripe.paymentIntents.retrieve(
+          data.object.id
+        );
+        const customerId = session?.customer as string;
+        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const user = await this.userService.getUserByEmail(customer.email);
+        if (user) {
+          userId = user.userDetails._id;
+          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          this.repository.createUserStripeSubscriptionData(
+            stripeEvent.id,
+            customerId,
+            "",
+            userId,
+            'Payment-Intent',
+            session.status,
+            "",
+            "",
+            ""
+          );
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated' || 'customer.subscription.created': {
         await this.addStripeEvent(event.id);
         data = event.data as Stripe.CustomerSubscriptionUpdatedEvent;
         session = await this.stripe.subscriptions.retrieve(
@@ -150,6 +178,9 @@ export class StripeWebhookService {
             subscriptionPlan);
         }
         break;
+      }
+      default: {
+        return;
       }
     }
 
