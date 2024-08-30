@@ -39,10 +39,10 @@ export class WorkFlowController {
   }
 
   @Put('workflow')
-  @ApiOperation({ summary: 'Create Workflow' })
+  @ApiOperation({ summary: 'Update Workflow' })
   @ApiQuery({
     name: 'id',
-    description: 'folder id',
+    description: 'id',
     example: '66b462060e61af2e685d6e55',
     required: false,
   })

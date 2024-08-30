@@ -69,7 +69,7 @@ export class CreateWorkflowDto {
     example: {
       id: '1',
       trigger_name: 'Birthday Reminder',
-      content: 'Some trigger content here',
+      content: '[]',
     },
   })
   trigger: TriggerWorkFlow;
@@ -113,7 +113,7 @@ export class UpdateWorkflowDto {
     example: {
       id: '1',
       trigger_name: 'Birthday Reminder',
-      content: 'Some trigger content here',
+      content: '[]',
     },
   })
   trigger: TriggerWorkFlow;
