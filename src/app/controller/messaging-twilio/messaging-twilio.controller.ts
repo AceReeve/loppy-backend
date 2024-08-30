@@ -109,7 +109,7 @@ export class MessagingTwilioController {
   async inbox(@Body() inboxDTO: InboxesDTO) {
     return this.service.inbox(inboxDTO);
   }
-  @Get('inbox/:organization_id')
+  @Get('getAllinbox/:organization_id')
   @ApiQuery({
     name: 'organization_id',
     description: 'Get Inbox By Organization ID',
@@ -121,7 +121,7 @@ export class MessagingTwilioController {
     return this.service.getAllInbox(organization_id);
   }
 
-  @Get('inbox/:inbox_id')
+  @Get('getinbox/:inbox_id')
   @ApiOperation({ summary: 'Get Inbox by inbox ID' })
   @ApiQuery({
     name: 'inbox_id',
@@ -130,6 +130,7 @@ export class MessagingTwilioController {
     required: true,
   })
   async getInboxById(@Query('inbox_id') inbox_id: string,) {
+    console.log('inbox_id131',inbox_id)
     return this.service.getInboxById(inbox_id);
   }
 
