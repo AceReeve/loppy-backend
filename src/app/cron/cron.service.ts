@@ -29,7 +29,7 @@ export class CronService {
   async triggerData() {
     return await this.workFlowModel.find();
   }
-  //   @Cron('*/10 * * * * *')
+  // @Cron('*/10 * * * * *')
   @Cron('0 0 * * *') // Runs every day at midnight
   async handleCron() {
     const workflows = await this.triggerData();

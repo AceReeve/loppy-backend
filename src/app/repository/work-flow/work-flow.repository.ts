@@ -13,6 +13,7 @@ import {
   WorkFlowFolderDocument,
 } from 'src/app/models/work-flow/work-flow-folder.schema';
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
+import { CronService } from 'src/app/cron/cron.service';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -23,6 +24,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     private workFlowModel: Model<WorkFlowDocument>,
     @InjectModel(WorkFlowFolder.name)
     private workFlowFolderModel: Model<WorkFlowFolderDocument>,
+    private cronService: CronService,
   ) {}
 
   async generateUniqueName(): Promise<string> {
@@ -83,6 +85,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         });
       }
       const savedWorkflow = await createWorkFlow.save();
+      await this.cronService.handleCron();
       return savedWorkflow;
     } catch (error) {
       throw new Error(`Error in workFlow method: ${error.message}`);

@@ -35,6 +35,7 @@ import { WorkFlowRepository } from 'src/app/repository/work-flow/work-flow.repos
 import { WorkFlowService } from 'src/app/services/work-flow/work-flow.service';
 import { WorkFlowController } from 'src/app/controller/react-flow/react-flow.controller';
 import { StripeModule } from '../api/api.module';
+import { CronService } from 'src/app/cron/cron.service';
 
 @Global()
 @Module({
@@ -57,6 +58,7 @@ import { StripeModule } from '../api/api.module';
     AuthRepository,
     S3Service,
     OauthRepository,
+    CronService,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,
