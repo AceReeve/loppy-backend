@@ -1,21 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { jwt, Twilio } from 'twilio';
+import { Injectable } from '@nestjs/common';
+import { Twilio } from 'twilio';
 import { ConfigService } from '@nestjs/config';
-import { MessageDTO, TwilioCredDTO } from 'src/app/dto/api/stripe';
-import { User, UserDocument } from 'src/app/models/user/user.schema';
-import {
-  UserInfo,
-  UserInfoDocument,
-} from 'src/app/models/user/user-info.schema';
-import { twilio, twilioDocument } from 'src/app/models/twilio/twilio.schema';
-import { Request } from 'express';
-import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as crypto from 'crypto';
-import { AbstractManageTeamService } from 'src/app/interface/settings/manage-team';
 import { AbstractMessagingTwilioRepository } from 'src/app/interface/messaging-twilio';
-import { AddMemberDTO, InboxesDTO, OrganizationDTO } from 'src/app/dto/messaging-twilio';
+import {
+  AddMemberDTO,
+  InboxesDTO,
+  OrganizationDTO,
+} from 'src/app/dto/messaging-twilio';
 import {
   TwilioOrganizations,
   TwilioOrganizationsDocument,
@@ -76,7 +70,7 @@ export class MessagingTwilioRepository
     const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
     this.twilioClient = new Twilio(accountSid, authToken);
   }
-async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
+  async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const isExisting = await this.twilioOrganizationModel.findOne({
       organization_name: dto.organization_name,
@@ -94,12 +88,17 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
     } = await this.createSubAccount(friendlyName);
 
     console.log(
-      'TWILIO_ACCOUNT_SID:', accountSid,
-      'TWILIO_AUTH_TOKEN:', authToken,
-      'TWILIO_API_KEY_SID:', apiKeySid,
-      'TWILIO_API_KEY_SECRET:', apiKeySecret,
-      'TWILIO_CHAT_SERVICE_SID:', chatServiceSid,
-    )
+      'TWILIO_ACCOUNT_SID:',
+      accountSid,
+      'TWILIO_AUTH_TOKEN:',
+      authToken,
+      'TWILIO_API_KEY_SID:',
+      apiKeySid,
+      'TWILIO_API_KEY_SECRET:',
+      apiKeySecret,
+      'TWILIO_CHAT_SERVICE_SID:',
+      chatServiceSid,
+    );
     const encryptedAccountSid = encrypt(accountSid);
     const encryptedAuthToken = encrypt(authToken);
     const encryptedApiKeySid = encrypt(apiKeySid);
@@ -231,16 +230,16 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
   //     const organization = await this.twilioOrganizationModel.findOne({
   //       _id: new Types.ObjectId(organization_id),
   //     });
-  
+
   //     if (!organization) {
   //       throw new Error(`Organization with the ID: ${organization_id} not found`);
   //     }
-  
+
   //     const twilio_account_sid = decrypt(organization.twilio_account_sid);
   //     const twilio_auth_token = decrypt(organization.twilio_auth_token);
   //     console.log('Decrypted Twilio Account SID:', twilio_account_sid);
   //     console.log('Decrypted Twilio Auth Token:', twilio_auth_token);
-  
+
   //     const subAccountClient = new Twilio(twilio_account_sid, twilio_auth_token);
 
   //     try {
@@ -254,13 +253,13 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
   //         created_by: user._id,
   //         status: OrganizationStatus.ACTIVE,
   //       });
-  
+
   //       return await purchaseNumber.save();
   //     } catch (twilioError) {
   //       console.error('Twilio API Error:', twilioError);
   //       throw new Error(`Failed to purchase number from Twilio: ${twilioError.message}`);
   //     }
-  
+
   //   } catch (error) {
   //     console.error('Error in buyNumber function:', error);
   //     throw new Error(`Failed to purchase number: ${error.message}`);
@@ -268,75 +267,80 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
   // }
 
   async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
-      const user = await this.userRepository.getLoggedInUserDetails();
-      const organization = await this.twilioOrganizationModel.findOne({
-        _id: new Types.ObjectId(organization_id),
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const organization = await this.twilioOrganizationModel.findOne({
+      _id: new Types.ObjectId(organization_id),
+    });
+
+    if (!organization) {
+      throw new Error(`Organization with the ID: ${organization_id} not found`);
+    }
+
+    const twilio_account_sid = decrypt(organization.twilio_account_sid);
+    const twilio_auth_token = decrypt(organization.twilio_auth_token);
+    const subAccount = await this.twilioClient.api
+      .accounts(twilio_account_sid)
+      .fetch();
+    // Initialize a new Twilio client with the decrypted credentials
+    const subAccountClient = new Twilio(
+      twilio_account_sid,
+      subAccount.authToken,
+    );
+
+    try {
+      const purchasedNumber =
+        await subAccountClient.incomingPhoneNumbers.create({ phoneNumber });
+
+      const purchaseNumber = new this.twilioNumberModel({
+        purchased_number: purchasedNumber.phoneNumber,
+        organization_id: organization._id,
+        created_by: user._id,
+        status: OrganizationStatus.ACTIVE,
       });
-
-      if (!organization) {
-        throw new Error(`Organization with the ID: ${organization_id} not found`);
-      }
-
-      const twilio_account_sid = decrypt(organization.twilio_account_sid);
-      const twilio_auth_token = decrypt(organization.twilio_auth_token);
-      const subAccount = await this.twilioClient.api.accounts(twilio_account_sid).fetch();
-      // Initialize a new Twilio client with the decrypted credentials
-      const subAccountClient = new Twilio(twilio_account_sid, subAccount.authToken);
-
-      try {
-        const purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({ phoneNumber });
-
-        const purchaseNumber = new this.twilioNumberModel({
-          purchased_number: purchasedNumber.phoneNumber,
-          organization_id: organization._id,
-          created_by: user._id,
-          status: OrganizationStatus.ACTIVE,
-        });
-        return await purchaseNumber.save();
-
-      } catch (twilioError) {
-        console.error('Twilio API Error:', twilioError);
-        throw new Error(`Failed to purchase number from Twilio: ${twilioError.message}`);
-      }
+      return await purchaseNumber.save();
+    } catch (twilioError) {
+      console.error('Twilio API Error:', twilioError);
+      throw new Error(
+        `Failed to purchase number from Twilio: ${twilioError.message}`,
+      );
+    }
   }
-  
 
   async inbox(dto: InboxesDTO): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    console.log('1')
+    console.log('1');
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
       created_by: user._id,
     });
-    console.log('2')
+    console.log('2');
 
     if (isExisting) {
       throw new Error(`${dto.inbox_name} is already existing`);
     }
-    console.log('3')
+    console.log('3');
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
       _id: new Types.ObjectId(dto.organization_id),
     });
-    console.log('4')
+    console.log('4');
 
     if (!isOrganizationIDValid) {
       throw new Error(
         `organization with the ID: ${dto.organization_id} not found`,
       );
     }
-    console.log('5')
+    console.log('5');
 
-    const isNumberValid = await this.twilioNumberModel.findOne
-    ({purchased_number: dto.purchased_number});
-    console.log('6')
+    const isNumberValid = await this.twilioNumberModel.findOne({
+      purchased_number: dto.purchased_number,
+    });
+    console.log('6');
 
     if (!isNumberValid) {
-      throw new Error(
-        `this number: ${dto.purchased_number} is not valid`,
-      );
+      throw new Error(`this number: ${dto.purchased_number} is not valid`);
     }
-    console.log('7')
+    console.log('7');
 
     const createInbox = new this.inboxModel({
       inbox_name: dto.inbox_name,
@@ -346,27 +350,33 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
       created_by: user._id,
       status: OrganizationStatus.ACTIVE,
     });
-    console.log('8')
+    console.log('8');
 
     const assigningOfNumber = await this.twilioNumberModel.findOneAndUpdate(
-      {purchased_number: dto.purchased_number},
-      {$set: {inbox_assinged_To: createInbox._id}});
-    console.log('9')
-      
+      { purchased_number: dto.purchased_number },
+      { $set: { inbox_assinged_To: createInbox._id } },
+    );
+    console.log('9');
+
     return await createInbox.save();
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
-    const result = await this.inboxModel.findOne({_id: new Types.ObjectId(inbox_id)})
+    console.log('inbox_id', inbox_id);
+    const result = await this.inboxModel.findOne({
+      _id: new Types.ObjectId(inbox_id),
+    });
+    console.log('result', result);
+
     if (!result) {
-      throw new Error(
-        `inbox with the ID: ${inbox_id} not found `,
-      );
+      throw new Error(`inbox with the ID: ${inbox_id} not found `);
     }
     return result;
   }
   async getOrganizationById(organization_id: string): Promise<any> {
-    const result = await this.twilioOrganizationModel.findOne({_id: new Types.ObjectId(organization_id)})
+    const result = await this.twilioOrganizationModel.findOne({
+      _id: new Types.ObjectId(organization_id),
+    });
     if (!result) {
       throw new Error(
         `organization with the ID: ${organization_id} not found `,
@@ -389,7 +399,7 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
 
   async addMemberToAnOrganization(
     organization_id: string,
-    addMemberDTO: AddMemberDTO
+    addMemberDTO: AddMemberDTO,
   ): Promise<any> {
     const { members } = addMemberDTO;
 
@@ -397,8 +407,8 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
     const memberData = await this.userRepository.getMember();
 
     // Filter out user IDs that are not in the fetched member data
-    const validMembers = members.filter(member =>
-      memberData.users.some(user => user.user_id === member.user_id)
+    const validMembers = members.filter((member) =>
+      memberData.users.some((user) => user.user_id === member.user_id),
     );
 
     if (validMembers.length === 0) {
@@ -411,7 +421,7 @@ async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
       {
         $push: { members: { $each: validMembers } },
       },
-      { new: true }
+      { new: true },
     );
 
     return updatedOrganization;
