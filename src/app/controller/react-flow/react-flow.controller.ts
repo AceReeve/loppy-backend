@@ -17,7 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateWorkflowDto } from 'src/app/dto/work-flow';
+import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { AbstractWorkFlowService } from 'src/app/interface/react-flow';
 
 @ApiTags('React Flow')
@@ -36,6 +36,21 @@ export class WorkFlowController {
   })
   async workflow(@Query('id') id: string, @Body() dto: CreateWorkflowDto) {
     return this.service.workFlow(id, dto);
+  }
+
+  @Put('workflow')
+  @ApiOperation({ summary: 'Create Workflow' })
+  @ApiQuery({
+    name: 'id',
+    description: 'folder id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async updateWorkflow(
+    @Query('id') id: string,
+    @Body() dto: UpdateWorkflowDto,
+  ) {
+    return this.service.updateWorkFlow(id, dto);
   }
 
   @Get('workflows')

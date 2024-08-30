@@ -1,4 +1,4 @@
-export enum WorkFlowTriger {
+export enum WorkFlowTrigger {
   BIRHTDAY_REMINDER = 'Birthday Reminder',
 }
 

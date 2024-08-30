@@ -12,7 +12,7 @@ import {
   WorkFlowFolder,
   WorkFlowFolderDocument,
 } from 'src/app/models/work-flow/work-flow-folder.schema';
-import { CreateWorkflowDto } from 'src/app/dto/work-flow';
+import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -71,14 +71,14 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           work_flow_name: generatedName,
           created_by: user._id,
           folder_id: new Types.ObjectId(id),
-          trigger: dto.triger,
+          trigger: dto.trigger,
           action: dto.action,
         });
       } else {
         createWorkFlow = new this.workFlowModel({
           work_flow_name: generatedName,
           created_by: user._id,
-          trigger: dto.triger,
+          trigger: dto.trigger,
           action: dto.action,
         });
       }
@@ -89,6 +89,70 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
   }
 
+  async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
+    try {
+      const user = await this.userRepository.getLoggedInUserDetails();
+      if (!user) {
+        throw new Error('User not found or not authenticated');
+      }
+      const workflow = await this.workFlowModel.findOne({
+        _id: new Types.ObjectId(id),
+      });
+
+      if (!workflow) {
+        throw new Error(`Workflow ${id} not found`);
+      }
+      let createWorkFlow;
+
+      if (dto.folder_id) {
+        const folder = await this.workFlowFolderModel.findOne({
+          _id: new Types.ObjectId(dto.folder_id),
+        });
+
+        if (!folder) {
+          throw new Error(`Workflow folder ${dto.folder_id} not found`);
+        }
+
+        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+          {
+            _id: new Types.ObjectId(id),
+          },
+          {
+            $set: {
+              work_flow_name: dto.workflow_name,
+              created_by: user._id,
+              folder_id: new Types.ObjectId(id),
+              trigger: dto.trigger,
+              action: dto.action,
+            },
+          },
+          {
+            new: true,
+          },
+        );
+      } else {
+        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+          {
+            _id: new Types.ObjectId(id),
+          },
+          {
+            $set: {
+              work_flow_name: dto.workflow_name,
+              created_by: user._id,
+              trigger: dto.trigger,
+              action: dto.action,
+            },
+          },
+          {
+            new: true,
+          },
+        );
+      }
+      return createWorkFlow;
+    } catch (error) {
+      throw new Error(`Error in workFlow method: ${error.message}`);
+    }
+  }
   async getAllWorkFlow(folder_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const workflow = await this.workFlowModel.find({

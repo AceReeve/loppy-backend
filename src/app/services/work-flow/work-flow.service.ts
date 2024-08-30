@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWorkflowDto } from 'src/app/dto/work-flow';
+import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import {
   AbstractWorkFlowRepository,
   AbstractWorkFlowService,
@@ -11,6 +11,9 @@ export class WorkFlowService implements AbstractWorkFlowService {
 
   async workFlow(id: string, dto: CreateWorkflowDto): Promise<any> {
     return await this.repository.workFlow(id, dto);
+  }
+  async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
+    return await this.repository.updateWorkFlow(id, dto);
   }
 
   async getAllWorkFlow(folder_id: string): Promise<any> {
