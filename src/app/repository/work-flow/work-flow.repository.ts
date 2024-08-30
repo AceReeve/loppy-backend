@@ -12,6 +12,7 @@ import {
   WorkFlowFolder,
   WorkFlowFolderDocument,
 } from 'src/app/models/work-flow/work-flow-folder.schema';
+import { CreateWorkflowDto } from 'src/app/dto/work-flow';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -45,31 +46,47 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return uniqueName;
   }
 
-  async workFlow(id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
-    // Generate a unique name
-    const generatedName = await this.generateUniqueName.call(this);
-    if (id) {
-      const folder = await this.workFlowFolderModel.findOne({
-        _id: new Types.ObjectId(id),
-      });
-      if (!folder) {
-        throw new Error(`work flow folder ${id} not found`);
+  async workFlow(id: string, dto: CreateWorkflowDto): Promise<any> {
+    try {
+      const user = await this.userRepository.getLoggedInUserDetails();
+      if (!user) {
+        throw new Error('User not found or not authenticated');
       }
-      const createWorkFlow = new this.workFlowModel({
-        work_flow_name: generatedName,
-        created_by: user._id,
-        folder_id: new Types.ObjectId(id),
-      });
 
-      return await createWorkFlow.save();
+      // Generate a unique name
+      const generatedName = await this.generateUniqueName.call(this);
+
+      let createWorkFlow;
+
+      if (id) {
+        const folder = await this.workFlowFolderModel.findOne({
+          _id: new Types.ObjectId(id),
+        });
+
+        if (!folder) {
+          throw new Error(`Workflow folder ${id} not found`);
+        }
+
+        createWorkFlow = new this.workFlowModel({
+          work_flow_name: generatedName,
+          created_by: user._id,
+          folder_id: new Types.ObjectId(id),
+          trigger: dto.triger,
+          action: dto.action,
+        });
+      } else {
+        createWorkFlow = new this.workFlowModel({
+          work_flow_name: generatedName,
+          created_by: user._id,
+          trigger: dto.triger,
+          action: dto.action,
+        });
+      }
+      const savedWorkflow = await createWorkFlow.save();
+      return savedWorkflow;
+    } catch (error) {
+      throw new Error(`Error in workFlow method: ${error.message}`);
     }
-    const createWorkFlow = new this.workFlowModel({
-      work_flow_name: generatedName,
-      created_by: user._id,
-    });
-
-    return await createWorkFlow.save();
   }
 
   async getAllWorkFlow(folder_id: string): Promise<any> {
@@ -126,6 +143,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     const user = await this.userRepository.getLoggedInUserDetails();
     const validateFolderName = await this.workFlowFolderModel.findOne({
       folder_name: folder_name,
+      created_by: user._id,
     });
     if (validateFolderName) {
       throw new Error(`folder  ${validateFolderName} is already exist `);

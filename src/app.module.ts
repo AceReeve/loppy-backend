@@ -20,6 +20,7 @@ import { ManageTeamModule } from './app/modules/settings/manage-team/manage-team
 import { MessagingTwilioModule } from './app/modules/messaging-twilio/messaging-twilio.module';
 import { ServiceTitanModule } from './app/modules/service-titan/service-titan.module';
 import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
+import { CronModule } from './app/cron/cron.module';
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
     ManageTeamModule,
     MessagingTwilioModule,
     ServiceTitanModule,
-    WorkFlowModule
+    WorkFlowModule,
+    CronModule,
   ],
 
   providers: [

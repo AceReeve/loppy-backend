@@ -1,4 +1,4 @@
-import { Module, Global, forwardRef } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import { TwilioController } from 'src/app/controller/api/twilio/twilio.controller';
 import { UserSchemaModule } from 'src/app/models/user/user.schema.module';
@@ -27,7 +27,10 @@ import {
 import { MessagingTwilioRepository } from 'src/app/repository/messaging-twilio/messaging-twilio.repository';
 import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
 import { WorkFlowSchemaModule } from 'src/app/models/work-flow/work-flow.schema.module';
-import { AbstractWorkFlowRepository, AbstractWorkFlowService } from 'src/app/interface/react-flow';
+import {
+  AbstractWorkFlowRepository,
+  AbstractWorkFlowService,
+} from 'src/app/interface/react-flow';
 import { WorkFlowRepository } from 'src/app/repository/work-flow/work-flow.repository';
 import { WorkFlowService } from 'src/app/services/work-flow/work-flow.service';
 import { WorkFlowController } from 'src/app/controller/react-flow/react-flow.controller';
@@ -46,7 +49,7 @@ import { StripeModule } from '../api/api.module';
     WeatherForecastSchemaModule,
     InvitedUserSchemaModule,
     EmailerModule,
-    FileUploadSchemaModule
+    FileUploadSchemaModule,
   ],
   providers: [
     UserService,

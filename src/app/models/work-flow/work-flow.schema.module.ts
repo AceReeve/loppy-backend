@@ -5,14 +5,14 @@ import {
   WorkFlowFolder,
   WorkFlowFolderSchema,
 } from './work-flow-folder.schema';
+import { Node, NodeSchema } from './node.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: WorkFlow.name, schema: WorkFlowSchema },
-    ]),
-    MongooseModule.forFeature([
       { name: WorkFlowFolder.name, schema: WorkFlowFolderSchema },
+      { name: Node.name, schema: NodeSchema },
     ]),
   ],
   exports: [MongooseModule],

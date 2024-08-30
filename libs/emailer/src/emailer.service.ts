@@ -17,7 +17,11 @@ export class EmailerService {
 
   private baseUrl = this.configService.get<string>('BASE_URL');
 
-  async inviteUser(email: string, access_token: string, role_name?: string): Promise<any> {
+  async inviteUser(
+    email: string,
+    access_token: string,
+    role_name?: string,
+  ): Promise<any> {
     const link = `http://sandbox.servihero.com/auth/register?token=${access_token}`;
 
     try {
@@ -61,6 +65,29 @@ export class EmailerService {
       });
     } catch (error) {
       const errorMessage = 'Error Sending invite';
+
+      this.logger.error(errorMessage, error);
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
+
+  async sendEmailBirthdayReminder(
+    receiver: string,
+    first_name: string,
+    content: string,
+  ): Promise<any> {
+    try {
+      await this.mailerService.sendMail({
+        to: receiver,
+        subject: `Happy Birthday ${first_name}`,
+        html: `Happy Birthday ${first_name} <br>
+        ${content}
+        `,
+      });
+
+      console.log('BirthDay Message sent to', receiver);
+    } catch (error) {
+      const errorMessage = 'Error BirthDay Mesage';
 
       this.logger.error(errorMessage, error);
       throw new InternalServerErrorException(errorMessage);
