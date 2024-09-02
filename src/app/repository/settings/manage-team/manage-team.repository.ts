@@ -174,8 +174,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
         // Fetch role details for the current user
         const roleDetails = await this.roleModel
           .findOne({ _id: user.role })
-          .exec()
-          
+          .exec();
+
         return {
           user_id: user._id.toString(),
           first_name: userInfo ? userInfo.first_name : '',

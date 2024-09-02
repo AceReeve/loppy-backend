@@ -64,17 +64,20 @@ export class AdminAuthGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException('Token not provided');
     }
+
     const decodedToken = this.jwtService.verify(token, {
       secret: this.configService.get<string>('JWT_SECRET'),
     });
     request.user = decodedToken;
     request.token = token;
-
     const roleDetails = await this.roleModel.findById(request.user.role._id);
     if (!roleDetails) {
       throw new UnauthorizedException('Role not found');
     }
-    if (roleDetails.role_name !== DefaultUserRole.OWNER && roleDetails.role_name !== DefaultUserRole.ADMIN) {
+    if (
+      roleDetails.role_name !== DefaultUserRole.OWNER &&
+      roleDetails.role_name !== DefaultUserRole.ADMIN
+    ) {
       throw new UnauthorizedException('User must be an Admin');
     }
     return true;

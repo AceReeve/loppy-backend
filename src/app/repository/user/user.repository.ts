@@ -69,7 +69,7 @@ export class UserRepository implements AbstractUserRepository {
     private fileUploadModel: Model<FileUploadDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async getLoggedInUserDetails(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
@@ -93,7 +93,9 @@ export class UserRepository implements AbstractUserRepository {
     if (validateEmail) {
       throw new BadRequestException('Email is already Registered');
     }
-
+    const role = await this.roleDocumentModel.findOne({
+      role_name: DefaultUserRole.OWNER,
+    });
     // Remove OTP after verification
     const isverified = await this.otpModel.findOne({
       email: userRegisterDto.email,
@@ -114,6 +116,7 @@ export class UserRepository implements AbstractUserRepository {
       verified_email: true,
       login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
       login_count: 1,
+      role: role,
     });
 
     if (!newUser) throw new BadRequestException('Unable to register user');
@@ -123,14 +126,9 @@ export class UserRepository implements AbstractUserRepository {
   async createUserInfo(userInfoDTODto: UserInfoDTO): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
-    //set default role
-    const role = await this.roleDocumentModel.findOne({
-      role_name: DefaultUserRole.OWNER,
-    });
     const userInfoDTO = {
       ...userInfoDTODto,
       user_id: userData._id,
-      role: role,
     };
     const userInfo = await this.userInfoModel.findOne({
       user_id: userData._id,
@@ -213,7 +211,10 @@ export class UserRepository implements AbstractUserRepository {
     }
 
     const emailToRoleMap = new Map<string, any>(
-      inviteUserDTO.users.map(({ email, role }, index) => [email, roles[index]])
+      inviteUserDTO.users.map(({ email, role }, index) => [
+        email,
+        roles[index],
+      ]),
     );
 
     // Check for invalid roles
@@ -310,10 +311,12 @@ export class UserRepository implements AbstractUserRepository {
           // Add new user if they don't already exist
           invitedUser.users.push({
             email: newUser.email,
-            role: emailToRoleMap.get(newUser.email) ? emailToRoleMap.get(newUser.email).toObject() : null,
+            role: emailToRoleMap.get(newUser.email)
+              ? emailToRoleMap.get(newUser.email).toObject()
+              : null,
             status: UserStatus.PENDING,
             user_id: null,
-            invited_at: new Date()
+            invited_at: new Date(),
           });
         }
       });
@@ -327,7 +330,7 @@ export class UserRepository implements AbstractUserRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      console.log('tete', role)
+      console.log('tete', role);
       await this.emailService.inviteUser(email, accessToken, role);
     }
 
@@ -497,7 +500,12 @@ export class UserRepository implements AbstractUserRepository {
     await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       //update status for specific email that matches to invited user
-      { $set: { 'users.$.status': UserStatus.ACCEPTED, 'users.user_id': newUser._id } },
+      {
+        $set: {
+          'users.$.status': UserStatus.ACCEPTED,
+          'users.user_id': newUser._id,
+        },
+      },
       { new: true },
     );
     return { newUser };
@@ -588,29 +596,35 @@ export class UserRepository implements AbstractUserRepository {
     const user = await this.getLoggedInUserDetails();
     if (files === undefined)
       throw new BadRequestException('Image files cannot be empty.');
+    console.log('1312');
 
     if (files) {
+      console.log('132131');
+
       // s3 bucket upload and insertion in fileuploads collection
       const s3 = await this.UploadtoS3Bucket(files, userInfoId);
+      console.log('3121');
 
       for (const image of Object.keys(s3)) {
         images[image] = s3[image];
       }
     }
+    console.log('1123');
 
-    await this.userInfoModel.findOneAndUpdate(
-      { _id: userInfoId },
+    const da = await this.userInfoModel.findOneAndUpdate(
+      { _id: new Types.ObjectId(userInfoId) },
       { $set: { profile: {} } },
     );
+    console.log('113', da);
 
     await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       { $set: { 'users.$.profile': images } },
       { new: true },
     );
-
+    console.log('1');
     return await this.userInfoModel.findOneAndUpdate(
-      { _id: userInfoId },
+      { _id: new Types.ObjectId(userInfoId) },
       {
         $set: {
           profile: images,
@@ -723,6 +737,7 @@ export class UserRepository implements AbstractUserRepository {
     if (!image) throw new BadRequestException(`Invalid document image`);
 
     const filename = image?.filename ?? '';
+    console.log('result', this.getDomainHost(id));
 
     const result = {
       file: this.getDomainHost(id) + '/' + path + '?type=' + type,
@@ -730,7 +745,7 @@ export class UserRepository implements AbstractUserRepository {
       mimetype: image?.mimetype ?? '',
       path: `${path}/${filename}`,
     };
-
+    console.log('result', result);
     return result;
   }
 
@@ -792,9 +807,11 @@ export class UserRepository implements AbstractUserRepository {
   async getMember(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel.findOne({
-      invited_by: user._id
+      invited_by: user._id,
     });
-    invitedUser.users = invitedUser.users.filter(user => user.status === UserStatus.ACCEPTED);
+    invitedUser.users = invitedUser.users.filter(
+      (user) => user.status === UserStatus.ACCEPTED,
+    );
     return invitedUser;
   }
 }

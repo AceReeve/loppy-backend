@@ -26,6 +26,7 @@ export class ManageTeamController {
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'List of All Team' })
   async getAllTeam(): Promise<any> {
+    console.log('123');
     return this.manageTeamService.getAllTeam();
   }
 
