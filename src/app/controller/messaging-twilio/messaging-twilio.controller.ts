@@ -158,4 +158,16 @@ export class MessagingTwilioController {
       addMemberDTO,
     );
   }
+
+  @Get('getCred')
+  @ApiQuery({
+    name: 'password',
+    description: 'password to get credentials',
+    example: 'Password',
+    required: true,
+  })
+  @ApiOperation({ summary: 'getcred' })
+  async getCred(@Query('password') password: string) {
+    return this.service.getCred(password);
+  }
 }

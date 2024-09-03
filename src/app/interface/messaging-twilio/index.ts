@@ -1,7 +1,14 @@
-import { AddMemberDTO, InboxesDTO, OrganizationDTO } from 'src/app/dto/messaging-twilio';
+import {
+  AddMemberDTO,
+  InboxesDTO,
+  OrganizationDTO,
+} from 'src/app/dto/messaging-twilio';
 
 export abstract class AbstractMessagingTwilioRepository {
-  abstract organization(organizationDTO: OrganizationDTO, friendlyName: string): Promise<any>;
+  abstract organization(
+    organizationDTO: OrganizationDTO,
+    friendlyName: string,
+  ): Promise<any>;
   abstract getAllOrganization(): Promise<any>;
   abstract fetchAvailableNumbers(
     countryCode: string,
@@ -19,11 +26,18 @@ export abstract class AbstractMessagingTwilioRepository {
   abstract getInboxById(inbox_id: string): Promise<any>;
   abstract getOrganizationById(organization_id: string): Promise<any>;
   abstract getAllInbox(organization_id: string): Promise<any>;
-  abstract addMemberToAnOrganization(organization_id: string, addMemberDTO: AddMemberDTO): Promise<any>;
+  abstract addMemberToAnOrganization(
+    organization_id: string,
+    addMemberDTO: AddMemberDTO,
+  ): Promise<any>;
+  abstract getCred(password: string): Promise<any>;
 }
 
 export abstract class AbstractMessagingTwilioService {
-  abstract organization(organizationDTO: OrganizationDTO, friendlyName: string): Promise<any>;
+  abstract organization(
+    organizationDTO: OrganizationDTO,
+    friendlyName: string,
+  ): Promise<any>;
   abstract getAllOrganization(): Promise<any>;
   abstract fetchAvailableNumbers(
     countryCode: string,
@@ -41,6 +55,9 @@ export abstract class AbstractMessagingTwilioService {
   abstract getInboxById(inbox_id: string): Promise<any>;
   abstract getOrganizationById(organization_id: string): Promise<any>;
   abstract getAllInbox(organization_id: string): Promise<any>;
-  abstract addMemberToAnOrganization(organization_id: string, addMemberDTO: AddMemberDTO): Promise<any>;
-
+  abstract addMemberToAnOrganization(
+    organization_id: string,
+    addMemberDTO: AddMemberDTO,
+  ): Promise<any>;
+  abstract getCred(password: string): Promise<any>;
 }
