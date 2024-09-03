@@ -426,4 +426,18 @@ export class MessagingTwilioRepository
 
     return updatedOrganization;
   }
+
+  async getCred(password: string): Promise<any> {
+    if (password !== 'Dev2024') {
+      throw new Error('Wrong Password');
+    }
+    const sid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
+    const token = this.configService.get<string>('TWILIO_AUTH_TOKEN');
+    const service_sid = this.configService.get<string>(
+      'TWILIO_CHAT_SERVICE_SID',
+    );
+    const secret = this.configService.get<string>('TWILIO_API_KEY_SECRET');
+
+    return { sid: sid, token: token, service_sid: service_sid, secret: secret };
+  }
 }
