@@ -24,6 +24,7 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { DefaultUserRole, SignInBy } from 'src/app/const';
@@ -69,7 +70,7 @@ export class UserRepository implements AbstractUserRepository {
     private fileUploadModel: Model<FileUploadDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async getLoggedInUserDetails(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
@@ -120,6 +121,36 @@ export class UserRepository implements AbstractUserRepository {
 
     return { newUser };
   }
+
+  async changePassword(dto: ChangePasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const passwordMatch = await bcrypt.compare(
+      dto.current_pasword,
+      user.password,
+    );
+    if (!passwordMatch) {
+      throw new BadRequestException('Incorrect Password');
+    }
+    if (!dto.new_password) {
+      throw new BadRequestException('New password is required');
+    }
+    console.log('new_password', dto.new_password);
+
+    const password = await bcrypt.hash(dto.new_password, 12);
+    const newUser = await this.userModel.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: {
+          password: password,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    return newUser;
+  }
+
   async createUserInfo(userInfoDTODto: UserInfoDTO): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
@@ -213,7 +244,10 @@ export class UserRepository implements AbstractUserRepository {
     }
 
     const emailToRoleMap = new Map<string, any>(
-      inviteUserDTO.users.map(({ email, role }, index) => [email, roles[index]])
+      inviteUserDTO.users.map(({ email, role }, index) => [
+        email,
+        roles[index],
+      ]),
     );
 
     // Check for invalid roles
@@ -310,10 +344,12 @@ export class UserRepository implements AbstractUserRepository {
           // Add new user if they don't already exist
           invitedUser.users.push({
             email: newUser.email,
-            role: emailToRoleMap.get(newUser.email) ? emailToRoleMap.get(newUser.email).toObject() : null,
+            role: emailToRoleMap.get(newUser.email)
+              ? emailToRoleMap.get(newUser.email).toObject()
+              : null,
             status: UserStatus.PENDING,
             user_id: null,
-            invited_at: new Date()
+            invited_at: new Date(),
           });
         }
       });
@@ -327,7 +363,7 @@ export class UserRepository implements AbstractUserRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      console.log('tete', role)
+      console.log('tete', role);
       await this.emailService.inviteUser(email, accessToken, role);
     }
 
@@ -497,7 +533,12 @@ export class UserRepository implements AbstractUserRepository {
     await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       //update status for specific email that matches to invited user
-      { $set: { 'users.$.status': UserStatus.ACCEPTED, 'users.user_id': newUser._id } },
+      {
+        $set: {
+          'users.$.status': UserStatus.ACCEPTED,
+          'users.user_id': newUser._id,
+        },
+      },
       { new: true },
     );
     return { newUser };
@@ -634,42 +675,45 @@ export class UserRepository implements AbstractUserRepository {
       const { originalname, mimetype, fieldname } = file;
       const parts = originalname.split('.');
       const s3Route = this.s3.defaultImagePath(id, originalname);
-      const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
+      try {
+        const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
 
-      if (!defaultPhotoPath)
-        throw new InternalServerErrorException(
-          'Unable to upload document to S3 Bucket',
-        );
+        if (!defaultPhotoPath)
+          throw new InternalServerErrorException(
+            'Unable to upload document to S3 Bucket',
+          );
 
-      const fileUpload = await this.fileUploadModel.create({
-        original_filename: originalname,
-        extension: parts[parts.length - 1],
-        name: fieldname,
-        mimetype: mimetype,
-        path: defaultPhotoPath,
-      });
+        const fileUpload = await this.fileUploadModel.create({
+          original_filename: originalname,
+          extension: parts[parts.length - 1],
+          name: fieldname,
+          mimetype: mimetype,
+          path: defaultPhotoPath,
+        });
 
-      const fileInformation = {
-        path: `${domain}/${defaultPhotoPath.replace(
-          `/${originalname}`,
-          '',
-        )}?type=${file.fieldname}`,
-        filename: originalname,
-        mimetype: mimetype,
-        created_at: today.toISOString(),
-        file_id: fileUpload?._id,
-        extension: fileUpload.extension,
-      };
+        const fileInformation = {
+          path: `${domain}/${defaultPhotoPath.replace(
+            `/${originalname}`,
+            '',
+          )}?type=${file.fieldname}`,
+          filename: originalname,
+          mimetype: mimetype,
+          created_at: today.toISOString(),
+          file_id: fileUpload?._id,
+          extension: fileUpload.extension,
+        };
 
-      uploadedFiles[key] = fileInformation;
+        uploadedFiles[key] = fileInformation;
+      } catch (error) {
+        console.error(`Error processing file ${key}:`, error);
+        throw new InternalServerErrorException(`Error processing file ${key}`);
+      }
     }
 
     return uploadedFiles;
   }
 
-  private host =
-    this.configService.get<string>('HOST') ||
-    ('http://localhost:8080' as string);
+  private host = this.configService.get<string>('HOST');
   private getDomainHost(id: string): string {
     return `${this.host}/api/user/images/${id}/image`;
   }
@@ -681,6 +725,7 @@ export class UserRepository implements AbstractUserRepository {
     type: string,
   ): Promise<void | StreamableFile> {
     let streamFileDetails = { mimetype: '', filename: '', path: '' };
+
     streamFileDetails = await this.getImageInfo(type, id, path);
 
     if (
@@ -696,6 +741,8 @@ export class UserRepository implements AbstractUserRepository {
       );
 
     res.set('Content-Type', `${streamFileDetails?.mimetype}`);
+    console.log('5dasdasadasdaascx');
+
     res.set(
       'Content-Disposition',
       `attachment; filename="${streamFileDetails?.filename}"`,
@@ -712,7 +759,6 @@ export class UserRepository implements AbstractUserRepository {
     const findUserInfo = await this.userInfoModel.findOne({
       _id: new Types.ObjectId(id),
     });
-
     if (!findUserInfo)
       throw new BadRequestException(`Invalid user information id: ${id}`);
 
@@ -730,7 +776,6 @@ export class UserRepository implements AbstractUserRepository {
       mimetype: image?.mimetype ?? '',
       path: `${path}/${filename}`,
     };
-
     return result;
   }
 
@@ -792,9 +837,11 @@ export class UserRepository implements AbstractUserRepository {
   async getMember(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel.findOne({
-      invited_by: user._id
+      invited_by: user._id,
     });
-    invitedUser.users = invitedUser.users.filter(user => user.status === UserStatus.ACCEPTED);
+    invitedUser.users = invitedUser.users.filter(
+      (user) => user.status === UserStatus.ACCEPTED,
+    );
     return invitedUser;
   }
 }
