@@ -62,7 +62,7 @@ export class ActionWorkFlow {
 }
 
 export class CreateWorkflowDto {
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => TriggerWorkFlow)
   @ApiProperty({
@@ -74,9 +74,9 @@ export class CreateWorkflowDto {
       content: '[]',
     },
   })
-  trigger: TriggerWorkFlow;
+  trigger?: TriggerWorkFlow;
 
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => ActionWorkFlow)
   @ApiProperty({
@@ -88,7 +88,7 @@ export class CreateWorkflowDto {
       content: 'Happy Birthday! Wishing you all the best on your special day.',
     },
   })
-  action: ActionWorkFlow;
+  action?: ActionWorkFlow;
 }
 
 export class UpdateWorkflowDto {
