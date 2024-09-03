@@ -151,4 +151,16 @@ export class WorkFlowController {
   ) {
     return this.service.updateFolderById(id, folder_name);
   }
+
+  @Delete('folder/:id')
+  @ApiOperation({ summary: 'Delete folder by ID' })
+  @ApiQuery({
+    name: 'id',
+    description: 'Delete folder By ID',
+    example: '66b462060e61af2e685d6e55',
+    required: true,
+  })
+  async deleteFolderById(@Query('id') id: string) {
+    return this.service.deleteFolderById(id);
+  }
 }

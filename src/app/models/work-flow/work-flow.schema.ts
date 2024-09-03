@@ -37,6 +37,9 @@ export class WorkFlow {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   created_by: MongooseSchema.Types.ObjectId;
 
+  @Prop()
+  folder_id?: string;
+
   @Prop({ type: [Trigger], default: [] })
   trigger: Trigger[];
 

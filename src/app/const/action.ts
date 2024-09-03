@@ -12,3 +12,8 @@ export enum WorkFlowStatus {
   PUBLISHED = 'Published',
   SAVED = 'Saved',
 }
+
+export enum WorkFlowFolderStatus {
+  ACTIVE = 'Active',
+  DELETED = 'Deleted',
+}
