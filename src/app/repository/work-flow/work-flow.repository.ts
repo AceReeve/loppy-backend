@@ -14,7 +14,7 @@ import {
 } from 'src/app/models/work-flow/work-flow-folder.schema';
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { CronService } from 'src/app/cron/cron.service';
-import { WorkFlowFolderStatus } from 'src/app/const/action';
+import { WorkFlowFolderStatus, WorkFlowStatus } from 'src/app/const/action';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -161,11 +161,18 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
   }
   async getAllWorkFlow(folder_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const workflow = await this.workFlowModel.find({
-      created_by: user._id,
-      folder_id: new Types.ObjectId(folder_id),
-    });
-    return workflow;
+    if (folder_id) {
+      const workflow = await this.workFlowModel.find({
+        created_by: user._id,
+        folder_id: new Types.ObjectId(folder_id),
+      });
+      return workflow;
+    } else {
+      const workflow = await this.workFlowModel.find({
+        created_by: user._id,
+      });
+      return workflow;
+    }
   }
 
   async getWorkFlowById(id: string): Promise<any> {
@@ -204,6 +211,28 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
     if (!result) {
       throw new Error(`workflow failed to update `);
+    }
+    return result;
+  }
+  async publishedWorkFlow(id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const result = await this.workFlowModel.findOneAndUpdate(
+      {
+        created_by: user._id,
+        _id: new Types.ObjectId(id),
+      },
+      {
+        $set: {
+          status: WorkFlowStatus.PUBLISHED,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!result) {
+      throw new Error(`workflow failed to published `);
     }
     return result;
   }

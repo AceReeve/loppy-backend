@@ -54,6 +54,17 @@ export class WorkFlowController {
   ) {
     return this.service.updateWorkFlow(id, dto);
   }
+  @Put('workflow-published')
+  @ApiOperation({ summary: 'Published Workflow' })
+  @ApiQuery({
+    name: 'id',
+    description: 'id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async publishedWorkFlow(@Query('id') id: string) {
+    return this.service.publishedWorkFlow(id);
+  }
 
   @Get('workflows')
   @ApiOperation({ summary: 'List of WorkFlow' })
@@ -61,7 +72,7 @@ export class WorkFlowController {
     name: 'folder_id',
     description: 'folder id',
     example: '66b462060e61af2e685d6e55',
-    required: true,
+    required: false,
   })
   async getAllWorkFlow(@Query('folder_id') folder_id: string) {
     return this.service.getAllWorkFlow(folder_id);
