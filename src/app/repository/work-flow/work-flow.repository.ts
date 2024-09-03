@@ -127,6 +127,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
               folder_id: new Types.ObjectId(id),
               trigger: dto.trigger,
               action: dto.action,
+              status: dto.status,
             },
           },
           {
@@ -144,6 +145,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
               created_by: user._id,
               trigger: dto.trigger,
               action: dto.action,
+              status: dto.status,
             },
           },
           {
