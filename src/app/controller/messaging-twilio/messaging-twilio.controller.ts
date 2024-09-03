@@ -22,12 +22,18 @@ import {
   TwilioCreateSubAccount,
   TwilioCredDTO,
 } from 'src/app/dto/api/stripe';
-import { AddMemberDTO, InboxesDTO, OrganizationDTO } from 'src/app/dto/messaging-twilio';
+import {
+  AddMemberDTO,
+  InboxesDTO,
+  OrganizationDTO,
+} from 'src/app/dto/messaging-twilio';
 import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
 import { AbstractMessagingTwilioService } from 'src/app/interface/messaging-twilio';
+import { AdminAuthGuard, JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Twilio Messaging')
 @Controller('twilio-messaging')
+@UseGuards(AdminAuthGuard)
 @ApiBearerAuth('Bearer')
 export class MessagingTwilioController {
   constructor(private service: AbstractMessagingTwilioService) {}
@@ -36,8 +42,9 @@ export class MessagingTwilioController {
   @ApiOperation({ summary: 'Create Organization' })
   async organization(
     @Body('friendlyName') friendlyName: string,
-    @Body() organizationDTO: OrganizationDTO) {
-    return this.service.organization(organizationDTO,friendlyName);
+    @Body() organizationDTO: OrganizationDTO,
+  ) {
+    return this.service.organization(organizationDTO, friendlyName);
   }
   @Get('organization')
   @ApiOperation({ summary: 'List of Organization' })
@@ -52,7 +59,7 @@ export class MessagingTwilioController {
     example: '66b462060e61af2e685d6e55',
     required: true,
   })
-  async getOrganizationById(@Query('organization_id') organization_id: string,) {
+  async getOrganizationById(@Query('organization_id') organization_id: string) {
     return this.service.getOrganizationById(organization_id);
   }
   @Get('available-numbers')
@@ -117,7 +124,7 @@ export class MessagingTwilioController {
     required: true,
   })
   @ApiOperation({ summary: 'List of Inbox' })
-  async getAllInbox(@Query('organization_id') organization_id: string,) {
+  async getAllInbox(@Query('organization_id') organization_id: string) {
     return this.service.getAllInbox(organization_id);
   }
 
@@ -129,8 +136,8 @@ export class MessagingTwilioController {
     example: '66b462060e61af2e685d6e55',
     required: true,
   })
-  async getInboxById(@Query('inbox_id') inbox_id: string,) {
-    console.log('inbox_id131',inbox_id)
+  async getInboxById(@Query('inbox_id') inbox_id: string) {
+    console.log('inbox_id131', inbox_id);
     return this.service.getInboxById(inbox_id);
   }
 
@@ -144,8 +151,11 @@ export class MessagingTwilioController {
   })
   async addMemberToAnOrganization(
     @Query('organization_id') organization_id: string,
-    @Body() addMemberDTO: AddMemberDTO
+    @Body() addMemberDTO: AddMemberDTO,
   ) {
-    return this.service.addMemberToAnOrganization(organization_id, addMemberDTO);
+    return this.service.addMemberToAnOrganization(
+      organization_id,
+      addMemberDTO,
+    );
   }
 }

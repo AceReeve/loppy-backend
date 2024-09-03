@@ -18,10 +18,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
+import { JwtAuthGuard } from 'src/app/guard/auth';
 import { AbstractWorkFlowService } from 'src/app/interface/react-flow';
 
 @ApiTags('React Flow')
 @Controller('react-flow')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('Bearer')
 export class WorkFlowController {
   constructor(private service: AbstractWorkFlowService) {}
