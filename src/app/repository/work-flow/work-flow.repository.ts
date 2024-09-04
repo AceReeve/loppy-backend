@@ -14,6 +14,7 @@ import {
 } from 'src/app/models/work-flow/work-flow-folder.schema';
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { CronService } from 'src/app/cron/cron.service';
+import { WorkFlowFolderStatus, WorkFlowStatus } from 'src/app/const/action';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -127,6 +128,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
               folder_id: new Types.ObjectId(id),
               trigger: dto.trigger,
               action: dto.action,
+              status: dto.status,
             },
           },
           {
@@ -144,6 +146,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
               created_by: user._id,
               trigger: dto.trigger,
               action: dto.action,
+              status: dto.status,
             },
           },
           {
@@ -158,11 +161,18 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
   }
   async getAllWorkFlow(folder_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const workflow = await this.workFlowModel.find({
-      created_by: user._id,
-      folder_id: new Types.ObjectId(folder_id),
-    });
-    return workflow;
+    if (folder_id) {
+      const workflow = await this.workFlowModel.find({
+        created_by: user._id,
+        folder_id: new Types.ObjectId(folder_id),
+      });
+      return workflow;
+    } else {
+      const workflow = await this.workFlowModel.find({
+        created_by: user._id,
+      });
+      return workflow;
+    }
   }
 
   async getWorkFlowById(id: string): Promise<any> {
@@ -204,6 +214,28 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
     return result;
   }
+  async publishedWorkFlow(id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const result = await this.workFlowModel.findOneAndUpdate(
+      {
+        created_by: user._id,
+        _id: new Types.ObjectId(id),
+      },
+      {
+        $set: {
+          status: WorkFlowStatus.PUBLISHED,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!result) {
+      throw new Error(`workflow failed to published `);
+    }
+    return result;
+  }
 
   //folder
   async folder(folder_name: string): Promise<any> {
@@ -211,9 +243,10 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     const validateFolderName = await this.workFlowFolderModel.findOne({
       folder_name: folder_name,
       created_by: user._id,
+      status: WorkFlowFolderStatus.ACTIVE,
     });
     if (validateFolderName) {
-      throw new Error(`folder  ${validateFolderName} is already exist `);
+      throw new Error(`folder  ${folder_name} is already exist `);
     }
     const createWorkFlowFolder = new this.workFlowFolderModel({
       folder_name: folder_name,
@@ -226,6 +259,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     const user = await this.userRepository.getLoggedInUserDetails();
     const workflow = await this.workFlowFolderModel.find({
       created_by: user._id,
+      status: WorkFlowFolderStatus.ACTIVE,
     });
     return workflow;
   }
@@ -266,6 +300,38 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
     if (!result) {
       throw new Error(`workflow folder failed to update `);
+    }
+    return result;
+  }
+
+  async deleteFolderById(id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const result = await this.workFlowFolderModel.findOneAndUpdate(
+      {
+        created_by: user._id,
+        _id: new Types.ObjectId(id),
+      },
+      {
+        $set: {
+          status: WorkFlowFolderStatus.DELETED,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    await this.workFlowModel.findOneAndUpdate(
+      {
+        folder_id: new Types.ObjectId(id),
+      },
+      {
+        $set: {
+          folder_id: '',
+        },
+      },
+    );
+    if (!result) {
+      throw new Error(`workflow folder failed to delete `);
     }
     return result;
   }

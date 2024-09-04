@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Node, NodeSchema } from './node.schema'; // Ensure correct import
+import { WorkFlowStatus } from 'src/app/const/action';
 
 export type WorkFlowDocument = WorkFlow & Document;
 export class Trigger {
@@ -36,11 +37,17 @@ export class WorkFlow {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   created_by: MongooseSchema.Types.ObjectId;
 
+  @Prop()
+  folder_id?: string;
+
   @Prop({ type: [Trigger], default: [] })
   trigger: Trigger[];
 
   @Prop({ type: [Action], default: [] })
   action: Action[];
+
+  @Prop({ default: WorkFlowStatus.SAVED })
+  status: string;
 }
 
 export const WorkFlowSchema = SchemaFactory.createForClass(WorkFlow);

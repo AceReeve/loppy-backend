@@ -15,6 +15,9 @@ export class WorkFlowService implements AbstractWorkFlowService {
   async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
     return await this.repository.updateWorkFlow(id, dto);
   }
+  async publishedWorkFlow(id: string): Promise<any> {
+    return await this.repository.publishedWorkFlow(id);
+  }
 
   async getAllWorkFlow(folder_id: string): Promise<any> {
     return await this.repository.getAllWorkFlow(folder_id);
@@ -41,5 +44,8 @@ export class WorkFlowService implements AbstractWorkFlowService {
   }
   async updateFolderById(id: string, folder_name: string): Promise<any> {
     return await this.repository.updateFolderById(id, folder_name);
+  }
+  async deleteFolderById(id: string): Promise<any> {
+    return await this.repository.deleteFolderById(id);
   }
 }

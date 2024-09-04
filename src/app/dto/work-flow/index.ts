@@ -2,11 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { WorkFlowStatus } from 'src/app/const/action';
 
 export class TriggerWorkFlow {
   @IsString()
@@ -60,7 +62,7 @@ export class ActionWorkFlow {
 }
 
 export class CreateWorkflowDto {
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => TriggerWorkFlow)
   @ApiProperty({
@@ -72,9 +74,9 @@ export class CreateWorkflowDto {
       content: '[]',
     },
   })
-  trigger: TriggerWorkFlow;
+  trigger?: TriggerWorkFlow;
 
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => ActionWorkFlow)
   @ApiProperty({
@@ -86,7 +88,7 @@ export class CreateWorkflowDto {
       content: 'Happy Birthday! Wishing you all the best on your special day.',
     },
   })
-  action: ActionWorkFlow;
+  action?: ActionWorkFlow;
 }
 
 export class UpdateWorkflowDto {
@@ -96,6 +98,14 @@ export class UpdateWorkflowDto {
     example: 'Birthday Reminder WorkFlow',
   })
   workflow_name: string;
+
+  @IsNotEmpty()
+  @IsIn([WorkFlowStatus.PUBLISHED, WorkFlowStatus.SAVED])
+  @ApiProperty({
+    description: 'Status[Publised, Saved]',
+    example: 'Saved',
+  })
+  status: string;
 
   @IsOptional()
   @ApiProperty({

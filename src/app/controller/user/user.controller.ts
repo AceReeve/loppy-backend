@@ -29,6 +29,7 @@ import {
   InvitedUserRegistrationDTO,
   ProfileImageType,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
@@ -76,6 +77,16 @@ export class UserController {
     @Body() resetPasswordDTO: ResetPasswordDto,
   ): Promise<any> {
     return this.userService.resetPassword(token, resetPasswordDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Change Password' })
+  async changePassword(
+    @Body() changePasswordDTO: ChangePasswordDto,
+  ): Promise<any> {
+    return this.userService.changePassword(changePasswordDTO);
   }
 
   @Public()
@@ -220,5 +231,4 @@ export class UserController {
   async getMember(): Promise<any> {
     return await this.userService.getMember();
   }
-
 }
