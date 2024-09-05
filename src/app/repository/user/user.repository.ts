@@ -116,12 +116,16 @@ export class UserRepository implements AbstractUserRepository {
     //   // Confirm passwords match
     //   throw new BadRequestException('Password Does Not Match');
     // }
+    const role = await this.roleDocumentModel.find({
+      role_name: DefaultUserRole.OWNER,
+    });
     const newUser = await this.userModel.create({
       email: userRegisterDto.email,
       password: userRegisterDto.password,
       verified_email: true,
       login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
       login_count: 1,
+      role: role,
     });
 
     if (!newUser) throw new BadRequestException('Unable to register user');
@@ -370,7 +374,6 @@ export class UserRepository implements AbstractUserRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      console.log('tete', role);
       await this.emailService.inviteUser(email, accessToken, role);
     }
 
