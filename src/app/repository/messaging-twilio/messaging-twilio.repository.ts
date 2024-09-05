@@ -85,20 +85,8 @@ export class MessagingTwilioRepository
       TWILIO_API_KEY_SID: apiKeySid,
       TWILIO_API_KEY_SECRET: apiKeySecret,
       TWILIO_CHAT_SERVICE_SID: chatServiceSid,
-    } = await this.createSubAccount(friendlyName);
+    } = await this.createSubAccount(dto.organization_name);
 
-    console.log(
-      'TWILIO_ACCOUNT_SID:',
-      accountSid,
-      'TWILIO_AUTH_TOKEN:',
-      authToken,
-      'TWILIO_API_KEY_SID:',
-      apiKeySid,
-      'TWILIO_API_KEY_SECRET:',
-      apiKeySecret,
-      'TWILIO_CHAT_SERVICE_SID:',
-      chatServiceSid,
-    );
     const encryptedAccountSid = encrypt(accountSid);
     const encryptedAuthToken = encrypt(authToken);
     const encryptedApiKeySid = encrypt(apiKeySid);
