@@ -85,6 +85,13 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('Invalid Token');
     }
   }
+
+  async userData(id: string): Promise<any> {
+    const userDetails = await this.userModel.findOne({
+      _id: new Types.ObjectId(id),
+    });
+    return userDetails;
+  }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
 

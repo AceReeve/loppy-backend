@@ -105,7 +105,9 @@ export class UserService implements AbstractUserService {
   async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
     return this.repository.uploadProfile(files, userInfoId);
   }
-
+  async userData(id: string): Promise<any> {
+    return this.repository.userData(id);
+  }
   async getProfile(
     id: string,
     path: string,
