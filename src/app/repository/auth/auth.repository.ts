@@ -17,8 +17,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 import { OauthRepository } from '../oauth/oauth.repository';
-import { SignInBy } from '../../const';
+import { DefaultUserRole, SignInBy, UserRole } from '../../const';
 import * as jwt from 'jsonwebtoken';
+import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 @Injectable()
 export class AuthRepository {
   constructor(
@@ -26,6 +27,7 @@ export class AuthRepository {
     private configService: ConfigService,
     protected readonly oauthRepository: OauthRepository,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Role.name) private roleModel: Model<RoleDocument>,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
   ) {}
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -98,6 +100,9 @@ export class AuthRepository {
       googleSaveDTO.last_name,
       googleSaveDTO.token,
     );
+    const role = await this.roleModel.findOne({
+      role_name: DefaultUserRole.OWNER,
+    });
     if (data) {
       const userData = await this.userModel.findOneAndUpdate(
         { email: data.email },
@@ -114,6 +119,7 @@ export class AuthRepository {
       const userData = await this.userModel.create({
         email: googleSaveDTO.email,
         login_by: SignInBy.SIGN_IN_BY_GOOGLE,
+        role: role,
         login_count: 1,
       });
       const userInfo = await this.userInfoModel.create({
