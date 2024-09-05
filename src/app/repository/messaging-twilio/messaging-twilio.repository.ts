@@ -72,6 +72,7 @@ export class MessagingTwilioRepository
   }
   async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
     try {
+      const testOnly = this.configService.get<string>('TEST_INDICATOR');
       const user = await this.userRepository.getLoggedInUserDetails();
       const isExisting = await this.twilioOrganizationModel.findOne({
         organization_name: dto.organization_name,
@@ -86,9 +87,7 @@ export class MessagingTwilioRepository
         TWILIO_API_KEY_SID: apiKeySid,
         TWILIO_API_KEY_SECRET: apiKeySecret,
         TWILIO_CHAT_SERVICE_SID: chatServiceSid,
-      } = await this.createSubAccount(
-        `Servihero Test - ${dto.organization_name}`,
-      );
+      } = await this.createSubAccount(`${testOnly} - ${dto.organization_name}`);
 
       const encryptedAccountSid = encrypt(accountSid);
       const encryptedAuthToken = encrypt(authToken);
@@ -108,9 +107,11 @@ export class MessagingTwilioRepository
         status: OrganizationStatus.ACTIVE,
       });
       const result = await createOrganization.save();
-      const resultSendEmail =
+      if (dto.users) {
         await this.userRepository.OrganizationInviteUser(dto);
-      return { result, resultSendEmail };
+      }
+
+      return result;
     } catch (error) {
       throw new Error(`error: ${error.message}`);
     }
