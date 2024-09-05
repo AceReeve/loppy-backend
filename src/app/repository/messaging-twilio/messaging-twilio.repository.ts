@@ -106,7 +106,9 @@ export class MessagingTwilioRepository
       twilio_auth_token: encryptedChatServiceSid,
       status: OrganizationStatus.ACTIVE,
     });
-    return await createOrganization.save();
+    await createOrganization.save();
+    await this.userRepository.OrganizationInviteUser(dto);
+    return '';
   }
 
   async createSubAccount(friendlyName: string): Promise<any> {
