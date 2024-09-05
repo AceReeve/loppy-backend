@@ -85,7 +85,9 @@ export class MessagingTwilioRepository
       TWILIO_API_KEY_SID: apiKeySid,
       TWILIO_API_KEY_SECRET: apiKeySecret,
       TWILIO_CHAT_SERVICE_SID: chatServiceSid,
-    } = await this.createSubAccount(dto.organization_name);
+    } = await this.createSubAccount(
+      `Servihero Test - ${dto.organization_name}`,
+    );
 
     const encryptedAccountSid = encrypt(accountSid);
     const encryptedAuthToken = encrypt(authToken);
