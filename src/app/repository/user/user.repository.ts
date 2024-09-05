@@ -74,7 +74,6 @@ export class UserRepository implements AbstractUserRepository {
 
   async getLoggedInUserDetails(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
-    console.log(user);
     return await this.userModel.findOne({ email: user.email });
   }
 
