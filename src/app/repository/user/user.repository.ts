@@ -116,7 +116,7 @@ export class UserRepository implements AbstractUserRepository {
     //   // Confirm passwords match
     //   throw new BadRequestException('Password Does Not Match');
     // }
-    const role = await this.roleDocumentModel.find({
+    const role = await this.roleDocumentModel.findOne({
       role_name: DefaultUserRole.OWNER,
     });
     const newUser = await this.userModel.create({
