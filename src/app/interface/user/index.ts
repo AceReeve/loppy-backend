@@ -14,6 +14,7 @@ import { Response } from 'express';
 
 export abstract class AbstractUserRepository {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
+  abstract userData(id: string): Promise<any>;
   abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
   abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
   abstract getUser(id: string): Promise<any>;

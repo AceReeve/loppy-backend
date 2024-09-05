@@ -83,11 +83,14 @@ export class AuthRepository {
       user,
       SignInBy.SIGN_IN_BY_GOOGLE,
     );
+    const userRole = await this.userModel.findOne({ email: user.email });
     const access_token = await this.signJwt(
       userData.id,
       id_token,
       accessToken,
       expires_in,
+      userRole.role,
+      user.email,
     );
     return { access_token };
   }
@@ -181,6 +184,8 @@ export class AuthRepository {
     id_token: string,
     access_token: string,
     expires_at: number,
+    role: any,
+    email: string,
     expiresIn = '1d',
   ): Promise<any> {
     const payload = {
@@ -188,6 +193,8 @@ export class AuthRepository {
       id_token,
       access_token,
       expires_at,
+      role,
+      email,
     };
     return this.jwtService.signAsync(payload, {
       expiresIn,
