@@ -107,8 +107,9 @@ export class MessagingTwilioRepository
       status: OrganizationStatus.ACTIVE,
     });
     const result = await createOrganization.save();
-    await this.userRepository.OrganizationInviteUser(dto);
-    return result;
+    const resultSendEmail =
+      await this.userRepository.OrganizationInviteUser(dto);
+    return { result, resultSendEmail };
   }
 
   async createSubAccount(friendlyName: string): Promise<any> {
