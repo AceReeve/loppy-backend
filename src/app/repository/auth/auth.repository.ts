@@ -111,7 +111,7 @@ export class AuthRepository {
         { email: data.email },
         { $inc: { login_count: 1 } },
       );
-      const payload = { email: userData.email, sub: userData._id };
+      const payload = { email: userData.email, sub: userData._id, role };
       const access_token = this.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
@@ -132,7 +132,7 @@ export class AuthRepository {
         picture: googleSaveDTO.picture,
       });
 
-      const payload = { email: userData.email, sub: userData._id };
+      const payload = { email: userData.email, sub: userData._id, role };
       const access_token = this.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),

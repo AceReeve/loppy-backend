@@ -2,12 +2,22 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsEmail,
   IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
 
+class EmailRole {
+  @ApiProperty({ example: 'example@gmail.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'role_id' })
+  @IsNotEmpty()
+  role: string;
+}
 export class OrganizationDTO {
   @IsString()
   @IsNotEmpty()
@@ -24,6 +34,18 @@ export class OrganizationDTO {
     description: 'Required field when creating a organization',
   })
   description: string;
+
+  @ApiProperty({
+    type: [EmailRole],
+    example: [
+      { email: 'example@gmail.com', role: 'Manager' },
+      { email: 'example1@gmail.com', role: 'Member' },
+    ],
+  })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => EmailRole)
+  users: EmailRole[];
 }
 
 export class InboxesDTO {
