@@ -48,8 +48,8 @@ async function bootstrap(): Promise<void> {
   if (process.env.NODE_ENV === 'prod') {
     // Production setup with HTTPS
     const httpsOptions = {
-      key: fs.readFileSync(HTTPS_PATH_SSL_KEY),
-      cert: fs.readFileSync(HTTPS_PATH_SSL_CERT),
+      key: fs.readFileSync('/etc/nginx/ssl/servihero.com.key'),
+      cert: fs.readFileSync('/etc/nginx/ssl/servihero.com.crt'),
     };
 
     https
