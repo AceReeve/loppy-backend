@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { StripeEventRepository } from 'src/app/repository/stripe/stripe.event.repository';
 import { UserService } from '../../user/user.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class StripeWebhookService {
@@ -190,9 +191,37 @@ export class StripeWebhookService {
 
   async getUserStripeData(id: string
   ): Promise<any> {
-
-    const userInfo = await this.userService.findByUserId(id);
-    return await this.repository.findByUserStripeData(userInfo.stripe_id);
+    try {
+      const userInfo = await this.userService.findByUserId(id);
+      const result = await this.repository.findByUserStripeData(userInfo.stripe_id)
+      if (result === null) {
+        throw Error;
+      } else {
+        return result;
+      }
+    } catch (error) {
+      const generateRandomId = (): string => {
+        return uuidv4();
+      };
+      const randomId = generateRandomId();
+      await this.addStripeEvent(randomId);
+      const stripeEvent = await this.repository.findByStripeEventId(randomId);
+      await this.repository.createUserStripeSubscriptionData(
+        stripeEvent.id,
+        "",
+        "",
+        id,
+        "",
+        "inactive",
+        "",
+        "",
+        ""
+      );
+      await this.userService.updateUserStripeId(stripeEvent.stripe_event_id, id);
+      const userInfo = await this.userService.findByUserId(id);
+      return await this.repository.findByUserStripeData(userInfo.stripe_id);
+    }
   }
+
 
 }
