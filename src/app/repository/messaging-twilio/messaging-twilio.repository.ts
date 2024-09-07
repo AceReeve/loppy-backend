@@ -72,7 +72,7 @@ export class MessagingTwilioRepository
   }
   async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
     try {
-      const testOnly = this.configService.get<string>('TEST_INDICATOR');
+      const testOnly = this.configService.get<string>('SUBACCOUNT_NAME_PREFIX');
       const user = await this.userRepository.getLoggedInUserDetails();
       const isExisting = await this.twilioOrganizationModel.findOne({
         organization_name: dto.organization_name,

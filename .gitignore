@@ -43,6 +43,8 @@ package.json
 .env.production.local
 .env
 .env.local
+.env.dev
+.env.prod
 .env.production
 
 # temp directory
