@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Twilio } from 'twilio';
+import { Twilio, jwt } from 'twilio';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -306,39 +306,32 @@ export class MessagingTwilioRepository
 
   async inbox(dto: InboxesDTO): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    console.log('1');
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
       created_by: user._id,
     });
-    console.log('2');
 
     if (isExisting) {
       throw new Error(`${dto.inbox_name} is already existing`);
     }
-    console.log('3');
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
       _id: new Types.ObjectId(dto.organization_id),
     });
-    console.log('4');
 
     if (!isOrganizationIDValid) {
       throw new Error(
         `organization with the ID: ${dto.organization_id} not found`,
       );
     }
-    console.log('5');
 
     const isNumberValid = await this.twilioNumberModel.findOne({
       purchased_number: dto.purchased_number,
     });
-    console.log('6');
 
     if (!isNumberValid) {
       throw new Error(`this number: ${dto.purchased_number} is not valid`);
     }
-    console.log('7');
 
     const createInbox = new this.inboxModel({
       inbox_name: dto.inbox_name,
@@ -348,13 +341,11 @@ export class MessagingTwilioRepository
       created_by: user._id,
       status: OrganizationStatus.ACTIVE,
     });
-    console.log('8');
 
     const assigningOfNumber = await this.twilioNumberModel.findOneAndUpdate(
       { purchased_number: dto.purchased_number },
       { $set: { inbox_assinged_To: createInbox._id } },
     );
-    console.log('9');
 
     return await createInbox.save();
   }
@@ -437,5 +428,37 @@ export class MessagingTwilioRepository
     const secret = this.configService.get<string>('TWILIO_API_KEY_SECRET');
 
     return { sid: sid, token: token, service_sid: service_sid, secret: secret };
+  }
+
+  async getTwilioAccessToken(id: string) {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const twilioCred = await this.twilioOrganizationModel.findOne({
+      _id: new Types.ObjectId(id),
+      created_by: user._id,
+    });
+    if (!twilioCred) {
+      throw new Error(`organization with the ID: ${id} not found `);
+    }
+    const AccessToken = jwt.AccessToken;
+    const ChatGrant = AccessToken.ChatGrant;
+    const twilioAccountSid = decrypt(twilioCred.twilio_account_sid);
+    const twilioApiKey = decrypt(twilioCred.twilio_api_key_sid);
+    const twilioApiSecret = decrypt(twilioCred.twilio_api_key_secret);
+
+    const serviceSid = decrypt(twilioCred.twilio_chat_service_sid);
+    const identity = user.email;
+    const chatGrant = new ChatGrant({
+      serviceSid: serviceSid,
+    });
+
+    const token = new AccessToken(
+      twilioAccountSid,
+      twilioApiKey,
+      twilioApiSecret,
+      { identity: identity, ttl: 43200 },
+    );
+
+    token.addGrant(chatGrant);
+    return token.toJwt();
   }
 }
