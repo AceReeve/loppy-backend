@@ -8,6 +8,7 @@ import {
   InviteMemberDTO,
 } from 'src/app/dto/settings/manage-team';
 import { AbstractManageTeamService } from 'src/app/interface/settings/manage-team';
+import { InviteUserDTO } from 'src/app/dto/user';
 @ApiTags('Manage Team')
 @Controller('manage-team')
 export class ManageTeamController {
@@ -41,7 +42,7 @@ export class ManageTeamController {
   @Post('invite-member')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
-  async inviteUser(@Body() inviteUserDTO: InviteMemberDTO): Promise<any> {
+  async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
     return this.manageTeamService.inviteMember(inviteUserDTO);
   }
 

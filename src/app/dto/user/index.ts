@@ -20,7 +20,7 @@ import {
   IsDateString,
   Validate,
 } from 'class-validator';
-import { Schema } from 'mongoose';
+import { ObjectId, Schema } from 'mongoose';
 import { CommonFilter } from '..';
 
 export class UserLoginDTO {
@@ -178,17 +178,21 @@ class EmailRole {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'role_id' })
+  @ApiProperty({ example: 'role' })
   @IsNotEmpty()
   role: string;
+
+  @ApiProperty({ example: 'team_id' })
+  @IsOptional()
+  team?: ObjectId;
 }
 
 export class InviteUserDTO {
   @ApiProperty({
     type: [EmailRole],
     example: [
-      { email: 'example@gmail.com', role: 'Manager' },
-      { email: 'example1@gmail.com', role: 'Member' },
+      { email: 'example@gmail.com', role: 'Manager', team: 'FrontEnd Team' },
+      { email: 'example1@gmail.com', role: 'Member', team: 'BackEnd Team ' },
     ],
   })
   @IsNotEmpty()

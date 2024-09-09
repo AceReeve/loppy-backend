@@ -10,6 +10,7 @@ import { StripeEventSchemaModule } from '../models/stripe/stripe.event.schema.mo
 import { WeatherForecastSchemaModule } from '../models/weatherforecast/weatherforecast.schema.module';
 import { FileUploadSchemaModule } from '../models/file-upload/file-upload.schema.module';
 import { S3Service } from '../services/s3/s3.service';
+import { TeamSchemaModule } from '../models/settings/manage-team/team/team.schema.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { S3Service } from '../services/s3/s3.service';
     StripeEventSchemaModule,
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
+    TeamSchemaModule,
   ],
   controllers: [],
   // Inversion

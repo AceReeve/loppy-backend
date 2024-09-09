@@ -36,6 +36,7 @@ import { WorkFlowService } from 'src/app/services/work-flow/work-flow.service';
 import { WorkFlowController } from 'src/app/controller/react-flow/react-flow.controller';
 import { StripeModule } from '../api/api.module';
 import { CronService } from 'src/app/cron/cron.service';
+import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 
 @Global()
 @Module({
@@ -51,6 +52,7 @@ import { CronService } from 'src/app/cron/cron.service';
     InvitedUserSchemaModule,
     EmailerModule,
     FileUploadSchemaModule,
+    TeamSchemaModule,
   ],
   providers: [
     UserService,

@@ -51,6 +51,7 @@ export abstract class AbstractUserRepository {
   ): Promise<any>;
   abstract getMember(): Promise<any>;
   abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
+  abstract getAcceptedInvitedUser(): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -67,6 +68,7 @@ export abstract class AbstractUserService {
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract cancelInviteUser(email: string): Promise<any>;
   abstract getInvitedUser(): Promise<any>;
+  abstract getAcceptedInvitedUser(): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,

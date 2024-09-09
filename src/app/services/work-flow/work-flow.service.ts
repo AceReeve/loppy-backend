@@ -26,13 +26,13 @@ export class WorkFlowService implements AbstractWorkFlowService {
   async getWorkFlowById(id: string): Promise<any> {
     return await this.repository.getWorkFlowById(id);
   }
-  async updateWorkFlowById(id: string, work_flow_name: string): Promise<any> {
-    return await this.repository.updateWorkFlowById(id, work_flow_name);
+  async updateWorkFlowById(id: string, name: string): Promise<any> {
+    return await this.repository.updateWorkFlowById(id, name);
   }
 
   //folder
-  async folder(folder_name: string): Promise<any> {
-    return await this.repository.folder(folder_name);
+  async folder(name: string): Promise<any> {
+    return await this.repository.folder(name);
   }
 
   async getAllFolder(): Promise<any> {
@@ -42,8 +42,8 @@ export class WorkFlowService implements AbstractWorkFlowService {
   async getFolderById(id: string): Promise<any> {
     return await this.repository.getFolderById(id);
   }
-  async updateFolderById(id: string, folder_name: string): Promise<any> {
-    return await this.repository.updateFolderById(id, folder_name);
+  async updateFolderById(id: string, name: string): Promise<any> {
+    return await this.repository.updateFolderById(id, name);
   }
   async deleteFolderById(id: string): Promise<any> {
     return await this.repository.deleteFolderById(id);

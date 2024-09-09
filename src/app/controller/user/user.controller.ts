@@ -169,6 +169,13 @@ export class UserController {
   async getInviteUser(): Promise<any> {
     return this.userService.getInvitedUser();
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('get-accepted-invited-user')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get Invite User' })
+  async getAcceptedInviteUser(): Promise<any> {
+    return this.userService.getAcceptedInvitedUser();
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('validate-invite-user')
