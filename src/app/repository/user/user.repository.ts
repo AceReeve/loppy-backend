@@ -51,6 +51,10 @@ import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { OrganizationDTO } from 'src/app/dto/messaging-twilio';
+import {
+  Team,
+  TeamDocument,
+} from 'src/app/models/settings/manage-team/team/team.schema';
 
 export class UserRepository implements AbstractUserRepository {
   constructor(
@@ -69,6 +73,8 @@ export class UserRepository implements AbstractUserRepository {
     private configService: ConfigService,
     @InjectModel(FileUpload.name)
     private fileUploadModel: Model<FileUploadDocument>,
+    @InjectModel(Team.name)
+    private teamModel: Model<TeamDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
   ) {}
@@ -310,12 +316,14 @@ export class UserRepository implements AbstractUserRepository {
     }
 
     // Map the invited users with the fetched role data
-    const invitedUsers = inviteUserDTO.users.map(({ email, role }, index) => {
+    const invitedUsers = inviteUserDTO.users.map(({ email, team }, index) => {
       const roleData = roles[index];
       return {
         email,
         role: roleData ? roleData.toObject() : null,
         status: UserStatus.PENDING,
+        team,
+        invited_at: new Date(),
       };
     });
 
@@ -336,7 +344,11 @@ export class UserRepository implements AbstractUserRepository {
           'users.email': { $in: inviteUserDTO.users.map((e) => e.email) },
           'users.status': UserStatus.CANCELLED,
         },
-        { $set: { 'users.$[elem].status': UserStatus.PENDING } },
+        {
+          $set: {
+            'users.$[elem].status': UserStatus.PENDING,
+          },
+        },
         {
           arrayFilters: [
             { 'elem.email': { $in: inviteUserDTO.users.map((e) => e.email) } },
@@ -361,6 +373,7 @@ export class UserRepository implements AbstractUserRepository {
               : null,
             status: UserStatus.PENDING,
             user_id: null,
+            team: newUser.team,
             invited_at: new Date(),
           });
         }
@@ -563,6 +576,22 @@ export class UserRepository implements AbstractUserRepository {
     });
     return invitedUser;
   }
+  async getAcceptedInvitedUser(): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel
+      .findOne({
+        invited_by: user._id,
+      })
+      .exec();
+    if (invitedUser) {
+      const acceptedUsers = invitedUser.users.filter(
+        (user) => user.status === 'Accepted',
+      );
+      return acceptedUsers;
+    }
+
+    return [];
+  }
 
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
     const loggedInUser = this.request.user as User; // Assuming User type for logged-in user
@@ -692,19 +721,33 @@ export class UserRepository implements AbstractUserRepository {
       email: user.email,
       role: role,
       password: invitedUserRegistrationDTO.password,
+      login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
     });
     if (!newUser) throw new BadRequestException('error registration user');
-    await this.invitedUserModel.findOneAndUpdate(
+    const userInvited = await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       //update status for specific email that matches to invited user
       {
         $set: {
           'users.$.status': UserStatus.ACCEPTED,
-          'users.user_id': newUser._id,
+          'users.$.user_id': newUser._id,
         },
       },
       { new: true },
     );
+
+    const invitedUserData = userInvited.users.find(
+      (data: any) => data.email === user.email,
+    );
+    const updateTeam = await this.teamModel.findOneAndUpdate(
+      { _id: invitedUserData.team },
+      {
+        $push: {
+          team_members: newUser._id,
+        },
+      },
+    );
+
     return { newUser };
   }
 

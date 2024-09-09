@@ -15,6 +15,7 @@ import {
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { CronService } from 'src/app/cron/cron.service';
 import { WorkFlowFolderStatus, WorkFlowStatus } from 'src/app/const/action';
+import { WorkFlowType } from 'src/app/const';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -40,7 +41,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         .slice(2, 2 + length);
       // Check if this name already exists in the database
       const existingWorkflow = await this.workFlowModel.findOne({
-        work_flow_name: uniqueName,
+        name: uniqueName,
       });
       if (!existingWorkflow) {
         isUnique = true;
@@ -71,18 +72,20 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         }
 
         createWorkFlow = new this.workFlowModel({
-          work_flow_name: generatedName,
+          name: generatedName,
           created_by: user._id,
           folder_id: new Types.ObjectId(id),
           trigger: dto.trigger,
           action: dto.action,
+          type: WorkFlowType.WORKFLOW,
         });
       } else {
         createWorkFlow = new this.workFlowModel({
-          work_flow_name: generatedName,
+          name: generatedName,
           created_by: user._id,
           trigger: dto.trigger,
           action: dto.action,
+          Wtype: WorkFlowType.WORKFLOW,
         });
       }
       const savedWorkflow = await createWorkFlow.save();
@@ -123,7 +126,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           },
           {
             $set: {
-              work_flow_name: dto.workflow_name,
+              name: dto.workflow_name,
               created_by: user._id,
               folder_id: new Types.ObjectId(id),
               trigger: dto.trigger,
@@ -142,7 +145,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           },
           {
             $set: {
-              work_flow_name: dto.workflow_name,
+              name: dto.workflow_name,
               created_by: user._id,
               trigger: dto.trigger,
               action: dto.action,
@@ -185,11 +188,11 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return result;
   }
 
-  async updateWorkFlowById(id: string, work_flow_name: string): Promise<any> {
+  async updateWorkFlowById(id: string, name: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const validateWorkFlowName = await this.workFlowModel.findOne({
       created_by: user._id,
-      work_flow_name: work_flow_name,
+      name: name,
     });
     if (validateWorkFlowName) {
       throw new Error(`workflow is already exist or it is same as before`);
@@ -201,7 +204,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       },
       {
         $set: {
-          work_flow_name: work_flow_name,
+          name: name,
         },
       },
       {
@@ -238,47 +241,117 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
   }
 
   //folder
-  async folder(folder_name: string): Promise<any> {
+  async folder(name: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const validateFolderName = await this.workFlowFolderModel.findOne({
-      folder_name: folder_name,
+      name: name,
       created_by: user._id,
       status: WorkFlowFolderStatus.ACTIVE,
     });
     if (validateFolderName) {
-      throw new Error(`folder  ${folder_name} is already exist `);
+      throw new Error(`folder  ${name} is already exist `);
     }
     const createWorkFlowFolder = new this.workFlowFolderModel({
-      folder_name: folder_name,
+      name: name,
       created_by: user._id,
+      type: WorkFlowType.FOLDER,
     });
     return await createWorkFlowFolder.save();
   }
 
   async getAllFolder(): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
-    const workflow = await this.workFlowFolderModel.find({
-      created_by: user._id,
-      status: WorkFlowFolderStatus.ACTIVE,
-    });
-    return workflow;
+    try {
+      const user = await this.userRepository.getLoggedInUserDetails();
+      const folders = await this.workFlowFolderModel
+        .find({
+          created_by: user._id,
+          status: WorkFlowFolderStatus.ACTIVE,
+        })
+        .exec();
+
+      const foldersWithWorkflows = await Promise.all(
+        folders.map(async (folder) => {
+          const workflows = await this.workFlowModel
+            .find({
+              folder_id: folder._id,
+            })
+            .exec();
+
+          // Ensure type assertion here
+          const formattedWorkflows = workflows.map((workflow) => ({
+            _id: workflow._id,
+            type: workflow.type,
+            work_flow_name: workflow.name,
+            created_by: workflow.created_by,
+            status: workflow.status,
+            created_at: workflow.created_at,
+            updated_at: workflow.updated_at,
+          }));
+
+          return {
+            ...folder.toObject(),
+            workflows: formattedWorkflows,
+          };
+        }),
+      );
+
+      const workflowsWithoutFolder = await this.workFlowModel
+        .find({
+          folder_id: { $exists: false },
+        })
+        .exec();
+
+      const formattedWorkflowsWithoutFolder = workflowsWithoutFolder.map(
+        (workflow) => ({
+          _id: workflow._id,
+          name: workflow.name,
+          type: workflow.type,
+          status: workflow.status,
+          created_at: workflow.created_at,
+          updated_at: workflow.updated_at,
+        }),
+      );
+      return {
+        folders: foldersWithWorkflows,
+        workflowsWithoutFolder: formattedWorkflowsWithoutFolder,
+      };
+    } catch (error) {
+      throw new Error(
+        'Error fetching workflow folders and their workflows: ' + error.message,
+      );
+    }
   }
 
   async getFolderById(id: string): Promise<any> {
-    const result = await this.workFlowFolderModel.findOne({
-      _id: new Types.ObjectId(id),
-    });
-    if (!result) {
-      throw new Error(`workflow folder with the ID: ${id} not found `);
+    try {
+      const workflowFolder = await this.workFlowFolderModel.findById(id).exec();
+
+      if (!workflowFolder) {
+        throw new Error('Workflow folder not found');
+      }
+
+      const workFlowData = await this.workFlowModel
+        .find({
+          folder_id: workflowFolder._id,
+        })
+        .exec();
+
+      return {
+        ...workflowFolder.toObject(),
+        workflows: workFlowData,
+      };
+    } catch (error) {
+      throw new Error(
+        'Error fetching workflow folder and its workflows: ' + error.message,
+      );
     }
-    return result;
   }
 
-  async updateFolderById(id: string, folder_name: string): Promise<any> {
+  async updateFolderById(id: string, name: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const validateWorkFlowName = await this.workFlowFolderModel.findOne({
       created_by: user._id,
-      folder_name: folder_name,
+      name: name,
     });
     if (validateWorkFlowName) {
       throw new Error(`workflow is already exist or it is same as before`);
@@ -290,7 +363,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       },
       {
         $set: {
-          folder_name: folder_name,
+          name: name,
         },
       },
       {

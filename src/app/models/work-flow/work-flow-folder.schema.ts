@@ -13,13 +13,22 @@ export class WorkFlowFolder implements GenericSchema {
   _id: string;
 
   @Prop()
-  folder_name: string;
+  name: string;
+
+  @Prop()
+  type: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   created_by: MongooseSchema.Types.ObjectId;
 
   @Prop({ default: WorkFlowFolderStatus.ACTIVE })
   status: string;
+
+  @Prop({ type: Date })
+  created_at?: Date;
+
+  @Prop({ type: Date })
+  updated_at?: Date;
 }
 
 export const WorkFlowFolderSchema =

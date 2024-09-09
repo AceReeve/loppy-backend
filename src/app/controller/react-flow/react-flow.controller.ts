@@ -99,29 +99,29 @@ export class WorkFlowController {
     required: true,
   })
   @ApiQuery({
-    name: 'work_flow_name',
+    name: 'name',
     description: 'Update WorkFlow By ID',
     example: 'My 1st WorkFlow',
     required: true,
   })
   async updateWorkFlowById(
     @Query('id') id: string,
-    @Query('work_flow_name') work_flow_name: string,
+    @Query('name') name: string,
   ) {
-    return this.service.updateWorkFlowById(id, work_flow_name);
+    return this.service.updateWorkFlowById(id, name);
   }
 
   //folder
   @Post('folder')
   @ApiOperation({ summary: 'Create folder' })
   @ApiQuery({
-    name: 'folder_name',
+    name: 'name',
     description: 'Create folder',
     example: 'my flows',
     required: true,
   })
-  async folder(@Query('folder_name') folder_name: string) {
-    return this.service.folder(folder_name);
+  async folder(@Query('name') name: string) {
+    return this.service.folder(name);
   }
 
   @Get('folders')
@@ -151,16 +151,13 @@ export class WorkFlowController {
     required: true,
   })
   @ApiQuery({
-    name: 'folder_name',
+    name: 'name',
     description: 'Update folder By ID',
     example: 'My WorkFlows',
     required: true,
   })
-  async updateFolderById(
-    @Query('id') id: string,
-    @Query('folder_name') folder_name: string,
-  ) {
-    return this.service.updateFolderById(id, folder_name);
+  async updateFolderById(@Query('id') id: string, @Query('name') name: string) {
+    return this.service.updateFolderById(id, name);
   }
 
   @Delete('folder/:id')

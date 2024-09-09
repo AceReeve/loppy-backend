@@ -19,11 +19,15 @@ import {
   CustomRoleDTO,
   InviteMemberDTO,
 } from 'src/app/dto/settings/manage-team';
+import { InviteUserDTO } from 'src/app/dto/user';
 @Injectable()
 export class ManageTeamService implements AbstractManageTeamService {
   constructor(private readonly repository: AbstractManageTeamRepository) {}
 
-  async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
+  // async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
+  //   return await this.repository.inviteMember(inviteMemberDTO);
+  // }
+  async inviteMember(inviteMemberDTO: InviteUserDTO): Promise<any> {
     return await this.repository.inviteMember(inviteMemberDTO);
   }
 

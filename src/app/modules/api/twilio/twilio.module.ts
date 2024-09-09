@@ -19,6 +19,7 @@ import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { MessagingTwilioSchemaModule } from 'src/app/models/messaging-twilio/messaging-twilio.schema.module';
+import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 
 @Global()
 @Module({
@@ -33,8 +34,8 @@ import { MessagingTwilioSchemaModule } from 'src/app/models/messaging-twilio/mes
     InvitedUserSchemaModule,
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
-    MessagingTwilioSchemaModule
-    
+    MessagingTwilioSchemaModule,
+    TeamSchemaModule,
   ],
   providers: [
     UserService,

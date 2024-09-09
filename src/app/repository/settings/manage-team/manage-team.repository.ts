@@ -30,12 +30,14 @@ import {
   CustomeRole,
   CustomeRoleDocument,
 } from 'src/app/models/settings/manage-team/custom-role/custom-role.schema';
+import { InviteUserDTO } from 'src/app/dto/user';
+import { InvitedUserDocument } from 'src/app/models/invited-users/invited-users.schema';
 
 export class ManageTeamRepository implements AbstractManageTeamRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(InvitedMember.name)
-    private invitedUserModel: Model<InvitedMemberDocument>,
+    private invitedUserModel: Model<InvitedUserDocument>,
     @InjectModel(Team.name)
     private teamModel: Model<TeamDocument>,
     @InjectModel(Role.name)
@@ -49,95 +51,97 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    const userData = await this.userModel.findOne({ email: user.email });
+  // async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
+  //   const user = this.request.user as Partial<User> & { sub: string };
+  //   const userData = await this.userModel.findOne({ email: user.email });
 
-    // Check if any of the emails are already invited
-    const isInvitedAlready = await this.invitedUserModel.find(
-      { 'emails.email': inviteMemberDTO.email },
-      'emails.email',
-    );
-    if (isInvitedAlready.length > 0) {
-      const matchedEmails = isInvitedAlready
-        .map((doc) => doc.emails.map((emailObj) => emailObj.email))
-        .flat();
-      throw new BadRequestException(
-        `These emails are already invited: ${matchedEmails.join(', ')}.`,
-      );
-    }
+  //   // Check if any of the emails are already invited
+  //   const isInvitedAlready = await this.invitedUserModel.find(
+  //     { 'emails.email': inviteMemberDTO.email },
+  //     'emails.email',
+  //   );
+  //   if (isInvitedAlready.length > 0) {
+  //     const matchedEmails = isInvitedAlready
+  //       .map((doc) => doc.emails.map((emailObj) => emailObj.email))
+  //       .flat();
+  //     throw new BadRequestException(
+  //       `These emails are already invited: ${matchedEmails.join(', ')}.`,
+  //     );
+  //   }
 
-    // Plan validation logic
-    const allInvitedByUser = await this.invitedUserModel.findOne({
-      invited_by: userData._id,
-    });
-    if (allInvitedByUser) {
-      let totalInvitedEmails = 0;
-      allInvitedByUser.emails.forEach((emailObj) => {
-        if (emailObj.status !== UserStatus.CANCELLED) {
-          totalInvitedEmails++;
-        }
-      });
+  //   // Plan validation logic
+  //   const allInvitedByUser = await this.invitedUserModel.findOne({
+  //     invited_by: userData._id,
+  //   });
+  //   if (allInvitedByUser) {
+  //     let totalInvitedEmails = 0;
+  //     allInvitedByUser.emails.forEach((emailObj) => {
+  //       if (emailObj.status !== UserStatus.CANCELLED) {
+  //         totalInvitedEmails++;
+  //       }
+  //     });
 
-      // await this.userRepository.userPlanValidation(
-      //   userData._id,
-      //   totalInvitedEmails,
-      // );
-    }
+  //     // await this.userRepository.userPlanValidation(
+  //     //   userData._id,
+  //     //   totalInvitedEmails,
+  //     // );
+  //   }
 
-    // Send invitation email
-    const payload = { email: inviteMemberDTO.email };
-    const access_token = await this.authRepository.generateJWT(
-      payload,
-      this.configService.get<string>('JWT_EXPIRATION'),
-    );
-    await this.emailService.inviteUser(inviteMemberDTO.email, access_token);
-    const role = await this.roleModel.findById(
-      new Types.ObjectId(inviteMemberDTO.role),
-    );
-    if (!role) {
-      throw new BadRequestException(`Role not found`);
-    }
-    const team = await this.teamModel.findById(
-      new Types.ObjectId(inviteMemberDTO.team),
-    );
-    if (!team) {
-      throw new BadRequestException(`team not found`);
-    }
-    const teamDetails = {
-      _id: team._id,
-      team: team.team,
-      description: team.description,
-    };
-    // Prepare email object for storage
-    const emailObj = {
-      email: inviteMemberDTO.email,
-      role: role,
-      team: teamDetails,
-      status: UserStatus.PENDING,
-      date: new Date(),
-    };
+  //   // Send invitation email
+  //   const payload = { email: inviteMemberDTO.email };
+  //   const access_token = await this.authRepository.generateJWT(
+  //     payload,
+  //     this.configService.get<string>('JWT_EXPIRATION'),
+  //   );
+  //   await this.emailService.inviteUser(inviteMemberDTO.email, access_token);
+  //   const role = await this.roleModel.findById(
+  //     new Types.ObjectId(inviteMemberDTO.role),
+  //   );
+  //   if (!role) {
+  //     throw new BadRequestException(`Role not found`);
+  //   }
+  //   const team = await this.teamModel.findById(
+  //     new Types.ObjectId(inviteMemberDTO.team),
+  //   );
+  //   if (!team) {
+  //     throw new BadRequestException(`team not found`);
+  //   }
+  //   const teamDetails = {
+  //     _id: team._id,
+  //     team: team.team,
+  //     description: team.description,
+  //   };
+  //   // Prepare email object for storage
+  //   const emailObj = {
+  //     email: inviteMemberDTO.email,
+  //     role: role,
+  //     team: teamDetails,
+  //     status: UserStatus.PENDING,
+  //     date: new Date(),
+  //   };
 
-    // Update or create InvitedUser document
-    const existingInvitedUser = await this.invitedUserModel.findOne({
-      invited_by: userData._id,
-    });
-    let result: any;
-    if (!existingInvitedUser) {
-      result = await this.invitedUserModel.create({
-        emails: [emailObj],
-        invited_by: userData._id,
-      });
-    } else {
-      // Concatenate arrays properly
-      const updatedEmails = existingInvitedUser.emails.concat([emailObj]);
-      existingInvitedUser.emails = updatedEmails;
-      result = await existingInvitedUser.save();
-    }
+  //   // Update or create InvitedUser document
+  //   const existingInvitedUser = await this.invitedUserModel.findOne({
+  //     invited_by: userData._id,
+  //   });
+  //   let result: any;
+  //   if (!existingInvitedUser) {
+  //     result = await this.invitedUserModel.create({
+  //       emails: [emailObj],
+  //       invited_by: userData._id,
+  //     });
+  //   } else {
+  //     // Concatenate arrays properly
+  //     const updatedEmails = existingInvitedUser.emails.concat([emailObj]);
+  //     existingInvitedUser.emails = updatedEmails;
+  //     result = await existingInvitedUser.save();
+  //   }
 
-    return result;
+  //   return result;
+  // }
+  async inviteMember(inviteUserDTO: InviteUserDTO): Promise<any> {
+    return await this.userRepository.inviteUser(inviteUserDTO);
   }
-
   async createTeam(createTeamDTO: CreateTeamDTO): Promise<any> {
     // Fetch logged-in user details (assuming you have a method like this in userRepository)
     const loggedInUser = await this.userRepository.getLoggedInUserDetails();
@@ -174,8 +178,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
         // Fetch role details for the current user
         const roleDetails = await this.roleModel
           .findOne({ _id: user.role })
-          .exec()
-          
+          .exec();
+
         return {
           user_id: user._id.toString(),
           first_name: userInfo ? userInfo.first_name : '',
@@ -198,33 +202,73 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
   async getAllTeam(): Promise<any> {
     const loggedInUser = await this.userRepository.getLoggedInUserDetails();
-    return await this.teamModel.find({ created_by: loggedInUser._id });
+
+    const teams = await this.teamModel
+      .find({ created_by: loggedInUser._id })
+      .exec();
+
+    const teamsWithMemberDetails = await Promise.all(
+      teams.map(async (team) => {
+        // Extract user IDs from the team
+        const userIds = team.team_members.map(
+          (id: any) => new Types.ObjectId(id),
+        );
+
+        const users = await this.userModel
+          .find({ _id: { $in: userIds } })
+          .exec();
+
+        const teamMembers = users.map((user) => ({
+          _id: user._id,
+          email: user.email,
+          role_name: (user.role as any)?.role_name,
+          status: user.status,
+        }));
+
+        return {
+          team: {
+            _id: team._id,
+            team: team.team,
+            description: team.description,
+            team_members: teamMembers,
+            created_by: team.created_by,
+          },
+        };
+      }),
+    );
+
+    return teamsWithMemberDetails;
   }
 
   async getTeam(id: string): Promise<any> {
-    const teamId = new Types.ObjectId(id);
+    const teams = await this.teamModel.find({ _id: id }).exec();
+    const teamsWithMemberDetails = await Promise.all(
+      teams.map(async (team) => {
+        const userIds = team.team_members.map((id: any) => id);
 
-    const pipeline = [
-      {
-        $match: {
-          _id: teamId,
-        },
-      },
-      {
-        $lookup: {
-          from: 'customRole',
-          localField: '_id',
-          foreignField: 'team',
-          as: 'roles',
-        },
-      },
-    ];
+        const users = await this.userModel
+          .find({ _id: { $in: userIds } })
+          .exec();
 
-    // Execute the aggregation pipeline
-    const result = await this.teamModel.aggregate(pipeline).exec();
+        const teamMembers = users.map((user) => ({
+          _id: user._id,
+          email: user.email,
+          role_name: (user.role as any)?.role_name,
+          status: user.status,
+        }));
+        return {
+          team: {
+            _id: team._id,
+            team: team.team,
+            description: team.description,
+            team_members: teamMembers,
+            created_by: team.created_by,
+          },
+        };
+      }),
+    );
 
-    // Since result is an array with potentially one element (if ID is unique), return the first element
-    return result[0];
+    return teamsWithMemberDetails;
   }
 
   async customRole(customRoleDTO: CustomRoleDTO): Promise<any> {
