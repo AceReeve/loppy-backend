@@ -170,4 +170,9 @@ export class MessagingTwilioController {
   async getCred(@Query('password') password: string) {
     return this.service.getCred(password);
   }
+
+  @Get('get-twilio-access-token/:id')
+  async getTwilioAccessToken(@Param('id') id: string) {
+    return this.service.getTwilioAccessToken(id);
+  }
 }

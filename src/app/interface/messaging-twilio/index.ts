@@ -31,6 +31,7 @@ export abstract class AbstractMessagingTwilioRepository {
     addMemberDTO: AddMemberDTO,
   ): Promise<any>;
   abstract getCred(password: string): Promise<any>;
+  abstract getTwilioAccessToken(id: string): Promise<any>;
 }
 
 export abstract class AbstractMessagingTwilioService {
@@ -60,4 +61,5 @@ export abstract class AbstractMessagingTwilioService {
     addMemberDTO: AddMemberDTO,
   ): Promise<any>;
   abstract getCred(password: string): Promise<any>;
+  abstract getTwilioAccessToken(id: string): Promise<any>;
 }
