@@ -97,17 +97,23 @@ export class AuthRepository {
 
   async googleSave(googleSaveDTO: GoogleSaveDTO) {
     const data = await this.userModel.findOne({ email: googleSaveDTO.email });
-    await this.verifyToken(
+    console.log('before verify token');
+    const verifyToken = await this.verifyToken(
       googleSaveDTO.email,
       googleSaveDTO.first_name,
       googleSaveDTO.last_name,
       googleSaveDTO.token,
     );
+    console.log('verifyToken', verifyToken);
     const role = await this.roleModel.findOne({
       role_name: DefaultUserRole.OWNER,
     });
+    console.log('role', role);
+
     if (data) {
       if (data.login_by !== SignInBy.SIGN_IN_BY_GOOGLE) {
+        console.log('this is error if login by is not equal to Google');
+
         throw new Error(
           `this email : '${googleSaveDTO.email}' is already registered, Please use another email!`,
         );
@@ -121,6 +127,7 @@ export class AuthRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
+      console.log('access_token with existing user:', access_token);
 
       return { userData, access_token };
     } else {
@@ -130,18 +137,23 @@ export class AuthRepository {
         role: role,
         login_count: 1,
       });
+      console.log('user data inside the else:', userData);
+
       const userInfo = await this.userInfoModel.create({
         user_id: userData._id,
         first_name: googleSaveDTO.first_name,
         last_name: googleSaveDTO.last_name,
         picture: googleSaveDTO.picture,
       });
+      console.log('user info inside the else:', userInfo);
 
       const payload = { email: userData.email, sub: userData._id, role };
       const access_token = this.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
+      console.log('access_token without existing user:', access_token);
+
       return { userData, userInfo, access_token };
     }
   }
