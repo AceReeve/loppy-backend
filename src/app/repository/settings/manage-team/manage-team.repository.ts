@@ -226,13 +226,13 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
         }));
 
         return {
-          team: {
-            _id: team._id,
-            team: team.team,
-            description: team.description,
-            team_members: teamMembers,
-            created_by: team.created_by,
-          },
+          _id: team._id,
+          team: team.team,
+          description: team.description,
+          created_by: team.created_by,
+          created_at: team.created_at,
+          updated_at: team.updated_at,
+          team_members: teamMembers,
         };
       }),
     );
@@ -241,34 +241,26 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
   }
 
   async getTeam(id: string): Promise<any> {
-    const teams = await this.teamModel.find({ _id: id }).exec();
-    const teamsWithMemberDetails = await Promise.all(
-      teams.map(async (team) => {
-        const userIds = team.team_members.map((id: any) => id);
+    const team = await this.teamModel.findOne({ _id: id }).exec();
+    const userIds = team.team_members.map((id: any) => id);
 
-        const users = await this.userModel
-          .find({ _id: { $in: userIds } })
-          .exec();
+    const users = await this.userModel.find({ _id: { $in: userIds } }).exec();
 
-        const teamMembers = users.map((user) => ({
-          _id: user._id,
-          email: user.email,
-          role_name: (user.role as any)?.role_name,
-          status: user.status,
-        }));
-        return {
-          team: {
-            _id: team._id,
-            team: team.team,
-            description: team.description,
-            team_members: teamMembers,
-            created_by: team.created_by,
-          },
-        };
-      }),
-    );
-
-    return teamsWithMemberDetails;
+    const teamMembers = users.map((user) => ({
+      _id: user._id,
+      email: user.email,
+      role_name: (user.role as any)?.role_name,
+      status: user.status,
+    }));
+    return {
+      _id: team._id,
+      team: team.team,
+      description: team.description,
+      created_by: team.created_by,
+      created_at: team.created_at,
+      updated_at: team.updated_at,
+      team_members: teamMembers,
+    };
   }
 
   async customRole(customRoleDTO: CustomRoleDTO): Promise<any> {
