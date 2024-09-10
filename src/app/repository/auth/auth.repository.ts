@@ -175,19 +175,19 @@ export class AuthRepository {
         if (userDetails.email !== email) {
           throw new UnauthorizedException('Invalid email');
         }
-        const userInfoDetails = await this.userInfoModel.findOne({
-          user_id: userDetails._id,
-        });
-        if (userInfoDetails) {
-          // Validate first name
-          if (userInfoDetails.first_name !== first_name) {
-            throw new UnauthorizedException('Invalid first name');
-          }
-          // Validate last name
-          if (userInfoDetails.last_name !== last_name) {
-            throw new UnauthorizedException('Invalid last name');
-          }
-        }
+        // const userInfoDetails = await this.userInfoModel.findOne({
+        //   user_id: userDetails._id,
+        // });
+        // if (userInfoDetails) {
+        //   // Validate first name
+        //   if (userInfoDetails.first_name !== first_name) {
+        //     throw new UnauthorizedException('Invalid first name');
+        //   }
+        //   // Validate last name
+        //   if (userInfoDetails.last_name !== last_name) {
+        //     throw new UnauthorizedException('Invalid last name');
+        //   }
+        // }
       }
 
       return decoded;
