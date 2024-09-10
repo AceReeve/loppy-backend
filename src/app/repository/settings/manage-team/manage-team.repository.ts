@@ -245,13 +245,28 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     const userIds = team.team_members.map((id: any) => id);
 
     const users = await this.userModel.find({ _id: { $in: userIds } }).exec();
-
     const teamMembers = users.map((user) => ({
       _id: user._id,
       email: user.email,
       role_name: (user.role as any)?.role_name,
       status: user.status,
     }));
+
+    const totalMembers = teamMembers.length;
+
+    const roleCounts: { [key: string]: number } = {};
+    teamMembers.forEach((member) => {
+      if (!roleCounts[member.role_name]) {
+        roleCounts[member.role_name] = 0;
+      }
+      roleCounts[member.role_name]++;
+    });
+
+    const roles = Object.keys(roleCounts).map((roleName) => ({
+      role_name: roleName,
+      count: roleCounts[roleName],
+    }));
+
     return {
       _id: team._id,
       team: team.team,
@@ -260,6 +275,11 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       created_at: team.created_at,
       updated_at: team.updated_at,
       team_members: teamMembers,
+      overview: {
+        members: totalMembers,
+        roles: roles.length,
+      },
+      roles: roles,
     };
   }
 

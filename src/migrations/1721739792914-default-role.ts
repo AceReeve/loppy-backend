@@ -30,7 +30,7 @@ export const up = async () => {
       },
       {
         _id: new ObjectId(),
-        role_name: 'Guest',
+        role_name: 'Observer',
         description: 'Minimal access for users who are not logged in',
       },
     ];
