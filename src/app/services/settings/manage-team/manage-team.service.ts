@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as _ from 'lodash';
@@ -13,6 +13,7 @@ import { Response } from 'express';
 import {
   AbstractManageTeamRepository,
   AbstractManageTeamService,
+  ProfileImages,
 } from 'src/app/interface/settings/manage-team';
 import {
   CreateTeamDTO,
@@ -22,7 +23,10 @@ import {
 import { InviteUserDTO } from 'src/app/dto/user';
 @Injectable()
 export class ManageTeamService implements AbstractManageTeamService {
-  constructor(private readonly repository: AbstractManageTeamRepository) {}
+  constructor(
+    private readonly repository: AbstractManageTeamRepository,
+    @Inject(REQUEST) private readonly request: Request,
+  ) {}
 
   // async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
   //   return await this.repository.inviteMember(inviteMemberDTO);
@@ -33,6 +37,9 @@ export class ManageTeamService implements AbstractManageTeamService {
 
   async createTeam(createTeamDTO: CreateTeamDTO): Promise<any> {
     return await this.repository.createTeam(createTeamDTO);
+  }
+  async updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
+    return await this.repository.updateTeam(createTeamDTO, id);
   }
   async getAllTeam(): Promise<any> {
     return await this.repository.getAllTeam();
@@ -49,5 +56,17 @@ export class ManageTeamService implements AbstractManageTeamService {
   }
   async getRole(id: string): Promise<any> {
     return await this.repository.getRole(id);
+  }
+
+  async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
+    return this.repository.uploadProfile(files, userInfoId);
+  }
+  async getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile> {
+    return this.repository.getProfile(id, path, res, type);
   }
 }

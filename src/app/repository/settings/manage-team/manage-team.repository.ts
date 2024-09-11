@@ -1,4 +1,9 @@
-import { BadRequestException, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  InternalServerErrorException,
+  StreamableFile,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
@@ -9,7 +14,10 @@ import { EmailerService } from '@util/emailer/emailer';
 import { UserStatus } from 'src/app/const';
 import { AuthRepository } from '../../auth/auth.repository';
 import { ConfigService } from '@nestjs/config';
-import { AbstractManageTeamRepository } from 'src/app/interface/settings/manage-team';
+import {
+  AbstractManageTeamRepository,
+  ProfileImages,
+} from 'src/app/interface/settings/manage-team';
 import {
   CreateTeamDTO,
   CustomRoleDTO,
@@ -32,6 +40,12 @@ import {
 } from 'src/app/models/settings/manage-team/custom-role/custom-role.schema';
 import { InviteUserDTO } from 'src/app/dto/user';
 import { InvitedUserDocument } from 'src/app/models/invited-users/invited-users.schema';
+import { S3Service } from 'src/app/services/s3/s3.service';
+import {
+  FileUpload,
+  FileUploadDocument,
+} from 'src/app/models/file-upload/file-upload.schema';
+import { Response } from 'express';
 
 export class ManageTeamRepository implements AbstractManageTeamRepository {
   constructor(
@@ -49,6 +63,9 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
     private readonly userRepository: UserRepository,
+    private readonly s3: S3Service,
+    @InjectModel(FileUpload.name)
+    private fileUploadModel: Model<FileUploadDocument>,
   ) {}
 
   // async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
@@ -159,11 +176,11 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
     // Fetch details of invited team members
     const { users, userInfos } = await this.userRepository.findUsersByIds(
-      createTeamDTO.team_member,
+      createTeamDTO.team_members,
     );
 
     // Check if all team members exist
-    if (users.length !== createTeamDTO.team_member.length) {
+    if (users.length !== createTeamDTO.team_members.length) {
       throw new BadRequestException('One or more team members not found');
     }
 
@@ -198,6 +215,61 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     });
 
     return newTeam;
+  }
+  async updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+    // Fetch existing team
+    const existingTeam = await this.teamModel.findOne({
+      _id: new Types.ObjectId(id),
+      created_by: loggedInUser._id,
+    });
+    if (!existingTeam) {
+      throw new BadRequestException(
+        'Team not found or you do not have permission to update this team',
+      );
+    }
+    // Fetch accepted users
+    const acceptedUsers = await this.userRepository.getAcceptedInvitedUser();
+
+    // Create a Set of accepted user IDs for quick lookup
+    const acceptedUserIds = new Set(
+      acceptedUsers.map((user) => user.user_id.toString()),
+    );
+    // Validate and check for duplicates
+    const memberIds = createTeamDTO.team_members || [];
+    const seenMemberIds = new Set<string>();
+    const duplicateIds = new Set<string>();
+    // Validate team member IDs
+    if (createTeamDTO.team_members && createTeamDTO.team_members.length > 0) {
+      for (const memberId of createTeamDTO.team_members) {
+        if (!acceptedUserIds.has(memberId)) {
+          throw new BadRequestException(
+            `User with ID ${memberId} is not an accepted member`,
+          );
+        }
+        if (seenMemberIds.has(memberId)) {
+          duplicateIds.add(memberId);
+        } else {
+          seenMemberIds.add(memberId);
+        }
+      }
+
+      if (duplicateIds.size > 0) {
+        throw new BadRequestException(
+          `Duplicate user IDs found: ${Array.from(duplicateIds).join(', ')}`,
+        );
+      }
+    }
+
+    // Update team details
+    existingTeam.team_members = createTeamDTO.team_members;
+    existingTeam.team = createTeamDTO.team;
+    existingTeam.description = createTeamDTO.description;
+
+    // Save updated team
+    await existingTeam.save();
+
+    return existingTeam;
   }
 
   async getAllTeam(): Promise<any> {
@@ -236,7 +308,6 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
         };
       }),
     );
-
     return teamsWithMemberDetails;
   }
 
@@ -316,5 +387,157 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
   async getRole(id: string): Promise<any> {
     const result = await this.customRoleModel.findById(new Types.ObjectId(id));
     return await this.customRoleModel.findOne({ _id: new Types.ObjectId(id) });
+  }
+
+  ////////////////////
+  async uploadProfile(
+    files: ProfileImages,
+    team_id: string,
+  ): Promise<any | null> {
+    const images: any = {};
+    const user = await this.userRepository.getLoggedInUserDetails();
+    console.log('files', files);
+    if (files === undefined)
+      throw new BadRequestException('Image files cannot be empty.');
+
+    if (files) {
+      // s3 bucket upload and insertion in fileuploads collection
+      const s3 = await this.UploadtoS3Bucket(files, team_id);
+
+      for (const image of Object.keys(s3)) {
+        images[image] = s3[image];
+      }
+    }
+
+    await this.teamModel.findOneAndUpdate(
+      { _id: team_id },
+      { $set: { profile: {} } },
+    );
+
+    return await this.teamModel.findOneAndUpdate(
+      { _id: team_id },
+      {
+        $set: {
+          profile: images,
+        },
+      },
+      { new: true },
+    );
+  }
+
+  private async UploadtoS3Bucket(files: any, id: string): Promise<any> {
+    const domain = this.getDomainHost(id.toString());
+    const today = new Date();
+
+    const uploadedFiles: any = {};
+
+    for (const key of Object.keys(files)) {
+      const file = files[key][0];
+
+      if (!file) continue;
+
+      const { originalname, mimetype, fieldname } = file;
+      const parts = originalname.split('.');
+      const s3Route = this.s3.defaultImagePath(id, originalname);
+      try {
+        const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
+
+        if (!defaultPhotoPath)
+          throw new InternalServerErrorException(
+            'Unable to upload document to S3 Bucket',
+          );
+
+        const fileUpload = await this.fileUploadModel.create({
+          original_filename: originalname,
+          extension: parts[parts.length - 1],
+          name: fieldname,
+          mimetype: mimetype,
+          path: defaultPhotoPath,
+        });
+
+        const fileInformation = {
+          path: `${domain}/${defaultPhotoPath.replace(
+            `/${originalname}`,
+            '',
+          )}?type=${file.fieldname}`,
+          filename: originalname,
+          mimetype: mimetype,
+          created_at: today.toISOString(),
+          file_id: fileUpload?._id,
+          extension: fileUpload.extension,
+        };
+
+        uploadedFiles[key] = fileInformation;
+      } catch (error) {
+        console.error(`Error processing file ${key}:`, error);
+        throw new InternalServerErrorException(`Error processing file ${key}`);
+      }
+    }
+
+    return uploadedFiles;
+  }
+
+  private host = this.configService.get<string>('HOST');
+  private getDomainHost(id: string): string {
+    return `${this.host}/api/manage-team/images/${id}/image`;
+  }
+
+  async getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile> {
+    let streamFileDetails = { mimetype: '', filename: '', path: '' };
+
+    streamFileDetails = await this.getImageInfo(type, id, path);
+
+    if (
+      _.isEmpty(streamFileDetails?.filename) &&
+      _.isEmpty(streamFileDetails?.mimetype)
+    )
+      throw new BadRequestException('Unable to find file!');
+
+    const readStream = this.s3.downloadFile(streamFileDetails?.path);
+    if (!readStream)
+      throw new InternalServerErrorException(
+        'Unable to download file from S3!',
+      );
+
+    res.set('Content-Type', `${streamFileDetails?.mimetype}`);
+    res.set(
+      'Content-Disposition',
+      `attachment; filename="${streamFileDetails?.filename}"`,
+    );
+
+    return new StreamableFile(readStream);
+  }
+
+  private async getImageInfo(
+    type: string,
+    id: string,
+    path: string,
+  ): Promise<any> {
+    const team = await this.teamModel.findOne({
+      _id: new Types.ObjectId(id),
+    });
+    if (!team)
+      throw new BadRequestException(`Invalid user information id: ${id}`);
+
+    const { profile } = team;
+
+    const image = profile[type];
+
+    if (!image) throw new BadRequestException(`Invalid document image`);
+
+    const filename = image?.filename ?? '';
+
+    const result = {
+      file: this.getDomainHost(id) + '/' + path + '?type=' + type,
+      filename,
+      mimetype: image?.mimetype ?? '',
+      path: `${path}/${filename}`,
+    };
+    return result;
   }
 }
