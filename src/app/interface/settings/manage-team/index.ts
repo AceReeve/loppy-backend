@@ -4,6 +4,8 @@ import {
   InviteMemberDTO,
 } from 'src/app/dto/settings/manage-team';
 import { InviteUserDTO } from 'src/app/dto/user';
+import { StreamableFile } from '@nestjs/common';
+import { Response } from 'express';
 
 export abstract class AbstractManageTeamRepository {
   abstract createTeam(createTeamDTO: CreateTeamDTO): Promise<any>;
@@ -15,6 +17,17 @@ export abstract class AbstractManageTeamRepository {
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;
   abstract getAllRole(team_id: string): Promise<any>;
   abstract getRole(id: string): Promise<any>;
+  abstract uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any>;
+
+  abstract getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile>;
 }
 
 export abstract class AbstractManageTeamService {
@@ -27,4 +40,27 @@ export abstract class AbstractManageTeamService {
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;
   abstract getAllRole(team_id: string): Promise<any>;
   abstract getRole(id: string): Promise<any>;
+  abstract uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any>;
+
+  abstract uploadProfile(
+    files: ProfileImages,
+    userInfoId: string,
+  ): Promise<any>;
+
+  abstract getProfile(
+    id: string,
+    path: string,
+    res: Response,
+    type: string,
+  ): Promise<void | StreamableFile>;
 }
+export type ProfileImages = {
+  image_1: File[];
+  image_2: File[];
+  image_3: File[];
+  image_4: File[];
+  image_5: File[];
+};

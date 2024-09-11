@@ -6,8 +6,18 @@ import {
   Get,
   Param,
   Put,
+  UseInterceptors,
+  UploadedFile,
+  Query,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { AdminAuthGuard, JwtAuthGuard } from 'src/app/guard/auth';
 import {
@@ -15,9 +25,17 @@ import {
   CustomRoleDTO,
   InviteMemberDTO,
 } from 'src/app/dto/settings/manage-team';
-import { AbstractManageTeamService } from 'src/app/interface/settings/manage-team';
-import { InviteUserDTO } from 'src/app/dto/user';
+import {
+  AbstractManageTeamService,
+  ProfileImages,
+} from 'src/app/interface/settings/manage-team';
+import { InviteUserDTO, ProfileImageType } from 'src/app/dto/user';
 import { UserRepository } from 'src/app/repository/user/user.repository';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
+import { Public } from 'src/app/decorators/public.decorator';
+import { Response } from 'express';
+
 @ApiTags('Manage Team')
 @Controller('manage-team')
 export class ManageTeamController {
@@ -99,5 +117,34 @@ export class ManageTeamController {
   @ApiOperation({ summary: 'Available Seats' })
   async getAvailableSeats(): Promise<any> {
     return this.userRepository.availableSeats();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('upload-profile')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({
+    summary: 'Update service document upload in vendor accreditation request',
+  })
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
+  @ApiConsumes('multipart/form-data')
+  async updateUserProfile(
+    @UploadedFile(FileUploadPipe) files: ProfileImages,
+    @Query('id') team_id?: string,
+  ) {
+    if (!team_id) team_id = '';
+
+    return await this.manageTeamService.uploadProfile(files, team_id);
+  }
+
+  @Public()
+  @Get('images/:id/image/:path(*)')
+  @ApiOperation({ summary: 'Get catalog item default image' })
+  async getProfile(
+    @Param('id') id: string,
+    @Param('path') path: string,
+    @Res({ passthrough: true }) res: Response,
+    @Query() { type }: ProfileImageType,
+  ): Promise<StreamableFile | void> {
+    return await this.manageTeamService.getProfile(id, path, res, type);
   }
 }
