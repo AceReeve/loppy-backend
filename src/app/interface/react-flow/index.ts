@@ -1,7 +1,7 @@
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 
 export abstract class AbstractWorkFlowRepository {
-  abstract workFlow(id: string, dto: CreateWorkflowDto): Promise<any>;
+  abstract workFlow(id: string, template_id: string): Promise<any>;
   abstract updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any>;
   abstract publishedWorkFlow(id: string): Promise<any>;
   abstract getAllWorkFlow(folder_id: string): Promise<any>;
@@ -16,7 +16,7 @@ export abstract class AbstractWorkFlowRepository {
 }
 
 export abstract class AbstractWorkFlowService {
-  abstract workFlow(id: string, dto: CreateWorkflowDto): Promise<any>;
+  abstract workFlow(id: string, template_id: string): Promise<any>;
   abstract updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any>;
   abstract publishedWorkFlow(id: string): Promise<any>;
   abstract getAllWorkFlow(folder_id: string): Promise<any>;
