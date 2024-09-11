@@ -57,6 +57,15 @@ export abstract class AbstractManageTeamService {
     type: string,
   ): Promise<void | StreamableFile>;
 }
+interface File {
+  path: string;
+  filename: string;
+  mimetype: string;
+  created_at: string;
+  file_id: any;
+  extension: string;
+}
+
 export type ProfileImages = {
   image_1: File[];
   image_2: File[];

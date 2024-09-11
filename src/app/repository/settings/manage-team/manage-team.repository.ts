@@ -396,6 +396,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
   ): Promise<any | null> {
     const images: any = {};
     const user = await this.userRepository.getLoggedInUserDetails();
+    console.log('files', files);
     if (files === undefined)
       throw new BadRequestException('Image files cannot be empty.');
 

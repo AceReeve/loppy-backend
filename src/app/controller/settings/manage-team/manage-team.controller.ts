@@ -129,11 +129,11 @@ export class ManageTeamController {
   @ApiConsumes('multipart/form-data')
   async updateUserProfile(
     @UploadedFile(FileUploadPipe) files: ProfileImages,
-    @Query('id') team_id?: string,
+    @Query('id') id?: string,
   ) {
-    if (!team_id) team_id = '';
+    if (!id) id = '';
 
-    return await this.manageTeamService.uploadProfile(files, team_id);
+    return await this.manageTeamService.uploadProfile(files, id);
   }
 
   @Public()
