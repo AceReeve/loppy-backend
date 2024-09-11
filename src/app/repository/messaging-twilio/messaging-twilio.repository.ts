@@ -351,11 +351,9 @@ export class MessagingTwilioRepository
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
-    console.log('inbox_id', inbox_id);
     const result = await this.inboxModel.findOne({
       _id: new Types.ObjectId(inbox_id),
     });
-    console.log('result', result);
 
     if (!result) {
       throw new Error(`inbox with the ID: ${inbox_id} not found `);

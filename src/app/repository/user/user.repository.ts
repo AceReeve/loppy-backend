@@ -152,8 +152,6 @@ export class UserRepository implements AbstractUserRepository {
     if (!dto.new_password) {
       throw new BadRequestException('New password is required');
     }
-    console.log('new_password', dto.new_password);
-
     const password = await bcrypt.hash(dto.new_password, 12);
     const newUser = await this.userModel.findOneAndUpdate(
       { _id: user._id },
@@ -1015,8 +1013,6 @@ export class UserRepository implements AbstractUserRepository {
       );
 
     res.set('Content-Type', `${streamFileDetails?.mimetype}`);
-    console.log('5dasdasadasdaascx');
-
     res.set(
       'Content-Disposition',
       `attachment; filename="${streamFileDetails?.filename}"`,

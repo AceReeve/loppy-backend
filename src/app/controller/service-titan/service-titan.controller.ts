@@ -14,7 +14,6 @@ export class serviceTitanController {
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
   ): Promise<any> {
-    console.log('1');
     return this.serviceTitanService.getInventoryBills(page, pageSize);
   }
 

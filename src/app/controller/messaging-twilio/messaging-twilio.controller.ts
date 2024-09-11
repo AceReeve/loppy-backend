@@ -137,7 +137,6 @@ export class MessagingTwilioController {
     required: true,
   })
   async getInboxById(@Query('inbox_id') inbox_id: string) {
-    console.log('inbox_id131', inbox_id);
     return this.service.getInboxById(inbox_id);
   }
 
