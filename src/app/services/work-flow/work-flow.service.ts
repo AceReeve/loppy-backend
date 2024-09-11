@@ -9,8 +9,8 @@ import {
 export class WorkFlowService implements AbstractWorkFlowService {
   constructor(private readonly repository: AbstractWorkFlowRepository) {}
 
-  async workFlow(id: string, dto: CreateWorkflowDto): Promise<any> {
-    return await this.repository.workFlow(id, dto);
+  async workFlow(id: string, template_id: string): Promise<any> {
+    return await this.repository.workFlow(id, template_id);
   }
   async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
     return await this.repository.updateWorkFlow(id, dto);
