@@ -72,4 +72,7 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
   async getTwilioAccessToken(id: string): Promise<any> {
     return await this.repository.getTwilioAccessToken(id);
   }
+  async getPurchasedNumber(id: string): Promise<any> {
+    return await this.repository.getPurchasedNumber(id);
+  }
 }

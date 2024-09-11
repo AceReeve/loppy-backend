@@ -206,7 +206,7 @@ export class UserController {
   @Post('upload-profile')
   @ApiBearerAuth('Bearer')
   @ApiOperation({
-    summary: 'Update service document upload in vendor accreditation request',
+    summary: 'Update Profile Picture',
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
   @ApiConsumes('multipart/form-data')

@@ -11,6 +11,7 @@ import {
   Query,
   Res,
   StreamableFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -123,16 +124,15 @@ export class ManageTeamController {
   @Post('upload-profile')
   @ApiBearerAuth('Bearer')
   @ApiOperation({
-    summary: 'Update service document upload in vendor accreditation request',
+    summary: 'Update Team Profile Picture',
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
   @ApiConsumes('multipart/form-data')
   async updateUserProfile(
-    @UploadedFile(FileUploadPipe) files: ProfileImages,
+    @UploadedFiles(FileUploadPipe) files: ProfileImages,
     @Query('id') id?: string,
   ) {
     if (!id) id = '';
-
     return await this.manageTeamService.uploadProfile(files, id);
   }
 
