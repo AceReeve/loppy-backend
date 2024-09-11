@@ -7,6 +7,7 @@ import { InviteUserDTO } from 'src/app/dto/user';
 
 export abstract class AbstractManageTeamRepository {
   abstract createTeam(createTeamDTO: CreateTeamDTO): Promise<any>;
+  abstract updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any>;
   // abstract inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any>;
   abstract inviteMember(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract getAllTeam(): Promise<any>;
@@ -18,6 +19,7 @@ export abstract class AbstractManageTeamRepository {
 
 export abstract class AbstractManageTeamService {
   abstract createTeam(createTeamDTO: CreateTeamDTO): Promise<any>;
+  abstract updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any>;
   // abstract inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any>;
   abstract inviteMember(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract getAllTeam(): Promise<any>;

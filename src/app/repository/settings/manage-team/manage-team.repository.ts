@@ -159,11 +159,11 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
     // Fetch details of invited team members
     const { users, userInfos } = await this.userRepository.findUsersByIds(
-      createTeamDTO.team_member,
+      createTeamDTO.team_members,
     );
 
     // Check if all team members exist
-    if (users.length !== createTeamDTO.team_member.length) {
+    if (users.length !== createTeamDTO.team_members.length) {
       throw new BadRequestException('One or more team members not found');
     }
 
@@ -198,6 +198,61 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     });
 
     return newTeam;
+  }
+  async updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+    // Fetch existing team
+    const existingTeam = await this.teamModel.findOne({
+      _id: new Types.ObjectId(id),
+      created_by: loggedInUser._id,
+    });
+    if (!existingTeam) {
+      throw new BadRequestException(
+        'Team not found or you do not have permission to update this team',
+      );
+    }
+    // Fetch accepted users
+    const acceptedUsers = await this.userRepository.getAcceptedInvitedUser();
+
+    // Create a Set of accepted user IDs for quick lookup
+    const acceptedUserIds = new Set(
+      acceptedUsers.map((user) => user.user_id.toString()),
+    );
+    // Validate and check for duplicates
+    const memberIds = createTeamDTO.team_members || [];
+    const seenMemberIds = new Set<string>();
+    const duplicateIds = new Set<string>();
+    // Validate team member IDs
+    if (createTeamDTO.team_members && createTeamDTO.team_members.length > 0) {
+      for (const memberId of createTeamDTO.team_members) {
+        if (!acceptedUserIds.has(memberId)) {
+          throw new BadRequestException(
+            `User with ID ${memberId} is not an accepted member`,
+          );
+        }
+        if (seenMemberIds.has(memberId)) {
+          duplicateIds.add(memberId);
+        } else {
+          seenMemberIds.add(memberId);
+        }
+      }
+
+      if (duplicateIds.size > 0) {
+        throw new BadRequestException(
+          `Duplicate user IDs found: ${Array.from(duplicateIds).join(', ')}`,
+        );
+      }
+    }
+
+    // Update team details
+    existingTeam.team_members = createTeamDTO.team_members;
+    existingTeam.team = createTeamDTO.team;
+    existingTeam.description = createTeamDTO.description;
+
+    // Save updated team
+    await existingTeam.save();
+
+    return existingTeam;
   }
 
   async getAllTeam(): Promise<any> {
@@ -236,7 +291,6 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
         };
       }),
     );
-
     return teamsWithMemberDetails;
   }
 

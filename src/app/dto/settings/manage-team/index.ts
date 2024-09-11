@@ -74,5 +74,5 @@ export class CreateTeamDTO {
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  team_member?: string[];
+  team_members?: string[];
 }

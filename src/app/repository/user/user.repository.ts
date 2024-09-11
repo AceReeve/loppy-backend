@@ -220,7 +220,8 @@ export class UserRepository implements AbstractUserRepository {
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
     const userDetails = await this.userModel.findById(user.sub);
     const userInfo = await this.userInfoModel.findOne({ user_id: user.sub });
-    return { userDetails, userInfo };
+    const availableSeats = await this.availableSeats();
+    return { userDetails, userInfo, availableSeats };
   }
 
   async getUser(id: string): Promise<any> {
@@ -238,6 +239,18 @@ export class UserRepository implements AbstractUserRepository {
 
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
     const loggedInUser = await this.getLoggedInUserDetails();
+    // Plan validation logic
+    // const allInvitedByUser = await this.invitedUserModel.findOne({
+    //   invited_by: loggedInUser._id,
+
+    // });
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+
+    if (allAcceptedInvitationByUser) {
+      const totalAccepted = allAcceptedInvitationByUser.length;
+
+      await this.userPlanValidation(loggedInUser._id, totalAccepted);
+    }
     // Validate if emails are already invited
     const roles = await Promise.all(
       inviteUserDTO.users.map(({ role }) =>
@@ -549,23 +562,29 @@ export class UserRepository implements AbstractUserRepository {
 
   async userPlanValidation(id: string, totalInvited: number) {
     const getPlan = await this.stripeEventModel.findOne({ user_id: id });
-    if (
-      getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN &&
-      totalInvited === 2
-    ) {
+    if (getPlan) {
+      if (
+        getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN &&
+        totalInvited === 2
+      ) {
+        throw new BadRequestException(
+          'The maximum number of users allowed by the subscription plan(2) has been reached. Please contact the account owner to upgrade.',
+        );
+      }
+      if (
+        getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN &&
+        totalInvited === 5
+      ) {
+        throw new BadRequestException(
+          'The maximum number of users allowed by the subscription plan(5) has been reached. Please contact the account owner to upgrade.',
+        );
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
+      }
+    } else {
       throw new BadRequestException(
-        'You have reached the maximum number of users allowed by your subscription(2). Please upgrade your plan.',
+        'No active subscription plan found. Please subscribe to a plan.',
       );
-    }
-    if (
-      getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN &&
-      totalInvited === 5
-    ) {
-      throw new BadRequestException(
-        'You have reached the maximum number of users allowed by your subscription(5). Please upgrade your plan.',
-      );
-    }
-    if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
     }
   }
 
@@ -666,6 +685,43 @@ export class UserRepository implements AbstractUserRepository {
     return userWeatherforecast;
   }
 
+  async availableSeats(): Promise<any> {
+    const loggedInUser = await this.getLoggedInUserDetails();
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+    const totalAccepted = allAcceptedInvitationByUser.length;
+
+    const getPlan = await this.stripeEventModel.findOne({
+      user_id: loggedInUser._id,
+    });
+    if (getPlan) {
+      if (getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN) {
+        return {
+          max_seats: 2,
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.ESSENTIAL_PLAN,
+        };
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN) {
+        return {
+          max_seats: 5,
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.PROFESSIONAL_PLAN,
+        };
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
+        return {
+          max_seats: 'unlimited',
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.CORPORATE_PLAN,
+        };
+      }
+    } else {
+      return {
+        message:
+          'No active subscription plan found. Please subscribe to a plan.',
+      };
+    }
+  }
   async invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
     token: string,
@@ -683,6 +739,17 @@ export class UserRepository implements AbstractUserRepository {
     if (user.email !== invitedUserRegistrationDTO.email) {
       throw new BadRequestException(
         'Unable to Register, Inputted email is not matched to the decoded token',
+      );
+    }
+
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+
+    if (allAcceptedInvitationByUser) {
+      const totalAccepted = allAcceptedInvitationByUser.length;
+
+      await this.userPlanValidation(
+        isInvited.invited_by.toString(),
+        totalAccepted,
       );
     }
 

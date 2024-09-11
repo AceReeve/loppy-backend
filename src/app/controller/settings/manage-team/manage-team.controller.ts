@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Param,
+  Put,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { AdminAuthGuard, JwtAuthGuard } from 'src/app/guard/auth';
@@ -9,10 +17,14 @@ import {
 } from 'src/app/dto/settings/manage-team';
 import { AbstractManageTeamService } from 'src/app/interface/settings/manage-team';
 import { InviteUserDTO } from 'src/app/dto/user';
+import { UserRepository } from 'src/app/repository/user/user.repository';
 @ApiTags('Manage Team')
 @Controller('manage-team')
 export class ManageTeamController {
-  constructor(private readonly manageTeamService: AbstractManageTeamService) {}
+  constructor(
+    private readonly manageTeamService: AbstractManageTeamService,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   @UseGuards(AdminAuthGuard)
   @Post('team')
@@ -20,6 +32,17 @@ export class ManageTeamController {
   @ApiOperation({ summary: 'Create Team' })
   async createTeam(@Body() createTeamDTO: CreateTeamDTO): Promise<any> {
     return this.manageTeamService.createTeam(createTeamDTO);
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Put('team/:id')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Update Team' })
+  async updateTeam(
+    @Param('id') id: string,
+    @Body() createTeamDTO: CreateTeamDTO,
+  ): Promise<any> {
+    return this.manageTeamService.updateTeam(createTeamDTO, id);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -68,5 +91,13 @@ export class ManageTeamController {
   @ApiOperation({ summary: 'List of All Role' })
   async getAllRole(@Param('team_id') team_id: string): Promise<any> {
     return this.manageTeamService.getAllRole(team_id);
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Get('available-seats')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Available Seats' })
+  async getAvailableSeats(): Promise<any> {
+    return this.userRepository.availableSeats();
   }
 }
