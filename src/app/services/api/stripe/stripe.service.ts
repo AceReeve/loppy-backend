@@ -129,23 +129,49 @@ export class StripeService {
     try {
       let subscription;
       let activeFlag = false;
+      let incompleteFlag = false;
+      let subscriptionId;
       if (Object.keys(this.pricesEnum).includes(stripeSubscriptionDTO.type)) {
         const listOfSubscriptions = await this.stripe.subscriptions.list({
           customer: customerCreated.id,
         });
         if (listOfSubscriptions !== null && (listOfSubscriptions.data !== null && listOfSubscriptions.data.length !== 0)) {
           for (const subscriptionDataList of listOfSubscriptions.data) {
-            for (const subscriptionData of subscriptionDataList.items.data) {
-              if (subscriptionData.plan.id === this.pricesEnum[stripeSubscriptionDTO.type] && subscriptionData.plan.active === true) {
-                activeFlag = true;
+            if (subscriptionDataList.status === "active") {
+              for (const subscriptionData of subscriptionDataList.items.data) {
+                if (subscriptionData.plan.id === this.pricesEnum[stripeSubscriptionDTO.type] && subscriptionData.plan.active === true) {
+                  activeFlag = true;
+                }
               }
+            } else if (subscriptionDataList.status === "incomplete") {
+              incompleteFlag = true;
+              subscriptionId = subscriptionDataList.id;
             }
           }
         }
 
         if (activeFlag) {
           throw new BadRequestException('There is already an active subscription with this plan');
-        } else {
+        } else if (incompleteFlag) {
+          const retrieveSubscription = await this.stripe.subscriptions.retrieve(
+            subscriptionId
+          );
+          subscription = await this.stripe.subscriptions.update(
+            subscriptionId,
+            {
+              items: [
+                {
+                  id: retrieveSubscription.items.data[0].id,
+                  price: this.pricesEnum[stripeSubscriptionDTO.type]
+                }
+              ],
+              payment_behavior: 'default_incomplete',
+              payment_settings: { save_default_payment_method: 'on_subscription' },
+              expand: ['latest_invoice.payment_intent'],
+            }
+          );
+        }
+        else {
           subscription = await this.stripe.subscriptions.create({
             customer: customerCreated.id,
             items: [
