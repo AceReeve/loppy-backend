@@ -29,6 +29,9 @@ export class WorkFlowFolder implements GenericSchema {
 
   @Prop({ type: Date })
   updated_at?: Date;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'WorkFlowFolder' })
+  folder_id?: MongooseSchema.Types.ObjectId;
 }
 
 export const WorkFlowFolderSchema =

@@ -243,7 +243,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
   }
 
   //folder
-  async folder(name: string): Promise<any> {
+  async folder(name: string, id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const validateFolderName = await this.workFlowFolderModel.findOne({
       name: name,
@@ -253,100 +253,136 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     if (validateFolderName) {
       throw new Error(`folder  ${name} is already exist `);
     }
-    const createWorkFlowFolder = new this.workFlowFolderModel({
-      name: name,
-      created_by: user._id,
-      type: WorkFlowType.FOLDER,
-    });
+    let createWorkFlowFolder: any;
+    if (id) {
+      const validateFolderName = await this.workFlowFolderModel.findOne({
+        _id: new Types.ObjectId(id),
+      });
+      if (!validateFolderName) {
+        throw new Error(`folder ID not found `);
+      }
+      createWorkFlowFolder = new this.workFlowFolderModel({
+        name: name,
+        created_by: user._id,
+        type: WorkFlowType.FOLDER,
+        folder_id: validateFolderName._id,
+      });
+    } else {
+      createWorkFlowFolder = new this.workFlowFolderModel({
+        name: name,
+        created_by: user._id,
+        type: WorkFlowType.FOLDER,
+      });
+    }
+
     return await createWorkFlowFolder.save();
   }
 
-  async getAllFolder(): Promise<any> {
+  async getAllFolder(id: string): Promise<any> {
     try {
       const user = await this.userRepository.getLoggedInUserDetails();
 
-      // Fetch folders created by the logged-in user
-      const folders = await this.workFlowFolderModel
-        .find({
-          created_by: user._id,
-          status: { $ne: WorkFlowStatus.DELETED },
-        })
-        .exec();
+      if (id) {
+        const folders = await this.workFlowFolderModel
+          .findOne({
+            created_by: user._id,
+            status: { $ne: WorkFlowStatus.DELETED },
+          })
+          .exec();
 
-      // For each folder, fetch the associated workflows
-      const foldersWithWorkflows = await Promise.all(
-        folders.map(async (folder) => {
-          const workflows = await this.workFlowModel
-            .find({
-              folder_id: folder._id,
-              status: { $ne: WorkFlowStatus.DELETED },
-            })
-            .exec();
+        return {
+          _id: folders._id,
+          type: folders.type,
+          name: folders.name,
+          created_by: folders.created_by,
+          status: folders.status,
+          created_at: folders.created_at,
+          updated_at: folders.updated_at,
+        };
+      } else {
+        // Fetch folders created by the logged-in user
+        const folders = await this.workFlowFolderModel
+          .find({
+            created_by: user._id,
+            status: { $ne: WorkFlowStatus.DELETED },
+          })
+          .exec();
 
-          // Format workflows associated with the folder
-          const formattedWorkflows = workflows.map((workflow) => ({
+        // For each folder, fetch the associated workflows
+        const foldersWithWorkflows = await Promise.all(
+          folders.map(async (folder) => {
+            const workflows = await this.workFlowModel
+              .find({
+                folder_id: folder._id,
+                status: { $ne: WorkFlowStatus.DELETED },
+              })
+              .exec();
+
+            // Format workflows associated with the folder
+            const formattedWorkflows = workflows.map((workflow) => ({
+              _id: workflow._id,
+              type: workflow.type,
+              work_flow_name: workflow.name,
+              created_by: workflow.created_by,
+              status: workflow.status,
+              created_at: workflow.created_at,
+              updated_at: workflow.updated_at,
+            }));
+
+            // Return folder without `workflows` array, as it's flattened
+            return [
+              {
+                _id: folder._id,
+                name: folder.name || 'no name',
+                created_by: folder.created_by,
+                status: folder.status,
+                created_at: folder.created_at,
+                type: folder.type || 'Folder',
+                updated_at: folder.updated_at,
+              },
+              ...formattedWorkflows.map((workflow) => ({
+                _id: workflow._id,
+                name: workflow.work_flow_name || 'no name', // Assuming you want to maintain folder reference
+                created_by: workflow.created_by,
+                status: workflow.status,
+                created_at: workflow.created_at,
+                type: folder.type || 'Workflow',
+                updated_at: workflow.updated_at,
+              })),
+            ];
+          }),
+        );
+
+        // Flatten the result
+        const flattenedFoldersWithWorkflows = foldersWithWorkflows.flat();
+
+        // Fetch workflows that are not in any folder
+        const workflowsWithoutFolder = await this.workFlowModel
+          .find({
+            folder_id: { $exists: false },
+            status: { $ne: WorkFlowStatus.DELETED },
+          })
+          .exec();
+
+        // Format the workflows without folder
+        const formattedWorkflowsWithoutFolder = workflowsWithoutFolder.map(
+          (workflow) => ({
             _id: workflow._id,
-            type: workflow.type,
-            work_flow_name: workflow.name,
+            type: workflow.type || 'Workflow',
+            name: workflow.name || 'no name',
             created_by: workflow.created_by,
             status: workflow.status,
             created_at: workflow.created_at,
             updated_at: workflow.updated_at,
-          }));
+          }),
+        );
 
-          // Return folder without `workflows` array, as it's flattened
-          return [
-            {
-              _id: folder._id,
-              name: folder.name || 'no name',
-              created_by: folder.created_by,
-              status: folder.status,
-              created_at: folder.created_at,
-              type: folder.type || 'Folder',
-              updated_at: folder.updated_at,
-            },
-            ...formattedWorkflows.map((workflow) => ({
-              _id: workflow._id,
-              name: workflow.work_flow_name || 'no name', // Assuming you want to maintain folder reference
-              created_by: workflow.created_by,
-              status: workflow.status,
-              created_at: workflow.created_at,
-              type: folder.type || 'Workflow',
-              updated_at: workflow.updated_at,
-            })),
-          ];
-        }),
-      );
-
-      // Flatten the result
-      const flattenedFoldersWithWorkflows = foldersWithWorkflows.flat();
-
-      // Fetch workflows that are not in any folder
-      const workflowsWithoutFolder = await this.workFlowModel
-        .find({
-          folder_id: { $exists: false },
-          status: { $ne: WorkFlowStatus.DELETED },
-        })
-        .exec();
-
-      // Format the workflows without folder
-      const formattedWorkflowsWithoutFolder = workflowsWithoutFolder.map(
-        (workflow) => ({
-          _id: workflow._id,
-          type: workflow.type || 'Workflow',
-          name: workflow.name || 'no name',
-          created_by: workflow.created_by,
-          status: workflow.status,
-          created_at: workflow.created_at,
-          updated_at: workflow.updated_at,
-        }),
-      );
-
-      // Combine both folders with workflows and workflows without folders
-      return [
-        ...flattenedFoldersWithWorkflows,
-        ...formattedWorkflowsWithoutFolder,
-      ];
+        // Combine both folders with workflows and workflows without folders
+        return [
+          ...flattenedFoldersWithWorkflows,
+          ...formattedWorkflowsWithoutFolder,
+        ];
+      }
     } catch (error) {
       throw new Error(
         'Error fetching workflow folders and their workflows: ' + error.message,
