@@ -249,6 +249,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       name: name,
       created_by: user._id,
       status: WorkFlowStatus.ACTIVE,
+      folder_id: { $exists: false },
     });
     if (validateFolderName) {
       throw new Error(`folder  ${name} is already exist `);
@@ -287,6 +288,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           .findOne({
             created_by: user._id,
             status: { $ne: WorkFlowStatus.DELETED },
+            folder_id: { $exists: false },
           })
           .exec();
 
@@ -305,6 +307,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           .find({
             created_by: user._id,
             status: { $ne: WorkFlowStatus.DELETED },
+            folder_id: { $exists: false },
           })
           .exec();
 
