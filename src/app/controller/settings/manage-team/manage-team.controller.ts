@@ -12,6 +12,7 @@ import {
   Res,
   StreamableFile,
   UploadedFiles,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -86,6 +87,17 @@ export class ManageTeamController {
   @ApiOperation({ summary: 'Invite User' })
   async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
     return this.manageTeamService.inviteMember(inviteUserDTO);
+  }
+
+  @UseGuards(AdminAuthGuard)
+  @Delete('team-member/:teamId/:memberId')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Delete Team Member' })
+  async deleteTeamMember(
+    @Param('teamId') teamId: string,
+    @Param('memberId') memberId: string,
+  ): Promise<any> {
+    return this.manageTeamService.deleteTeamMember(teamId, memberId);
   }
 
   @UseGuards(AdminAuthGuard)

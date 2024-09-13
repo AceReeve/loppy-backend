@@ -35,6 +35,10 @@ export class ManageTeamService implements AbstractManageTeamService {
     return await this.repository.inviteMember(inviteMemberDTO);
   }
 
+  async deleteTeamMember(teamId: string, memberId: string): Promise<any> {
+    return await this.repository.deleteTeamMember(teamId, memberId);
+  }
+
   async createTeam(createTeamDTO: CreateTeamDTO): Promise<any> {
     return await this.repository.createTeam(createTeamDTO);
   }
