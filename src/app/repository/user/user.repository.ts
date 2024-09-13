@@ -734,6 +734,7 @@ export class UserRepository implements AbstractUserRepository {
     if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
     }
+    console.log('email logs', invitedUserRegistrationDTO.email);
     if (user.email !== invitedUserRegistrationDTO.email) {
       throw new BadRequestException(
         'Unable to Register, Inputted email is not matched to the decoded token',
