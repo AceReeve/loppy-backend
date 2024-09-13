@@ -4,6 +4,7 @@ import {
   Inject,
   StreamableFile,
   InternalServerErrorException,
+  ConsoleLogger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
@@ -600,10 +601,16 @@ export class UserRepository implements AbstractUserRepository {
         invited_by: user._id,
       })
       .exec();
+    console.log('logs 2:', invitedUser);
+    console.log('user:', user);
+
     if (invitedUser) {
+      console.log('logs 1:', invitedUser);
       const acceptedUsers = invitedUser.users.filter(
         (user) => user.status === 'Accepted',
       );
+      console.log('logs 2:', acceptedUsers);
+
       return acceptedUsers;
     }
 
