@@ -285,22 +285,41 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
       if (id) {
         const folders = await this.workFlowFolderModel
-          .findOne({
+          .find({
+            folder_id: new Types.ObjectId(id),
             created_by: user._id,
             status: { $ne: WorkFlowStatus.DELETED },
-            folder_id: { $exists: false },
           })
           .exec();
 
-        return {
-          _id: folders._id,
-          type: folders.type,
-          name: folders.name,
-          created_by: folders.created_by,
-          status: folders.status,
-          created_at: folders.created_at,
-          updated_at: folders.updated_at,
-        };
+        const workflows = await this.workFlowModel
+          .find({
+            folder_id: new Types.ObjectId(id),
+            created_by: user._id,
+            status: { $ne: WorkFlowStatus.DELETED },
+          })
+          .exec();
+
+        const formattedWorkflowsFolder = folders.map((folder) => ({
+          _id: folder._id,
+          type: folder.type || 'Folder',
+          name: folder.name || 'no name',
+          created_by: folder.created_by,
+          status: folder.status,
+          created_at: folder.created_at,
+          updated_at: folder.updated_at,
+        }));
+        const formattedWorkflows = workflows.map((workflow) => ({
+          _id: workflow._id,
+          type: workflow.type || 'Workflow',
+          name: workflow.name || 'no name',
+          created_by: workflow.created_by,
+          status: workflow.status,
+          created_at: workflow.created_at,
+          updated_at: workflow.updated_at,
+        }));
+
+        return [...formattedWorkflowsFolder, ...formattedWorkflows];
       } else {
         // Fetch folders created by the logged-in user
         const folders = await this.workFlowFolderModel
