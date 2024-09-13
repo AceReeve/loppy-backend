@@ -740,27 +740,35 @@ export class UserRepository implements AbstractUserRepository {
         'Unable to Register, Inputted email is not matched to the decoded token',
       );
     }
-
+    console.log('1');
     const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+    console.log('2');
 
     if (allAcceptedInvitationByUser) {
       const totalAccepted = allAcceptedInvitationByUser.length;
+      console.log('3');
 
       await this.userPlanValidation(
         isInvited.invited_by.toString(),
         totalAccepted,
       );
     }
+    console.log('4');
 
     // Find the specific email entry within the emails array
     const emailEntry = isInvited.users.find(
       (email) => email.email === user.email,
     );
+    console.log('5');
+
     let role: any;
     if (emailEntry && emailEntry.role) {
+      console.log('6');
+
       role = await this.roleDocumentModel.findOne({
         _id: emailEntry.role,
       });
+      console.log('7');
 
       if (!role) {
         throw new BadRequestException('Role does not exist!');
@@ -768,14 +776,18 @@ export class UserRepository implements AbstractUserRepository {
     } else {
       throw new BadRequestException('Role not found for the given email.');
     }
+    console.log('8');
 
     // Confirm passwords match
     const isverified = await this.otpModel.findOne({
       email: user.email,
     });
+    console.log('9');
+
     if (!isverified || isverified.verified_email != true) {
       throw new BadRequestException('Email is not yet Verified');
     }
+    console.log('a');
 
     //   throw new BadRequestException('Password Does Not Match');
     const isExisting = await this.userModel.findOne({ email: user.email });
@@ -783,12 +795,16 @@ export class UserRepository implements AbstractUserRepository {
     if (isExisting) {
       throw new BadRequestException('User is already Existing');
     }
+    console.log('b');
+
     const newUser = await this.userModel.create({
       email: user.email,
       role: role,
       password: invitedUserRegistrationDTO.password,
       login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
     });
+    console.log('c');
+
     if (!newUser) throw new BadRequestException('error registration user');
     const userInvited = await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
@@ -801,10 +817,13 @@ export class UserRepository implements AbstractUserRepository {
       },
       { new: true },
     );
+    console.log('d');
 
     const invitedUserData = userInvited.users.find(
       (data: any) => data.email === user.email,
     );
+    console.log('e');
+
     const updateTeam = await this.teamModel.findOneAndUpdate(
       { _id: invitedUserData.team },
       {
@@ -813,6 +832,7 @@ export class UserRepository implements AbstractUserRepository {
         },
       },
     );
+    console.log('f');
 
     return { newUser };
   }
