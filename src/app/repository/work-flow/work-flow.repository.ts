@@ -307,6 +307,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           .find({
             created_by: user._id,
             status: { $ne: WorkFlowStatus.DELETED },
+            folder_id: { $exists: false },
           })
           .exec();
 
