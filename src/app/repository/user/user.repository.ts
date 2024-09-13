@@ -594,23 +594,35 @@ export class UserRepository implements AbstractUserRepository {
     });
     return invitedUser;
   }
+  async getAcceptedInvitedUserForUserRegistrationValidation(
+    email?: string,
+  ): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel
+      .findOne({
+        'users.email': email,
+      })
+      .exec();
+    if (invitedUser) {
+      const acceptedUsers = invitedUser.users.filter(
+        (user) => user.status === 'Accepted',
+      );
+      return acceptedUsers;
+    }
+
+    return [];
+  }
   async getAcceptedInvitedUser(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel
       .findOne({
-        invited_by: user._id,
+        users: user._id,
       })
       .exec();
-    console.log('logs 2:', invitedUser);
-    console.log('user:', user);
-
     if (invitedUser) {
-      console.log('logs 1:', invitedUser);
       const acceptedUsers = invitedUser.users.filter(
         (user) => user.status === 'Accepted',
       );
-      console.log('logs 2:', acceptedUsers);
-
       return acceptedUsers;
     }
 
@@ -748,7 +760,10 @@ export class UserRepository implements AbstractUserRepository {
       );
     }
     console.log('1');
-    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+    const allAcceptedInvitationByUser =
+      await this.getAcceptedInvitedUserForUserRegistrationValidation(
+        invitedUserRegistrationDTO.email,
+      );
     console.log('2');
 
     if (allAcceptedInvitationByUser) {
