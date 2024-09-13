@@ -32,6 +32,7 @@ export abstract class AbstractMessagingTwilioRepository {
   ): Promise<any>;
   abstract getCred(password: string): Promise<any>;
   abstract getTwilioAccessToken(id: string): Promise<any>;
+  abstract getPurchasedNumber(id: string): Promise<any>;
 }
 
 export abstract class AbstractMessagingTwilioService {
@@ -62,4 +63,5 @@ export abstract class AbstractMessagingTwilioService {
   ): Promise<any>;
   abstract getCred(password: string): Promise<any>;
   abstract getTwilioAccessToken(id: string): Promise<any>;
+  abstract getPurchasedNumber(id: string): Promise<any>;
 }

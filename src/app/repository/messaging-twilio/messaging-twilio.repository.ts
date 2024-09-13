@@ -221,49 +221,6 @@ export class MessagingTwilioRepository
       throw new Error(`Failed to fetch available numbers: ${error.message}`);
     }
   }
-
-  // async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
-  //   try {
-  //     const user = await this.userRepository.getLoggedInUserDetails();
-  //     const organization = await this.twilioOrganizationModel.findOne({
-  //       _id: new Types.ObjectId(organization_id),
-  //     });
-
-  //     if (!organization) {
-  //       throw new Error(`Organization with the ID: ${organization_id} not found`);
-  //     }
-
-  //     const twilio_account_sid = decrypt(organization.twilio_account_sid);
-  //     const twilio_auth_token = decrypt(organization.twilio_auth_token);
-  //     console.log('Decrypted Twilio Account SID:', twilio_account_sid);
-  //     console.log('Decrypted Twilio Auth Token:', twilio_auth_token);
-
-  //     const subAccountClient = new Twilio(twilio_account_sid, twilio_auth_token);
-
-  //     try {
-  //       console.log('1')
-
-  //       const purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({ phoneNumber });
-  //       console.log('purchasedNumber',purchasedNumber)
-  //       const purchaseNumber = new this.twilioNumberModel({
-  //         purchased_number: purchasedNumber.phoneNumber,
-  //         organization_id: organization._id,
-  //         created_by: user._id,
-  //         status: OrganizationStatus.ACTIVE,
-  //       });
-
-  //       return await purchaseNumber.save();
-  //     } catch (twilioError) {
-  //       console.error('Twilio API Error:', twilioError);
-  //       throw new Error(`Failed to purchase number from Twilio: ${twilioError.message}`);
-  //     }
-
-  //   } catch (error) {
-  //     console.error('Error in buyNumber function:', error);
-  //     throw new Error(`Failed to purchase number: ${error.message}`);
-  //   }
-  // }
-
   async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const organization = await this.twilioOrganizationModel.findOne({
@@ -274,16 +231,20 @@ export class MessagingTwilioRepository
       throw new Error(`Organization with the ID: ${organization_id} not found`);
     }
 
-    const twilio_account_sid = decrypt(organization.twilio_account_sid);
-    const twilio_auth_token = decrypt(organization.twilio_auth_token);
+    const decryptedSid = decrypt(organization.twilio_account_sid);
+    const decryptedAuthToken = decrypt(organization.twilio_auth_token);
+
+    const twilio_account_sid =
+      process.env.TEST_TWILIO_ACCOUNT_SID || decryptedSid;
+
     const subAccount = await this.twilioClient.api
-      .accounts(twilio_account_sid)
+      .accounts(decryptedSid)
       .fetch();
+
+    const twilio_auth_token =
+      process.env.TEST_TWILIO_AUTH_TOKEN || subAccount.authToken;
     // Initialize a new Twilio client with the decrypted credentials
-    const subAccountClient = new Twilio(
-      twilio_account_sid,
-      subAccount.authToken,
-    );
+    const subAccountClient = new Twilio(twilio_account_sid, twilio_auth_token);
 
     try {
       const purchasedNumber =
@@ -351,11 +312,9 @@ export class MessagingTwilioRepository
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
-    console.log('inbox_id', inbox_id);
     const result = await this.inboxModel.findOne({
       _id: new Types.ObjectId(inbox_id),
     });
-    console.log('result', result);
 
     if (!result) {
       throw new Error(`inbox with the ID: ${inbox_id} not found `);
@@ -460,5 +419,11 @@ export class MessagingTwilioRepository
 
     token.addGrant(chatGrant);
     return token.toJwt();
+  }
+
+  async getPurchasedNumber(id: string): Promise<any> {
+    return await this.twilioNumberModel.find({
+      organization_id: new Types.ObjectId(id),
+    });
   }
 }

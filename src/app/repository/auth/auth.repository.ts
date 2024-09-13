@@ -97,7 +97,7 @@ export class AuthRepository {
 
   async googleSave(googleSaveDTO: GoogleSaveDTO) {
     const data = await this.userModel.findOne({ email: googleSaveDTO.email });
-    await this.verifyToken(
+    const verifyToken = await this.verifyToken(
       googleSaveDTO.email,
       googleSaveDTO.first_name,
       googleSaveDTO.last_name,
@@ -106,6 +106,7 @@ export class AuthRepository {
     const role = await this.roleModel.findOne({
       role_name: DefaultUserRole.OWNER,
     });
+
     if (data) {
       if (data.login_by !== SignInBy.SIGN_IN_BY_GOOGLE) {
         throw new Error(
@@ -121,7 +122,6 @@ export class AuthRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-
       return { userData, access_token };
     } else {
       const userData = await this.userModel.create({
@@ -130,6 +130,7 @@ export class AuthRepository {
         role: role,
         login_count: 1,
       });
+
       const userInfo = await this.userInfoModel.create({
         user_id: userData._id,
         first_name: googleSaveDTO.first_name,
@@ -163,19 +164,19 @@ export class AuthRepository {
         if (userDetails.email !== email) {
           throw new UnauthorizedException('Invalid email');
         }
-        const userInfoDetails = await this.userInfoModel.findOne({
-          user_id: userDetails._id,
-        });
-        if (userInfoDetails) {
-          // Validate first name
-          if (userInfoDetails.first_name !== first_name) {
-            throw new UnauthorizedException('Invalid first name');
-          }
-          // Validate last name
-          if (userInfoDetails.last_name !== last_name) {
-            throw new UnauthorizedException('Invalid last name');
-          }
-        }
+        // const userInfoDetails = await this.userInfoModel.findOne({
+        //   user_id: userDetails._id,
+        // });
+        // if (userInfoDetails) {
+        //   // Validate first name
+        //   if (userInfoDetails.first_name !== first_name) {
+        //     throw new UnauthorizedException('Invalid first name');
+        //   }
+        //   // Validate last name
+        //   if (userInfoDetails.last_name !== last_name) {
+        //     throw new UnauthorizedException('Invalid last name');
+        //   }
+        // }
       }
 
       return decoded;

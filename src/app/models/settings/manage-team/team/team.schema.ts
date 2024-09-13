@@ -28,5 +28,8 @@ export class Team implements GenericSchema {
 
   @Prop({ type: Date })
   updated_at: Date;
+
+  @Prop({ type: Object })
+  profile?: any;
 }
 export const TeamSchema = SchemaFactory.createForClass(Team);

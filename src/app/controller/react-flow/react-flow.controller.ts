@@ -36,8 +36,17 @@ export class WorkFlowController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async workflow(@Query('id') id: string, @Body() dto: CreateWorkflowDto) {
-    return this.service.workFlow(id, dto);
+  @ApiQuery({
+    name: 'template_id',
+    description: 'template_id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async workflow(
+    @Query('id') id: string,
+    @Query('template_id') template_id: string,
+  ) {
+    return this.service.workFlow(id, template_id);
   }
 
   @Put('workflow')
@@ -142,17 +151,17 @@ export class WorkFlowController {
     return this.service.getFolderById(id);
   }
 
-  @Put('folder/:id')
-  @ApiOperation({ summary: 'Update folder by ID' })
+  @Put('/:id')
+  @ApiOperation({ summary: 'Update folder or Workflow by ID' })
   @ApiQuery({
     name: 'id',
-    description: 'Update folder By ID',
+    description: 'Update folder or Workflow By ID',
     example: '66b462060e61af2e685d6e55',
     required: true,
   })
   @ApiQuery({
     name: 'name',
-    description: 'Update folder By ID',
+    description: 'Update folder or Workflow By ID',
     example: 'My WorkFlows',
     required: true,
   })
