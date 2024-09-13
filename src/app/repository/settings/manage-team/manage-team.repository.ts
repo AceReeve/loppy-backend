@@ -304,6 +304,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
           created_by: team.created_by,
           created_at: team.created_at,
           updated_at: team.updated_at,
+          profile: team.profile,
           team_members: teamMembers,
         };
       }),
@@ -345,6 +346,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       created_by: team.created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
+      profile: team.profile,
       team_members: teamMembers,
       overview: {
         members: totalMembers,
