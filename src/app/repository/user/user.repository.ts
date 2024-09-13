@@ -595,9 +595,9 @@ export class UserRepository implements AbstractUserRepository {
     return invitedUser;
   }
   async getAcceptedInvitedUserForUserRegistrationValidation(
-    email?: string,
+    email: string,
   ): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+    // const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel
       .findOne({
         'users.email': email,
