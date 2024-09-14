@@ -12,6 +12,7 @@ export abstract class AbstractManageTeamRepository {
   abstract updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any>;
   // abstract inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any>;
   abstract inviteMember(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract deleteTeamMember(teamId: string, memberId: string): Promise<any>;
   abstract getAllTeam(): Promise<any>;
   abstract getTeam(id: string): Promise<any>;
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;
@@ -35,6 +36,7 @@ export abstract class AbstractManageTeamService {
   abstract updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any>;
   // abstract inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any>;
   abstract inviteMember(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract deleteTeamMember(teamId: string, memberId: string): Promise<any>;
   abstract getAllTeam(): Promise<any>;
   abstract getTeam(id: string): Promise<any>;
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;

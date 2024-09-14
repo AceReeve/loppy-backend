@@ -129,14 +129,26 @@ export class WorkFlowController {
     example: 'my flows',
     required: true,
   })
-  async folder(@Query('name') name: string) {
-    return this.service.folder(name);
+  @ApiQuery({
+    name: 'id',
+    description: 'folder id',
+    example: 'folder id',
+    required: false,
+  })
+  async folder(@Query('name') name: string, @Query('id') id: string) {
+    return this.service.folder(name, id);
   }
 
   @Get('folders')
   @ApiOperation({ summary: 'List of folder' })
-  async getAllFolder() {
-    return this.service.getAllFolder();
+  @ApiQuery({
+    name: 'id',
+    description: 'folder id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async getAllFolder(@Query('id') id: string) {
+    return this.service.getAllFolder(id);
   }
 
   @Get('folder/:id')
