@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
+import { WorkFlowStatus } from 'src/app/const/action';
 
 export type WorkFlowFolderDocument = WorkFlowFolder & Document;
 @Schema({
@@ -12,10 +13,25 @@ export class WorkFlowFolder implements GenericSchema {
   _id: string;
 
   @Prop()
-  folder_name: string;
+  name: string;
+
+  @Prop()
+  type: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   created_by: MongooseSchema.Types.ObjectId;
+
+  @Prop({ default: WorkFlowStatus.ACTIVE })
+  status: string;
+
+  @Prop({ type: Date })
+  created_at?: Date;
+
+  @Prop({ type: Date })
+  updated_at?: Date;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'WorkFlowFolder' })
+  folder_id?: MongooseSchema.Types.ObjectId;
 }
 
 export const WorkFlowFolderSchema =

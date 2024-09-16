@@ -20,7 +20,7 @@ import {
   IsDateString,
   Validate,
 } from 'class-validator';
-import { Schema } from 'mongoose';
+import { ObjectId, Schema } from 'mongoose';
 import { CommonFilter } from '..';
 
 export class UserLoginDTO {
@@ -178,17 +178,21 @@ class EmailRole {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'role_id' })
+  @ApiProperty({ example: 'role' })
   @IsNotEmpty()
   role: string;
+
+  @ApiProperty({ example: 'team_id' })
+  @IsOptional()
+  team?: ObjectId;
 }
 
 export class InviteUserDTO {
   @ApiProperty({
     type: [EmailRole],
     example: [
-      { email: 'example@gmail.com', role: 'Manager' },
-      { email: 'example1@gmail.com', role: 'Member' },
+      { email: 'example@gmail.com', role: 'Manager', team: 'FrontEnd Team' },
+      { email: 'example1@gmail.com', role: 'Member', team: 'BackEnd Team ' },
     ],
   })
   @IsNotEmpty()
@@ -201,6 +205,35 @@ export class ResetPasswordDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  current_pasword: string;
+
+  @ApiProperty({ example: 'Password123!' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(32)
+  @Matches(/^\S*$/, {
+    message: 'password must not contain space',
+  })
+  @Matches(/^.*(?=.*[a-z0-9]).*$/, {
+    message: 'password is not a valid string',
+  })
+  @Matches(/^.*(?=.*[a-z]).*$/, {
+    message: 'password must contain at least one lowercase letter',
+  })
+  @Matches(/^.*(?=.*[A-Z]).*$/, {
+    message: 'password must contain at least one uppercase letter',
+  })
+  @Matches(/^.*(?=.*[\d]).*$/, {
+    message: 'password must contain at least one number',
+  })
+  new_password: string;
 }
 
 export class InvitedUserRegistrationDTO {

@@ -33,10 +33,10 @@ export class StripeEvent implements GenericSchema {
   subscriptionPlan?: string;
 
   @Prop()
-  stripeSubscriptionDate?: Number;
+  stripeSubscriptionDate?: string;
 
   @Prop()
-  stripeSubscriptionExpirationDate?: Number;
+  stripeSubscriptionExpirationDate?: string;
 
 
 }

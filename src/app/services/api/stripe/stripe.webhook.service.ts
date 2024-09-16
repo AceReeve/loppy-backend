@@ -1,11 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { StripeDTO } from 'src/app/dto/api/stripe';
 import { StripeEventRepository } from 'src/app/repository/stripe/stripe.event.repository';
 import { UserService } from '../../user/user.service';
-import { Public } from 'src/app/decorators/public.decorator';
-import { UserRepository } from 'src/app/repository/user/user.repository';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class StripeWebhookService {
@@ -40,26 +38,52 @@ export class StripeWebhookService {
 
   async processSubscriptionUpdate(event: Stripe.Event) {
 
-    let data
+    let data;
     let eventType = event.type;
-    let session
-    let userId
+    let session;
+    let userId;
+    let product;
 
     switch (eventType) {
-      case 'checkout.session.completed': {
+
+      case 'payment_intent.succeeded' || 'payment_intent.created': {
         await this.addStripeEvent(event.id);
-        data = event.data as Stripe.CheckoutSessionCompletedEvent;
-        session = await this.stripe.checkout.sessions.retrieve(
-          data.object.id,
-          {
-            expand: ['line_items']
-          }
+        data = event.data as Stripe.PaymentIntent;
+        session = await this.stripe.paymentIntents.retrieve(
+          data.object.id
+        );
+        const customerId = session?.customer as string;
+        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const user = await this.userService.getUserByEmail(customer.email);
+        if (user) {
+          userId = user.userDetails._id;
+          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          this.repository.createUserStripeSubscriptionData(
+            stripeEvent.id,
+            customerId,
+            "",
+            userId,
+            'Payment-Intent',
+            session.status,
+            "",
+            "",
+            ""
+          );
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated' || 'customer.subscription.created': {
+        await this.addStripeEvent(event.id);
+        data = event.data as Stripe.CustomerSubscriptionUpdatedEvent;
+        session = await this.stripe.subscriptions.retrieve(
+          data.object.id
         );
 
         const customerId = session?.customer as string;
         const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
 
-        const priceId = session?.line_items.data[0]?.price.id;
+        const priceId = session?.items.data[0]?.price.id;
 
         const user = await this.userService.getUserByEmail(customer.email);
         if (user) {
@@ -67,17 +91,19 @@ export class StripeWebhookService {
           userId = user.userDetails._id;
 
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            subscriptionPlan = priceId;
+            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            subscriptionPlan = product.name;
           }
+          const stripeEvent = await this.repository.findByStripeEventId(event.id);
           this.repository.createUserStripeSubscriptionData(
-            event.id,
+            stripeEvent.id,
             customerId,
             priceId,
             userId,
             'Subscription',
             session.status,
-            session.created,
-            session.expires_at,
+            new Date(session.current_period_start * 1000).toISOString(),
+            new Date(session.current_period_end * 1000).toISOString(),
             subscriptionPlan);
         }
         break;
@@ -100,17 +126,19 @@ export class StripeWebhookService {
           let subscriptionPlan;
           userId = user.userDetails._id;
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            subscriptionPlan = priceId;
+            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            subscriptionPlan = product.name;
           }
+          const stripeEvent = await this.repository.findByStripeEventId(event.id);
           this.repository.createUserStripeSubscriptionData(
-            event.id,
+            stripeEvent.id,
             customerId,
             priceId,
             userId,
             'Subscription-Canceled',
             session.status,
-            session.created,
-            session.expires_at,
+            new Date(session.current_period_start * 1000).toISOString(),
+            new Date(session.current_period_end * 1000).toISOString(),
             subscriptionPlan);
         }
         break;
@@ -135,20 +163,25 @@ export class StripeWebhookService {
           let subscriptionPlan;
           userId = user.userDetails._id;
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            subscriptionPlan = priceId;
+            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            subscriptionPlan = product.name;
           }
+          const stripeEvent = await this.repository.findByStripeEventId(event.id);
           this.repository.createUserStripeSubscriptionData(
-            event.id,
+            stripeEvent.id,
             customerId,
             priceId,
             userId,
             'Subscription-Expired',
             session.status,
-            session.created,
-            session.expires_at,
+            new Date(session.current_period_start * 1000).toISOString(),
+            new Date(session.current_period_end * 1000).toISOString(),
             subscriptionPlan);
         }
         break;
+      }
+      default: {
+        return;
       }
     }
 
@@ -158,9 +191,37 @@ export class StripeWebhookService {
 
   async getUserStripeData(id: string
   ): Promise<any> {
-
-    const userInfo = await this.userService.findByUserId(id);
-    return await this.repository.findByUserStripeData(userInfo.stripe_id);
+    try {
+      const userInfo = await this.userService.findByUserId(id);
+      const result = await this.repository.findByUserStripeData(userInfo.stripe_id)
+      if (result === null) {
+        throw Error;
+      } else {
+        return result;
+      }
+    } catch (error) {
+      const generateRandomId = (): string => {
+        return uuidv4();
+      };
+      const randomId = generateRandomId();
+      await this.addStripeEvent(randomId);
+      const stripeEvent = await this.repository.findByStripeEventId(randomId);
+      await this.repository.createUserStripeSubscriptionData(
+        stripeEvent.id,
+        "",
+        "",
+        id,
+        "",
+        "inactive",
+        "",
+        "",
+        ""
+      );
+      await this.userService.updateUserStripeId(stripeEvent.stripe_event_id, id);
+      const userInfo = await this.userService.findByUserId(id);
+      return await this.repository.findByUserStripeData(userInfo.stripe_id);
+    }
   }
+
 
 }

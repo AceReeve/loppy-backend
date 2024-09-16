@@ -84,8 +84,6 @@ export class EmailerService {
         ${content}
         `,
       });
-
-      console.log('BirthDay Message sent to', receiver);
     } catch (error) {
       const errorMessage = 'Error BirthDay Mesage';
 

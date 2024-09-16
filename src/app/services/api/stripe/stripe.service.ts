@@ -10,7 +10,7 @@ import {
 } from 'src/app/dto/api/stripe';
 
 import { UserService } from '../../user/user.service';
-import { Query } from 'express-serve-static-core'
+import { StripeEventRepository } from 'src/app/repository/stripe/stripe.event.repository';
 @Injectable()
 export class StripeService {
   private stripe: Stripe
@@ -24,6 +24,7 @@ export class StripeService {
   constructor(
     private configService: ConfigService,
     private userService: UserService,
+    private readonly stripeEventRepository: StripeEventRepository,
   ) {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
@@ -127,18 +128,36 @@ export class StripeService {
 
     try {
       let subscription;
+      let activeFlag = false;
       if (Object.keys(this.pricesEnum).includes(stripeSubscriptionDTO.type)) {
-        subscription = await this.stripe.subscriptions.create({
+        const listOfSubscriptions = await this.stripe.subscriptions.list({
           customer: customerCreated.id,
-          items: [
-            {
-              price: this.pricesEnum[stripeSubscriptionDTO.type]
+        });
+        if (listOfSubscriptions !== null && (listOfSubscriptions.data !== null && listOfSubscriptions.data.length !== 0)) {
+          for (const subscriptionDataList of listOfSubscriptions.data) {
+            for (const subscriptionData of subscriptionDataList.items.data) {
+              if (subscriptionData.plan.id === this.pricesEnum[stripeSubscriptionDTO.type] && subscriptionData.plan.active === true) {
+                activeFlag = true;
+              }
             }
-          ],
-          payment_behavior: 'default_incomplete',
-          payment_settings: { save_default_payment_method: 'on_subscription' },
-          expand: ['latest_invoice.payment_intent'],
-        })
+          }
+        }
+
+        if (activeFlag) {
+          throw new BadRequestException('There is already an active subscription with this plan');
+        } else {
+          subscription = await this.stripe.subscriptions.create({
+            customer: customerCreated.id,
+            items: [
+              {
+                price: this.pricesEnum[stripeSubscriptionDTO.type]
+              }
+            ],
+            payment_behavior: 'default_incomplete',
+            payment_settings: { save_default_payment_method: 'on_subscription' },
+            expand: ['latest_invoice.payment_intent'],
+          })
+        }
       }
       const response = new SubscriptionResponseDTO;
       response.subscriptionId = subscription.id;
@@ -153,14 +172,12 @@ export class StripeService {
 
 
   async customerSubscriptions(
-    query?: Query,
+    userId: string,
   ): Promise<any> {
     try {
-      const subscriptions = await this.stripe.subscriptions.list({
-        customer: String(query.customerId),
-      });
-
-      return subscriptions;
+      const user = await this.userService.getUser(userId);
+      const stripeEvent = await this.stripeEventRepository.findByUserStripeData(user.userInfo.stripe_id);
+      return stripeEvent;
     } catch (e) {
       throw new BadRequestException(e.message);
     }

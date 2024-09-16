@@ -1,15 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AddMemberDTO, InboxesDTO, OrganizationDTO } from 'src/app/dto/messaging-twilio';
 import {
   AbstractMessagingTwilioRepository,
   AbstractMessagingTwilioService,
 } from 'src/app/interface/messaging-twilio';
 
+import {
+  AddMemberDTO,
+  InboxesDTO,
+  OrganizationDTO,
+} from 'src/app/dto/messaging-twilio';
+
 @Injectable()
 export class MessagingTwilioService implements AbstractMessagingTwilioService {
   constructor(private readonly repository: AbstractMessagingTwilioRepository) {}
 
-  async organization(organizationDTO: OrganizationDTO, friendlyName: string): Promise<any> {
+  async organization(
+    organizationDTO: OrganizationDTO,
+    friendlyName: string,
+  ): Promise<any> {
     return await this.repository.organization(organizationDTO, friendlyName);
   }
 
@@ -49,7 +57,23 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     return await this.repository.getOrganizationById(organization_id);
   }
 
-  async addMemberToAnOrganization(organization_id: string, addMemberDTO: AddMemberDTO): Promise<any> {
-    return await this.repository.addMemberToAnOrganization(organization_id, addMemberDTO);
+  async addMemberToAnOrganization(
+    organization_id: string,
+    addMemberDTO: AddMemberDTO,
+  ): Promise<any> {
+    return await this.repository.addMemberToAnOrganization(
+      organization_id,
+      addMemberDTO,
+    );
+  }
+
+  async getCred(password: string): Promise<any> {
+    return await this.repository.getCred(password);
+  }
+  async getTwilioAccessToken(id: string): Promise<any> {
+    return await this.repository.getTwilioAccessToken(id);
+  }
+  async getPurchasedNumber(id: string): Promise<any> {
+    return await this.repository.getPurchasedNumber(id);
   }
 }

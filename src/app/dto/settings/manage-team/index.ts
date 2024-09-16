@@ -74,5 +74,17 @@ export class CreateTeamDTO {
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  team_member: string[];
+  team_members?: string[];
+}
+
+export class DeleteTeamMemberDTO {
+  @ApiProperty({ example: '661f82ee17d9f28f4aecb483' })
+  @IsString()
+  @IsNotEmpty()
+  _id: string;
+
+  @ApiProperty({ example: '661f82ee17d9f28f4aecb483' })
+  @IsString()
+  @IsNotEmpty()
+  team_members: string;
 }

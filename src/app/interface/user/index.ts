@@ -7,12 +7,14 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from 'src/app/dto/user';
 import { StreamableFile } from '@nestjs/common';
 import { Response } from 'express';
 
 export abstract class AbstractUserRepository {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
+  abstract userData(id: string): Promise<any>;
   abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
   abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
   abstract getUser(id: string): Promise<any>;
@@ -48,7 +50,8 @@ export abstract class AbstractUserRepository {
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
   abstract getMember(): Promise<any>;
-
+  abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
+  abstract getAcceptedInvitedUser(): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -65,6 +68,7 @@ export abstract class AbstractUserService {
   abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract cancelInviteUser(email: string): Promise<any>;
   abstract getInvitedUser(): Promise<any>;
+  abstract getAcceptedInvitedUser(): Promise<any>;
   abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
@@ -89,6 +93,7 @@ export abstract class AbstractUserService {
     token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
+  abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
 }
 export interface RegisterResponseData {
   _id: string;

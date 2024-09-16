@@ -1,17 +1,12 @@
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
-  ApiQuery,
-  ApiQueryOptions,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, RawBodyRequest, Res, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, Res, Get } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import {
   cancelSubscriptionDTO,
-  StripeDTO,
   StripePaymentIntentDTO,
   SummarizePaymentDTO,
   UpdateSubscriptionDTO,
@@ -19,10 +14,8 @@ import {
 import RequestWithRawBody from 'src/app/interface/stripe/requestWithRawBody.interface';
 import Stripe from 'stripe';
 import { StripeWebhookService } from 'src/app/services/api/stripe/stripe.webhook.service';
-import { JwtAuthGuard } from 'src/app/guard/auth';
-import { Response, response } from 'express';
+import { Response } from 'express';
 import { Public } from 'src/app/decorators/public.decorator';
-import { Query as ExpressQuery } from 'express-serve-static-core';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -72,7 +65,6 @@ export class StripeController {
     @Body() stripeDTO: StripePaymentIntentDTO) {
     try {
       const userId = request.user.sub;
-      console.log("12312321312", userId)
       const subscription = await this.stripeService.createSubscription(
         stripeDTO,
         userId,
@@ -108,13 +100,11 @@ export class StripeController {
   @ApiBearerAuth('Bearer')
   @Get('subscription-status')
   @ApiOperation({ summary: 'subscription status' })
-  @ApiQuery({
-    name: 'customerId',
-    required: false,
-    default: 1,
-  } as ApiQueryOptions)
-  async getCustomerSubscription(@Query() request: ExpressQuery) {
-    return await this.stripeService.customerSubscriptions(request);
+  async getCustomerSubscription(
+    @Req() request
+  ) {
+    const userId = request.user.sub;
+    return await this.stripeService.customerSubscriptions(userId);
   }
 
 

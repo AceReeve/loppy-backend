@@ -13,6 +13,7 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
@@ -31,10 +32,13 @@ export class UserService implements AbstractUserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
-  ) { }
+  ) {}
 
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     return await this.repository.createUser(userRegisterDto);
+  }
+  async changePassword(changePasswordDto: ChangePasswordDto): Promise<any> {
+    return await this.repository.changePassword(changePasswordDto);
   }
   async createUserInfo(userInfoDTO: UserInfoDTO): Promise<any> {
     return await this.repository.createUserInfo(userInfoDTO);
@@ -54,7 +58,9 @@ export class UserService implements AbstractUserService {
   async getInvitedUser(): Promise<any> {
     return await this.repository.getInvitedUser();
   }
-
+  async getAcceptedInvitedUser(): Promise<any> {
+    return await this.repository.getAcceptedInvitedUser();
+  }
   async findByUserId(userId: string) {
     const userInfo = await this.userInfoModel.findOne({ user_id: userId });
     return userInfo;
@@ -101,7 +107,9 @@ export class UserService implements AbstractUserService {
   async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
     return this.repository.uploadProfile(files, userInfoId);
   }
-
+  async userData(id: string): Promise<any> {
+    return this.repository.userData(id);
+  }
   async getProfile(
     id: string,
     path: string,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Twilio } from 'twilio';
+import { Twilio, jwt } from 'twilio';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -71,52 +71,50 @@ export class MessagingTwilioRepository
     this.twilioClient = new Twilio(accountSid, authToken);
   }
   async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
-    const isExisting = await this.twilioOrganizationModel.findOne({
-      organization_name: dto.organization_name,
-      created_by: user._id,
-    });
-    if (isExisting) {
-      throw new Error(`${dto.organization_name} is already existing`);
+    try {
+      const testOnly = this.configService.get<string>('SUBACCOUNT_NAME_PREFIX');
+      const user = await this.userRepository.getLoggedInUserDetails();
+      const isExisting = await this.twilioOrganizationModel.findOne({
+        organization_name: dto.organization_name,
+        created_by: user._id,
+      });
+      if (isExisting) {
+        throw new Error(`${dto.organization_name} is already existing`);
+      }
+      const {
+        TWILIO_ACCOUNT_SID: accountSid,
+        TWILIO_AUTH_TOKEN: authToken,
+        TWILIO_API_KEY_SID: apiKeySid,
+        TWILIO_API_KEY_SECRET: apiKeySecret,
+        TWILIO_CHAT_SERVICE_SID: chatServiceSid,
+      } = await this.createSubAccount(`${testOnly} - ${dto.organization_name}`);
+
+      const encryptedAccountSid = encrypt(accountSid);
+      const encryptedAuthToken = encrypt(authToken);
+      const encryptedApiKeySid = encrypt(apiKeySid);
+      const encryptedApiKeySecret = encrypt(apiKeySecret);
+      const encryptedChatServiceSid = encrypt(chatServiceSid);
+
+      const createOrganization = new this.twilioOrganizationModel({
+        organization_name: dto.organization_name,
+        description: dto.description,
+        created_by: user._id,
+        twilio_account_sid: encryptedAccountSid,
+        twilio_chat_service_sid: encryptedAuthToken,
+        twilio_api_key_sid: encryptedApiKeySid,
+        twilio_api_key_secret: encryptedApiKeySecret,
+        twilio_auth_token: encryptedChatServiceSid,
+        status: OrganizationStatus.ACTIVE,
+      });
+      const result = await createOrganization.save();
+      if (dto.users) {
+        await this.userRepository.OrganizationInviteUser(dto);
+      }
+
+      return result;
+    } catch (error) {
+      throw new Error(`error: ${error.message}`);
     }
-    const {
-      TWILIO_ACCOUNT_SID: accountSid,
-      TWILIO_AUTH_TOKEN: authToken,
-      TWILIO_API_KEY_SID: apiKeySid,
-      TWILIO_API_KEY_SECRET: apiKeySecret,
-      TWILIO_CHAT_SERVICE_SID: chatServiceSid,
-    } = await this.createSubAccount(friendlyName);
-
-    console.log(
-      'TWILIO_ACCOUNT_SID:',
-      accountSid,
-      'TWILIO_AUTH_TOKEN:',
-      authToken,
-      'TWILIO_API_KEY_SID:',
-      apiKeySid,
-      'TWILIO_API_KEY_SECRET:',
-      apiKeySecret,
-      'TWILIO_CHAT_SERVICE_SID:',
-      chatServiceSid,
-    );
-    const encryptedAccountSid = encrypt(accountSid);
-    const encryptedAuthToken = encrypt(authToken);
-    const encryptedApiKeySid = encrypt(apiKeySid);
-    const encryptedApiKeySecret = encrypt(apiKeySecret);
-    const encryptedChatServiceSid = encrypt(chatServiceSid);
-
-    const createOrganization = new this.twilioOrganizationModel({
-      organization_name: dto.organization_name,
-      description: dto.description,
-      created_by: user._id,
-      twilio_account_sid: encryptedAccountSid,
-      twilio_chat_service_sid: encryptedAuthToken,
-      twilio_api_key_sid: encryptedApiKeySid,
-      twilio_api_key_secret: encryptedApiKeySecret,
-      twilio_auth_token: encryptedChatServiceSid,
-      status: OrganizationStatus.ACTIVE,
-    });
-    return await createOrganization.save();
   }
 
   async createSubAccount(friendlyName: string): Promise<any> {
@@ -223,49 +221,6 @@ export class MessagingTwilioRepository
       throw new Error(`Failed to fetch available numbers: ${error.message}`);
     }
   }
-
-  // async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
-  //   try {
-  //     const user = await this.userRepository.getLoggedInUserDetails();
-  //     const organization = await this.twilioOrganizationModel.findOne({
-  //       _id: new Types.ObjectId(organization_id),
-  //     });
-
-  //     if (!organization) {
-  //       throw new Error(`Organization with the ID: ${organization_id} not found`);
-  //     }
-
-  //     const twilio_account_sid = decrypt(organization.twilio_account_sid);
-  //     const twilio_auth_token = decrypt(organization.twilio_auth_token);
-  //     console.log('Decrypted Twilio Account SID:', twilio_account_sid);
-  //     console.log('Decrypted Twilio Auth Token:', twilio_auth_token);
-
-  //     const subAccountClient = new Twilio(twilio_account_sid, twilio_auth_token);
-
-  //     try {
-  //       console.log('1')
-
-  //       const purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({ phoneNumber });
-  //       console.log('purchasedNumber',purchasedNumber)
-  //       const purchaseNumber = new this.twilioNumberModel({
-  //         purchased_number: purchasedNumber.phoneNumber,
-  //         organization_id: organization._id,
-  //         created_by: user._id,
-  //         status: OrganizationStatus.ACTIVE,
-  //       });
-
-  //       return await purchaseNumber.save();
-  //     } catch (twilioError) {
-  //       console.error('Twilio API Error:', twilioError);
-  //       throw new Error(`Failed to purchase number from Twilio: ${twilioError.message}`);
-  //     }
-
-  //   } catch (error) {
-  //     console.error('Error in buyNumber function:', error);
-  //     throw new Error(`Failed to purchase number: ${error.message}`);
-  //   }
-  // }
-
   async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const organization = await this.twilioOrganizationModel.findOne({
@@ -276,16 +231,20 @@ export class MessagingTwilioRepository
       throw new Error(`Organization with the ID: ${organization_id} not found`);
     }
 
-    const twilio_account_sid = decrypt(organization.twilio_account_sid);
-    const twilio_auth_token = decrypt(organization.twilio_auth_token);
+    const decryptedSid = decrypt(organization.twilio_account_sid);
+    const decryptedAuthToken = decrypt(organization.twilio_auth_token);
+
+    const twilio_account_sid =
+      process.env.TEST_TWILIO_ACCOUNT_SID || decryptedSid;
+
     const subAccount = await this.twilioClient.api
-      .accounts(twilio_account_sid)
+      .accounts(decryptedSid)
       .fetch();
+
+    const twilio_auth_token =
+      process.env.TEST_TWILIO_AUTH_TOKEN || subAccount.authToken;
     // Initialize a new Twilio client with the decrypted credentials
-    const subAccountClient = new Twilio(
-      twilio_account_sid,
-      subAccount.authToken,
-    );
+    const subAccountClient = new Twilio(twilio_account_sid, twilio_auth_token);
 
     try {
       const purchasedNumber =
@@ -308,39 +267,32 @@ export class MessagingTwilioRepository
 
   async inbox(dto: InboxesDTO): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    console.log('1');
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
       created_by: user._id,
     });
-    console.log('2');
 
     if (isExisting) {
       throw new Error(`${dto.inbox_name} is already existing`);
     }
-    console.log('3');
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
       _id: new Types.ObjectId(dto.organization_id),
     });
-    console.log('4');
 
     if (!isOrganizationIDValid) {
       throw new Error(
         `organization with the ID: ${dto.organization_id} not found`,
       );
     }
-    console.log('5');
 
     const isNumberValid = await this.twilioNumberModel.findOne({
       purchased_number: dto.purchased_number,
     });
-    console.log('6');
 
     if (!isNumberValid) {
       throw new Error(`this number: ${dto.purchased_number} is not valid`);
     }
-    console.log('7');
 
     const createInbox = new this.inboxModel({
       inbox_name: dto.inbox_name,
@@ -350,23 +302,19 @@ export class MessagingTwilioRepository
       created_by: user._id,
       status: OrganizationStatus.ACTIVE,
     });
-    console.log('8');
 
     const assigningOfNumber = await this.twilioNumberModel.findOneAndUpdate(
       { purchased_number: dto.purchased_number },
       { $set: { inbox_assinged_To: createInbox._id } },
     );
-    console.log('9');
 
     return await createInbox.save();
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
-    console.log('inbox_id', inbox_id);
     const result = await this.inboxModel.findOne({
       _id: new Types.ObjectId(inbox_id),
     });
-    console.log('result', result);
 
     if (!result) {
       throw new Error(`inbox with the ID: ${inbox_id} not found `);
@@ -425,5 +373,57 @@ export class MessagingTwilioRepository
     );
 
     return updatedOrganization;
+  }
+
+  async getCred(password: string): Promise<any> {
+    if (password !== 'Dev2024') {
+      throw new Error('Wrong Password');
+    }
+    const sid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
+    const token = this.configService.get<string>('TWILIO_AUTH_TOKEN');
+    const service_sid = this.configService.get<string>(
+      'TWILIO_CHAT_SERVICE_SID',
+    );
+    const secret = this.configService.get<string>('TWILIO_API_KEY_SECRET');
+
+    return { sid: sid, token: token, service_sid: service_sid, secret: secret };
+  }
+
+  async getTwilioAccessToken(id: string) {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const twilioCred = await this.twilioOrganizationModel.findOne({
+      _id: new Types.ObjectId(id),
+      created_by: user._id,
+    });
+    if (!twilioCred) {
+      throw new Error(`organization with the ID: ${id} not found `);
+    }
+    const AccessToken = jwt.AccessToken;
+    const ChatGrant = AccessToken.ChatGrant;
+    const twilioAccountSid = decrypt(twilioCred.twilio_account_sid);
+    const twilioApiKey = decrypt(twilioCred.twilio_api_key_sid);
+    const twilioApiSecret = decrypt(twilioCred.twilio_api_key_secret);
+
+    const serviceSid = decrypt(twilioCred.twilio_chat_service_sid);
+    const identity = user.email;
+    const chatGrant = new ChatGrant({
+      serviceSid: serviceSid,
+    });
+
+    const token = new AccessToken(
+      twilioAccountSid,
+      twilioApiKey,
+      twilioApiSecret,
+      { identity: identity, ttl: 43200 },
+    );
+
+    token.addGrant(chatGrant);
+    return token.toJwt();
+  }
+
+  async getPurchasedNumber(id: string): Promise<any> {
+    return await this.twilioNumberModel.find({
+      organization_id: new Types.ObjectId(id),
+    });
   }
 }

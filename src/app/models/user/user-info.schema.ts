@@ -39,7 +39,7 @@ export class UserInfo implements GenericSchema {
   state: string;
 
   @Prop()
-  contact_no: number;
+  contact_no: string;
 
   @Prop()
   gender: string;

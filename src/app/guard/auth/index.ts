@@ -70,13 +70,9 @@ export class AdminAuthGuard implements CanActivate {
     });
     request.user = decodedToken;
     request.token = token;
-    const roleDetails = await this.roleModel.findById(request.user.role._id);
-    if (!roleDetails) {
-      throw new UnauthorizedException('Role not found');
-    }
     if (
-      roleDetails.role_name !== DefaultUserRole.OWNER &&
-      roleDetails.role_name !== DefaultUserRole.ADMIN
+      request.user.role.role_name !== DefaultUserRole.OWNER &&
+      request.user.role.role_name !== DefaultUserRole.ADMIN
     ) {
       throw new UnauthorizedException('User must be an Admin');
     }

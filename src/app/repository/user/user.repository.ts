@@ -4,6 +4,7 @@ import {
   Inject,
   StreamableFile,
   InternalServerErrorException,
+  ConsoleLogger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
@@ -24,6 +25,7 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
+  ChangePasswordDto,
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { DefaultUserRole, SignInBy } from 'src/app/const';
@@ -49,6 +51,11 @@ import { S3Service } from 'src/app/services/s3/s3.service';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { OrganizationDTO } from 'src/app/dto/messaging-twilio';
+import {
+  Team,
+  TeamDocument,
+} from 'src/app/models/settings/manage-team/team/team.schema';
 
 export class UserRepository implements AbstractUserRepository {
   constructor(
@@ -67,6 +74,8 @@ export class UserRepository implements AbstractUserRepository {
     private configService: ConfigService,
     @InjectModel(FileUpload.name)
     private fileUploadModel: Model<FileUploadDocument>,
+    @InjectModel(Team.name)
+    private teamModel: Model<TeamDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
   ) {}
@@ -84,6 +93,13 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('Invalid Token');
     }
   }
+
+  async userData(id: string): Promise<any> {
+    const userDetails = await this.userModel.findOne({
+      _id: new Types.ObjectId(id),
+    });
+    return userDetails;
+  }
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     // await this.verifyOTP(userRegisterDto.email, userRegisterDto.otp);
 
@@ -93,9 +109,6 @@ export class UserRepository implements AbstractUserRepository {
     if (validateEmail) {
       throw new BadRequestException('Email is already Registered');
     }
-    const role = await this.roleDocumentModel.findOne({
-      role_name: DefaultUserRole.OWNER,
-    });
     // Remove OTP after verification
     const isverified = await this.otpModel.findOne({
       email: userRegisterDto.email,
@@ -110,6 +123,9 @@ export class UserRepository implements AbstractUserRepository {
     //   // Confirm passwords match
     //   throw new BadRequestException('Password Does Not Match');
     // }
+    const role = await this.roleDocumentModel.findOne({
+      role_name: DefaultUserRole.OWNER,
+    });
     const newUser = await this.userModel.create({
       email: userRegisterDto.email,
       password: userRegisterDto.password,
@@ -123,6 +139,34 @@ export class UserRepository implements AbstractUserRepository {
 
     return { newUser };
   }
+
+  async changePassword(dto: ChangePasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const passwordMatch = await bcrypt.compare(
+      dto.current_pasword,
+      user.password,
+    );
+    if (!passwordMatch) {
+      throw new BadRequestException('Incorrect Password');
+    }
+    if (!dto.new_password) {
+      throw new BadRequestException('New password is required');
+    }
+    const password = await bcrypt.hash(dto.new_password, 12);
+    const newUser = await this.userModel.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: {
+          password: password,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    return newUser;
+  }
+
   async createUserInfo(userInfoDTODto: UserInfoDTO): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
@@ -169,7 +213,8 @@ export class UserRepository implements AbstractUserRepository {
   async profile(user: Partial<User> & { sub: string }): Promise<any> {
     const userDetails = await this.userModel.findById(user.sub);
     const userInfo = await this.userInfoModel.findOne({ user_id: user.sub });
-    return { userDetails, userInfo };
+    const availableSeats = await this.availableSeats();
+    return { userDetails, userInfo, availableSeats };
   }
 
   async getUser(id: string): Promise<any> {
@@ -187,6 +232,18 @@ export class UserRepository implements AbstractUserRepository {
 
   async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
     const loggedInUser = await this.getLoggedInUserDetails();
+    // Plan validation logic
+    // const allInvitedByUser = await this.invitedUserModel.findOne({
+    //   invited_by: loggedInUser._id,
+
+    // });
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+
+    if (allAcceptedInvitationByUser) {
+      const totalAccepted = allAcceptedInvitationByUser.length;
+
+      await this.userPlanValidation(loggedInUser._id, totalAccepted);
+    }
     // Validate if emails are already invited
     const roles = await Promise.all(
       inviteUserDTO.users.map(({ role }) =>
@@ -339,23 +396,29 @@ export class UserRepository implements AbstractUserRepository {
 
   async userPlanValidation(id: string, totalInvited: number) {
     const getPlan = await this.stripeEventModel.findOne({ user_id: id });
-    if (
-      getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN &&
-      totalInvited === 2
-    ) {
+    if (getPlan) {
+      if (
+        getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN &&
+        totalInvited === 2
+      ) {
+        throw new BadRequestException(
+          'The maximum number of users allowed by the subscription plan(2) has been reached. Please contact the account owner to upgrade.',
+        );
+      }
+      if (
+        getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN &&
+        totalInvited === 5
+      ) {
+        throw new BadRequestException(
+          'The maximum number of users allowed by the subscription plan(5) has been reached. Please contact the account owner to upgrade.',
+        );
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
+      }
+    } else {
       throw new BadRequestException(
-        'You have reached the maximum number of users allowed by your subscription(2). Please upgrade your plan.',
+        'No active subscription plan found. Please subscribe to a plan.',
       );
-    }
-    if (
-      getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN &&
-      totalInvited === 5
-    ) {
-      throw new BadRequestException(
-        'You have reached the maximum number of users allowed by your subscription(5). Please upgrade your plan.',
-      );
-    }
-    if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
     }
   }
 
@@ -365,6 +428,40 @@ export class UserRepository implements AbstractUserRepository {
       invited_by: user._id,
     });
     return invitedUser;
+  }
+  async getAcceptedInvitedUserForUserRegistrationValidation(
+    email: string,
+  ): Promise<any> {
+    // const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel
+      .findOne({
+        'users.email': email,
+      })
+      .exec();
+    if (invitedUser) {
+      const acceptedUsers = invitedUser.users.filter(
+        (user) => user.status === 'Accepted',
+      );
+      return acceptedUsers;
+    }
+
+    return [];
+  }
+  async getAcceptedInvitedUser(): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const invitedUser = await this.invitedUserModel
+      .findOne({
+        users: user._id,
+      })
+      .exec();
+    if (invitedUser) {
+      const acceptedUsers = invitedUser.users.filter(
+        (user) => user.status === 'Accepted',
+      );
+      return acceptedUsers;
+    }
+
+    return [];
   }
 
   async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
@@ -440,6 +537,43 @@ export class UserRepository implements AbstractUserRepository {
     return userWeatherforecast;
   }
 
+  async availableSeats(): Promise<any> {
+    const loggedInUser = await this.getLoggedInUserDetails();
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+    const totalAccepted = allAcceptedInvitationByUser.length;
+
+    const getPlan = await this.stripeEventModel.findOne({
+      user_id: loggedInUser._id,
+    });
+    if (getPlan) {
+      if (getPlan.subscriptionPlan === PlanSubscription.ESSENTIAL_PLAN) {
+        return {
+          max_seats: 2,
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.ESSENTIAL_PLAN,
+        };
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.PROFESSIONAL_PLAN) {
+        return {
+          max_seats: 5,
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.PROFESSIONAL_PLAN,
+        };
+      }
+      if (getPlan.subscriptionPlan === PlanSubscription.CORPORATE_PLAN) {
+        return {
+          max_seats: 'unlimited',
+          occupied_seats: totalAccepted,
+          subscription_plan: PlanSubscription.CORPORATE_PLAN,
+        };
+      }
+    } else {
+      return {
+        message:
+          'No active subscription plan found. Please subscribe to a plan.',
+      };
+    }
+  }
   async invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
     token: string,
@@ -454,21 +588,44 @@ export class UserRepository implements AbstractUserRepository {
     if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
     }
+    console.log('email logs', invitedUserRegistrationDTO.email);
     if (user.email !== invitedUserRegistrationDTO.email) {
       throw new BadRequestException(
         'Unable to Register, Inputted email is not matched to the decoded token',
       );
     }
+    console.log('1');
+    const allAcceptedInvitationByUser =
+      await this.getAcceptedInvitedUserForUserRegistrationValidation(
+        invitedUserRegistrationDTO.email,
+      );
+    console.log('2');
+
+    if (allAcceptedInvitationByUser) {
+      const totalAccepted = allAcceptedInvitationByUser.length;
+      console.log('3');
+
+      await this.userPlanValidation(
+        isInvited.invited_by.toString(),
+        totalAccepted,
+      );
+    }
+    console.log('4');
 
     // Find the specific email entry within the emails array
     const emailEntry = isInvited.users.find(
       (email) => email.email === user.email,
     );
+    console.log('5');
+
     let role: any;
     if (emailEntry && emailEntry.role) {
+      console.log('6');
+
       role = await this.roleDocumentModel.findOne({
         _id: emailEntry.role,
       });
+      console.log('7');
 
       if (!role) {
         throw new BadRequestException('Role does not exist!');
@@ -476,14 +633,18 @@ export class UserRepository implements AbstractUserRepository {
     } else {
       throw new BadRequestException('Role not found for the given email.');
     }
+    console.log('8');
 
     // Confirm passwords match
     const isverified = await this.otpModel.findOne({
       email: user.email,
     });
+    console.log('9');
+
     if (!isverified || isverified.verified_email != true) {
       throw new BadRequestException('Email is not yet Verified');
     }
+    console.log('a');
 
     //   throw new BadRequestException('Password Does Not Match');
     const isExisting = await this.userModel.findOne({ email: user.email });
@@ -491,23 +652,45 @@ export class UserRepository implements AbstractUserRepository {
     if (isExisting) {
       throw new BadRequestException('User is already Existing');
     }
+    console.log('b');
+
     const newUser = await this.userModel.create({
       email: user.email,
       role: role,
       password: invitedUserRegistrationDTO.password,
+      login_by: SignInBy.SIGN_IN_BY_SERVICE_HERO,
     });
+    console.log('c');
+
     if (!newUser) throw new BadRequestException('error registration user');
-    await this.invitedUserModel.findOneAndUpdate(
+    const userInvited = await this.invitedUserModel.findOneAndUpdate(
       { 'users.email': user.email },
       //update status for specific email that matches to invited user
       {
         $set: {
           'users.$.status': UserStatus.ACCEPTED,
-          'users.user_id': newUser._id,
+          'users.$.user_id': newUser._id,
         },
       },
       { new: true },
     );
+    console.log('d');
+
+    const invitedUserData = userInvited.users.find(
+      (data: any) => data.email === user.email,
+    );
+    console.log('e');
+
+    const updateTeam = await this.teamModel.findOneAndUpdate(
+      { _id: invitedUserData.team },
+      {
+        $push: {
+          team_members: newUser._id,
+        },
+      },
+    );
+    console.log('f');
+
     return { newUser };
   }
 
@@ -648,42 +831,45 @@ export class UserRepository implements AbstractUserRepository {
       const { originalname, mimetype, fieldname } = file;
       const parts = originalname.split('.');
       const s3Route = this.s3.defaultImagePath(id, originalname);
-      const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
+      try {
+        const defaultPhotoPath = await this.s3.uploadImage(file, s3Route);
 
-      if (!defaultPhotoPath)
-        throw new InternalServerErrorException(
-          'Unable to upload document to S3 Bucket',
-        );
+        if (!defaultPhotoPath)
+          throw new InternalServerErrorException(
+            'Unable to upload document to S3 Bucket',
+          );
 
-      const fileUpload = await this.fileUploadModel.create({
-        original_filename: originalname,
-        extension: parts[parts.length - 1],
-        name: fieldname,
-        mimetype: mimetype,
-        path: defaultPhotoPath,
-      });
+        const fileUpload = await this.fileUploadModel.create({
+          original_filename: originalname,
+          extension: parts[parts.length - 1],
+          name: fieldname,
+          mimetype: mimetype,
+          path: defaultPhotoPath,
+        });
 
-      const fileInformation = {
-        path: `${domain}/${defaultPhotoPath.replace(
-          `/${originalname}`,
-          '',
-        )}?type=${file.fieldname}`,
-        filename: originalname,
-        mimetype: mimetype,
-        created_at: today.toISOString(),
-        file_id: fileUpload?._id,
-        extension: fileUpload.extension,
-      };
+        const fileInformation = {
+          path: `${domain}/${defaultPhotoPath.replace(
+            `/${originalname}`,
+            '',
+          )}?type=${file.fieldname}`,
+          filename: originalname,
+          mimetype: mimetype,
+          created_at: today.toISOString(),
+          file_id: fileUpload?._id,
+          extension: fileUpload.extension,
+        };
 
-      uploadedFiles[key] = fileInformation;
+        uploadedFiles[key] = fileInformation;
+      } catch (error) {
+        console.error(`Error processing file ${key}:`, error);
+        throw new InternalServerErrorException(`Error processing file ${key}`);
+      }
     }
 
     return uploadedFiles;
   }
 
-  private host =
-    this.configService.get<string>('HOST') ||
-    ('http://localhost:8080' as string);
+  private host = this.configService.get<string>('HOST');
   private getDomainHost(id: string): string {
     return `${this.host}/api/user/images/${id}/image`;
   }
@@ -695,6 +881,7 @@ export class UserRepository implements AbstractUserRepository {
     type: string,
   ): Promise<void | StreamableFile> {
     let streamFileDetails = { mimetype: '', filename: '', path: '' };
+
     streamFileDetails = await this.getImageInfo(type, id, path);
 
     if (
@@ -726,7 +913,6 @@ export class UserRepository implements AbstractUserRepository {
     const findUserInfo = await this.userInfoModel.findOne({
       _id: new Types.ObjectId(id),
     });
-
     if (!findUserInfo)
       throw new BadRequestException(`Invalid user information id: ${id}`);
 
@@ -745,7 +931,7 @@ export class UserRepository implements AbstractUserRepository {
       mimetype: image?.mimetype ?? '',
       path: `${path}/${filename}`,
     };
-    console.log('result', result);
+
     return result;
   }
 
@@ -809,6 +995,9 @@ export class UserRepository implements AbstractUserRepository {
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
+    invitedUser.users = invitedUser.users.filter(
+      (user) => user.status === UserStatus.ACCEPTED,
+    );
     invitedUser.users = invitedUser.users.filter(
       (user) => user.status === UserStatus.ACCEPTED,
     );

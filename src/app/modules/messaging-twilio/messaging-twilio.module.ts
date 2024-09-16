@@ -26,6 +26,7 @@ import {
 } from 'src/app/interface/messaging-twilio';
 import { MessagingTwilioRepository } from 'src/app/repository/messaging-twilio/messaging-twilio.repository';
 import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
+import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 
 @Global()
 @Module({
@@ -41,6 +42,7 @@ import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messag
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
     MessagingTwilioSchemaModule,
+    TeamSchemaModule,
   ],
   providers: [
     UserService,
