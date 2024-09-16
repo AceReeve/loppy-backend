@@ -335,7 +335,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           folders.map(async (folder) => {
             const workflows = await this.workFlowModel
               .find({
-                folder_id: folder._id,
+                folder_id: { $exists: false },
                 status: { $ne: WorkFlowStatus.DELETED },
               })
               .exec();

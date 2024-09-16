@@ -142,3 +142,19 @@ export class UpdateWorkflowDto {
   })
   action: ActionWorkFlow;
 }
+
+export class SmsDto {
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'number',
+    example: '097654156958',
+  })
+  to: string;
+
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Message',
+    example: 'Hi',
+  })
+  message: string;
+}

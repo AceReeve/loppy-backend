@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Twilio } from 'twilio';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class SmsService {
       console.log('Message sent successfully', message.sid);
       return message;
     } catch (error) {
-      console.error('Error sending SMS:', error);
+      throw new BadRequestException('Error sending SMS:', error);
     }
   }
 
