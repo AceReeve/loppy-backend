@@ -447,6 +447,159 @@ export class UserRepository implements AbstractUserRepository {
 
     return [];
   }
+  async OrganizationInviteUser(
+    inviteUserDTO: OrganizationDTO,
+  ): Promise<InvitedUserDocument> {
+    const loggedInUser = await this.getLoggedInUserDetails();
+    // Validate if emails are already invited
+    const roles = await Promise.all(
+      inviteUserDTO.users.map(({ role }) =>
+        this.roleDocumentModel.findOne({ role_name: role }).exec(),
+      ),
+    );
+
+    // Check for duplicate emails in the input
+    const emailSet = new Set();
+    const duplicateInputEmails = inviteUserDTO.users.filter((user) => {
+      if (emailSet.has(user.email)) {
+        return true;
+      }
+      emailSet.add(user.email);
+      return false;
+    });
+
+    if (duplicateInputEmails.length > 0) {
+      throw new BadRequestException(
+        `These emails are duplicated in the input: ${duplicateInputEmails.map((e) => e.email).join(', ')}`,
+      );
+    }
+
+    const emailToRoleMap = new Map<string, any>(
+      inviteUserDTO.users.map(({ email, role }, index) => [
+        email,
+        roles[index],
+      ]),
+    );
+
+    // Check for invalid roles
+    const invalidRoles = inviteUserDTO.users.filter(
+      ({ role }, index) => !roles[index],
+    );
+    if (invalidRoles.length > 0) {
+      throw new BadRequestException(
+        `These roles are invalid: ${invalidRoles.map((e) => e.role).join(', ')}`,
+      );
+    }
+
+    // Check if any of the emails match the logged-in user's email
+    const selfInvite = inviteUserDTO.users.find(
+      (user) => user.email === loggedInUser.email,
+    );
+    if (selfInvite) {
+      throw new BadRequestException(
+        `Cannot invite yourself: ${loggedInUser.email}`,
+      );
+    }
+
+    const alreadyInvitedEmails = await this.invitedUserModel.find(
+      {
+        'users.email': { $in: inviteUserDTO.users.map((e) => e.email) },
+        'users.status': { $in: [UserStatus.PENDING, UserStatus.ACCEPTED] },
+      },
+      'users.email users.status',
+    );
+
+    const existingEmails = alreadyInvitedEmails.flatMap((doc) =>
+      doc.users
+        .filter((user) =>
+          [
+            UserStatus.PENDING.toString(),
+            UserStatus.ACCEPTED.toString(),
+          ].includes(user.status),
+        )
+        .map((emailObj) => emailObj.email),
+    );
+    const duplicatedEmails = inviteUserDTO.users.filter((e) =>
+      existingEmails.includes(e.email),
+    );
+    if (duplicatedEmails.length > 0) {
+      throw new BadRequestException(
+        `These emails are already invited: ${duplicatedEmails.map((e) => e.email).join(', ')}`,
+      );
+    }
+
+    // Map the invited users with the fetched role data
+    const invitedUsers = inviteUserDTO.users.map(({ email, role }, index) => {
+      const roleData = roles[index];
+      return {
+        email,
+        role: roleData ? roleData.toObject() : null,
+        status: UserStatus.PENDING,
+      };
+    });
+
+    // Create or update invited users
+    let invitedUser = await this.invitedUserModel.findOne({
+      invited_by: loggedInUser._id,
+    });
+
+    if (!invitedUser || invitedUser === null) {
+      invitedUser = await this.invitedUserModel.create({
+        users: invitedUsers,
+        invited_by: loggedInUser._id,
+      });
+    } else {
+      await this.invitedUserModel.updateMany(
+        {
+          invited_by: loggedInUser._id,
+          'users.email': { $in: inviteUserDTO.users.map((e) => e.email) },
+          'users.status': UserStatus.CANCELLED,
+        },
+        { $set: { 'users.$[elem].status': UserStatus.PENDING } },
+        {
+          arrayFilters: [
+            { 'elem.email': { $in: inviteUserDTO.users.map((e) => e.email) } },
+          ],
+        },
+      );
+
+      // Add or update invited users
+      inviteUserDTO.users.forEach((newUser) => {
+        const existingUserIndex = invitedUser.users.findIndex(
+          (user) => user.email === newUser.email,
+        );
+        if (existingUserIndex !== -1) {
+          // Update status if user already exists
+          invitedUser.users[existingUserIndex].status = UserStatus.PENDING;
+        } else {
+          // Add new user if they don't already exist
+          invitedUser.users.push({
+            email: newUser.email,
+            role: emailToRoleMap.get(newUser.email)
+              ? emailToRoleMap.get(newUser.email).toObject()
+              : null,
+            status: UserStatus.PENDING,
+            user_id: null,
+            invited_at: new Date(),
+          });
+        }
+      });
+
+      invitedUser = await invitedUser.save();
+    }
+
+    for (const { email, role } of inviteUserDTO.users) {
+      const payload = { email: email };
+      const accessToken = await this.authRepository.generateJWT(
+        payload,
+        this.configService.get<string>('JWT_EXPIRATION'),
+      );
+      await this.emailService.inviteUser(email, accessToken, role);
+    }
+
+    return invitedUser;
+  }
+
   async getAcceptedInvitedUser(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel
