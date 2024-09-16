@@ -31,12 +31,12 @@ export class WorkFlowService implements AbstractWorkFlowService {
   }
 
   //folder
-  async folder(name: string): Promise<any> {
-    return await this.repository.folder(name);
+  async folder(name: string, id: string): Promise<any> {
+    return await this.repository.folder(name, id);
   }
 
-  async getAllFolder(): Promise<any> {
-    return await this.repository.getAllFolder();
+  async getAllFolder(id: string): Promise<any> {
+    return await this.repository.getAllFolder(id);
   }
 
   async getFolderById(id: string): Promise<any> {

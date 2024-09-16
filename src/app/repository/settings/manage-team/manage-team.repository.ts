@@ -272,6 +272,39 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     return existingTeam;
   }
 
+  async deleteTeamMember(teamId: string, memberId: string): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+
+    // Fetch existing team
+    const existingTeam = await this.teamModel.findOne({
+      _id: new Types.ObjectId(teamId),
+      created_by: loggedInUser._id,
+    });
+
+    if (!existingTeam) {
+      throw new BadRequestException(
+        'Team not found or you do not have permission to update this team',
+      );
+    }
+
+    // Check if member exists in the team
+    const memberIndex = existingTeam.team_members.findIndex(
+      (member: any) => member._id.toString() === memberId,
+    );
+
+    if (memberIndex === -1) {
+      throw new BadRequestException('Member not found in the team');
+    }
+
+    // Remove the member from the team
+    existingTeam.team_members.splice(memberIndex, 1);
+
+    // Save the updated team
+    await existingTeam.save();
+
+    return existingTeam;
+  }
+
   async getAllTeam(): Promise<any> {
     const loggedInUser = await this.userRepository.getLoggedInUserDetails();
 
@@ -304,6 +337,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
           created_by: team.created_by,
           created_at: team.created_at,
           updated_at: team.updated_at,
+          profile: team.profile,
           team_members: teamMembers,
         };
       }),
@@ -345,6 +379,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       created_by: team.created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
+      profile: team.profile,
       team_members: teamMembers,
       overview: {
         members: totalMembers,
