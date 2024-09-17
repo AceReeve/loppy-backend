@@ -262,7 +262,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     }
 
     // Update team details
-    existingTeam.team_members = createTeamDTO.team_members;
+    // existingTeam.team_members = createTeamDTO.team_members; // do not remove members when updating the team settings
     existingTeam.team = createTeamDTO.team;
     existingTeam.description = createTeamDTO.description;
 
@@ -372,6 +372,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       count: roleCounts[roleName],
     }));
 
+    const roleCount = await this.customRoleModel.find({ team: id }).exec();
+
     return {
       _id: team._id,
       team: team.team,
@@ -383,7 +385,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       team_members: teamMembers,
       overview: {
         members: totalMembers,
-        roles: roles.length,
+        roles: roleCount.length,
       },
       roles: roles,
     };
@@ -413,6 +415,10 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       throw new BadRequestException(`failed to create role.`);
     }
     return newRole;
+  }
+
+  async deleteCustomRole(id: string): Promise<any> {
+    return await this.customRoleModel.findByIdAndDelete(id);
   }
 
   async getAllRole(team_id: string): Promise<any> {

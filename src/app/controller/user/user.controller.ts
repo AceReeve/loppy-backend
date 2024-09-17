@@ -30,6 +30,7 @@ import {
   ProfileImageType,
   ResetPasswordDto,
   ChangePasswordDto,
+  CreatePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
@@ -87,6 +88,16 @@ export class UserController {
     @Body() changePasswordDTO: ChangePasswordDto,
   ): Promise<any> {
     return this.userService.changePassword(changePasswordDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('create-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Create Password' })
+  async createPassword(
+    @Body() createPasswordDTO: CreatePasswordDto,
+  ): Promise<any> {
+    return this.userService.createPassword(createPasswordDTO);
   }
 
   @Public()

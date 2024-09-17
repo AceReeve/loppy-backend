@@ -14,6 +14,7 @@ import {
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
   ChangePasswordDto,
+  CreatePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
@@ -39,6 +40,9 @@ export class UserService implements AbstractUserService {
   }
   async changePassword(changePasswordDto: ChangePasswordDto): Promise<any> {
     return await this.repository.changePassword(changePasswordDto);
+  }
+  async createPassword(createPasswordDto: CreatePasswordDto): Promise<any> {
+    return await this.repository.createPassword(createPasswordDto);
   }
   async createUserInfo(userInfoDTO: UserInfoDTO): Promise<any> {
     return await this.repository.createUserInfo(userInfoDTO);

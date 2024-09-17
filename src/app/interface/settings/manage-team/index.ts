@@ -16,6 +16,7 @@ export abstract class AbstractManageTeamRepository {
   abstract getAllTeam(): Promise<any>;
   abstract getTeam(id: string): Promise<any>;
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;
+  abstract deleteCustomRole(id: string): Promise<any>;
   abstract getAllRole(team_id: string): Promise<any>;
   abstract getRole(id: string): Promise<any>;
   abstract uploadProfile(
@@ -40,6 +41,7 @@ export abstract class AbstractManageTeamService {
   abstract getAllTeam(): Promise<any>;
   abstract getTeam(id: string): Promise<any>;
   abstract customRole(customRoleDTO: CustomRoleDTO): Promise<any>;
+  abstract deleteCustomRole(id: string): Promise<any>;
   abstract getAllRole(team_id: string): Promise<any>;
   abstract getRole(id: string): Promise<any>;
   abstract uploadProfile(

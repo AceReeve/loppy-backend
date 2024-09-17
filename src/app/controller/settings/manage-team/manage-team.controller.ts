@@ -109,6 +109,14 @@ export class ManageTeamController {
   }
 
   @UseGuards(AdminAuthGuard)
+  @Delete('custom-role/:id')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Delete Custom Role' })
+  async deleteCustomRole(@Param('id') id: string): Promise<any> {
+    return this.manageTeamService.deleteCustomRole(id);
+  }
+
+  @UseGuards(AdminAuthGuard)
   @Get('role/:id')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get Role By ID' })
