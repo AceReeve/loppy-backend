@@ -20,7 +20,7 @@ export class SmsService {
         to,
       });
       console.log('Message sent successfully', message.sid);
-      return message;
+      return await this.getMessageStatus(message.sid);
     } catch (error) {
       throw new BadRequestException('Error sending SMS:', error);
     }

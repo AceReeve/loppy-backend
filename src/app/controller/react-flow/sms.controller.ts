@@ -11,7 +11,7 @@ export class SmsController {
   @Post('send')
   async sendSms(@Body() dto: SmsDto): Promise<any> {
     const { to, message } = dto;
-    await this.smsService.sendSms(to, message);
+    return await this.smsService.sendSms(to, message);
   }
 
   @Get('status/:sid')
