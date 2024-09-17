@@ -413,7 +413,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         );
 
         // Combine both folders with workflows and workflows without folders
-        return [...workflowsWithoutFolder, ...formattedWorkflowsWithoutFolder];
+        return [...formattedFolder, ...formattedWorkflowsWithoutFolder];
       }
     } catch (error) {
       throw new Error(
