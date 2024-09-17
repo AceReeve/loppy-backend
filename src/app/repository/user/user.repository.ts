@@ -26,6 +26,7 @@ import {
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
   ChangePasswordDto,
+  CreatePasswordDto,
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { DefaultUserRole, SignInBy } from 'src/app/const';
@@ -154,6 +155,23 @@ export class UserRepository implements AbstractUserRepository {
       throw new BadRequestException('New password is required');
     }
     const password = await bcrypt.hash(dto.new_password, 12);
+    const newUser = await this.userModel.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: {
+          password: password,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    return newUser;
+  }
+
+  async createPassword(dto: CreatePasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails();
+    const password = await bcrypt.hash(dto.password, 12);
     const newUser = await this.userModel.findOneAndUpdate(
       { _id: user._id },
       {

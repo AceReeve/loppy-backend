@@ -55,6 +55,10 @@ export class ManageTeamService implements AbstractManageTeamService {
   async customRole(customRoleDTO: CustomRoleDTO): Promise<any> {
     return await this.repository.customRole(customRoleDTO);
   }
+
+  async deleteCustomRole(id: string): Promise<any> {
+    return await this.repository.deleteCustomRole(id);
+  }
   async getAllRole(team_id: string): Promise<any> {
     return await this.repository.getAllRole(team_id);
   }
