@@ -6,6 +6,7 @@ import { UserSchemaModule } from '../models/user/user.schema.module';
 import { EmailerService } from '@util/emailer/emailer';
 import { MAILER_OPTIONS, MailerService } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SmsService } from 'src/config/sms/sms.service';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     CronService,
     MailerService,
     EmailerService,
+    SmsService,
     {
       provide: MAILER_OPTIONS,
       useFactory: async (configService: ConfigService) => ({

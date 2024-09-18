@@ -322,6 +322,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         return [...formattedWorkflowsFolder, ...formattedWorkflows];
       } else {
         // Fetch folders created by the logged-in user
+        // Fetch workflows that are not in any folder
         const folders = await this.workFlowFolderModel
           .find({
             created_by: user._id,
@@ -329,58 +330,6 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
             folder_id: { $exists: false },
           })
           .exec();
-
-        // For each folder, fetch the associated workflows
-        // const foldersWithWorkflows = await Promise.all(
-        //   folders.map(async (folder) => {
-        //     // const workflows = await this.workFlowModel
-        //     //   .find({
-        //     //     created_by: user._id,
-        //     //     status: { $ne: WorkFlowStatus.DELETED },
-        //     //     folder_id: { $exists: false },
-        //     //   })
-        //     //   .exec();
-
-        //     // Format workflows associated with the folder
-        //     // const formattedWorkflows = workflows.map((workflow) => ({
-        //     //   _id: workflow._id,
-        //     //   type: workflow.type,
-        //     //   work_flow_name: workflow.name,
-        //     //   created_by: workflow.created_by,
-        //     //   status: workflow.status,
-        //     //   created_at: workflow.created_at,
-        //     //   updated_at: workflow.updated_at,
-        //     // }));
-
-        //     // Return folder without `workflows` array, as it's flattened
-        //     return [
-        //       {
-        //         _id: folder._id,
-        //         name: folder.name || 'no name',
-        //         created_by: folder.created_by,
-        //         status: folder.status,
-        //         created_at: folder.created_at,
-        //         type: folder.type || 'Folder',
-        //         updated_at: folder.updated_at,
-        //       },
-        //       // ...formattedWorkflows.map((workflow) => ({
-        //       //   _id: workflow._id,
-        //       //   name: workflow.work_flow_name || 'no name', // Assuming you want to maintain folder reference
-        //       //   created_by: workflow.created_by,
-        //       //   status: workflow.status,
-        //       //   created_at: workflow.created_at,
-        //       //   type: folder.type || 'Workflow',
-        //       //   updated_at: workflow.updated_at,
-        //       // })),
-        //     ];
-        //   }),
-        // );
-
-        // Flatten the result
-        // const flattenedFoldersWithWorkflows = foldersWithWorkflows.flat();
-
-        // Fetch workflows that are not in any folder
-
         const formattedFolder = folders.map((folder) => ({
           _id: folder._id,
           type: folder.type || 'Folder',

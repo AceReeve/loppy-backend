@@ -37,6 +37,7 @@ import { WorkFlowController } from 'src/app/controller/react-flow/react-flow.con
 import { StripeModule } from '../api/api.module';
 import { CronService } from 'src/app/cron/cron.service';
 import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
+import { SmsService } from 'src/config/sms/sms.service';
 
 @Global()
 @Module({
@@ -61,6 +62,7 @@ import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.
     S3Service,
     OauthRepository,
     CronService,
+    SmsService,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,

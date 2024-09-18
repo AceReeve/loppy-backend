@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Twilio } from 'twilio';
 
 @Injectable()
@@ -44,6 +48,23 @@ export class SmsService {
       };
     } catch (error) {
       throw new Error(`Error fetching message status: ${error.message}`);
+    }
+  }
+
+  async sendSmsBirthdayReminder(
+    receiver: string,
+    first_name: string,
+    content: string,
+  ): Promise<any> {
+    try {
+      await this.twilioClient.messages.create({
+        body: `Happy Birthday ${first_name}, <br> ${content}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: receiver,
+      });
+    } catch (error) {
+      const errorMessage = 'Error BirthDay Mesage';
+      throw new InternalServerErrorException(errorMessage);
     }
   }
 }
