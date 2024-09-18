@@ -140,6 +140,7 @@ export class CronService {
                         'RyuunosukeIchijo@gmail.com',
                         act.content,
                       );
+
                       for (const user of users) {
                         await this.emailerService.sendEmailCustomDateRemider(
                           user.email,

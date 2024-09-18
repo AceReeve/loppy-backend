@@ -23,7 +23,6 @@ export class EmailerService {
     role_name?: string,
   ): Promise<any> {
     const link = `http://sandbox.servihero.com/auth/register?token=${access_token}`;
-
     try {
       await this.mailerService.sendMail({
         to: email,
