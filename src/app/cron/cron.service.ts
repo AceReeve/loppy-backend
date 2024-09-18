@@ -23,6 +23,7 @@ import {
   InvitedUser,
   InvitedUserDocument,
 } from '../models/invited-users/invited-users.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CronService {
@@ -38,7 +39,7 @@ export class CronService {
     private emailerService: EmailerService,
     private smsService: SmsService,
     protected readonly userRepository: UserRepository,
-    // private readonly configService: ConfigSer,
+    private readonly configService: ConfigService,
   ) {}
 
   async triggerData() {
@@ -137,11 +138,11 @@ export class CronService {
                     if (
                       act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
                     ) {
-                      // const serviHeroTestEmail = this.configService.get<string>(
-                      //   'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
-                      // );
+                      const serviHeroTestEmail = this.configService.get<string>(
+                        'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
+                      );
                       await this.emailerService.sendEmailCustomDateRemider(
-                        'RyuunosukeIchijo@gmail.com',
+                        serviHeroTestEmail,
                         act.content,
                         'Raphael Adrian',
                         'Service Hero',
