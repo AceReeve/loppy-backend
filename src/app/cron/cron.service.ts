@@ -38,6 +38,7 @@ export class CronService {
     private emailerService: EmailerService,
     private smsService: SmsService,
     protected readonly userRepository: UserRepository,
+    // private readonly configService: ConfigSer,
   ) {}
 
   async triggerData() {
@@ -136,8 +137,11 @@ export class CronService {
                     if (
                       act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
                     ) {
+                      // const serviHeroTestEmail = this.configService.get<string>(
+                      //   'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
+                      // );
                       await this.emailerService.sendEmailCustomDateRemider(
-                        'jakeviovicente02@gmail.com',
+                        'RyuunosukeIchijo@gmail.com',
                         act.content,
                         'Raphael Adrian',
                         'Service Hero',
