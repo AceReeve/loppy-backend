@@ -140,7 +140,7 @@ export class CronService {
                         'jakeviovicente02@gmail.com',
                         act.content,
                         'Raphael Adrian',
-                        'Servi Hero',
+                        'Service Hero',
                       );
 
                       // for (const user of users) {
