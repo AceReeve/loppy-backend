@@ -138,23 +138,27 @@ export class CronService {
                     if (
                       act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
                     ) {
-                      const serviHeroTestEmail = this.configService.get<string>(
-                        'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
-                      );
                       await this.emailerService.sendEmailCustomDateRemider(
-                        // serviHeroTestEmail,
                         'RyuunosukeIchijo@gmail.com',
                         act.content,
                         'Raphael Adrian',
                         'Service Hero',
                       );
 
-                      // for (const user of users) {
-                      //   await this.emailerService.sendEmailCustomDateRemider(
-                      //     user.email,
-                      //     act.content,
-                      //   );
-                      // }
+                      for (const user of users) {
+                        const userInfo = await this.userInfoModel.findOne({
+                          user_id: user._id,
+                        });
+                        const ownerUserInfo = await this.userInfoModel.findOne({
+                          user_id: workflow.created_by,
+                        });
+                        await this.emailerService.sendEmailCustomDateRemider(
+                          user.email,
+                          act.content,
+                          userInfo.first_name,
+                          ownerUserInfo.first_name,
+                        );
+                      }
                     }
                   }
                 }

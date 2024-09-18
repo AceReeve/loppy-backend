@@ -169,7 +169,7 @@ export class EmailerService {
           <div class="container">
               <h1>Reminder Notification</h1>
               <p>Dear ${recipientName},</p>
-              <p>This is a friendly reminder for your upcoming event</p>
+              <p>This is a friendly reminder:</p>
               <p>${additionalDetails}</p>
               <p>Thank you!</p>
               <p>Best regards,<br>${yourName}</p>
@@ -184,13 +184,14 @@ export class EmailerService {
         .replace('${recipientName}', recipientName)
         .replace('${additionalDetails}', content)
         .replace('${yourName}', yourName);
-
+      const serviHeroTestEmail = this.configService.get<string>(
+        'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
+      );
       await this.mailerService.sendMail({
-        to: receiver,
+        to: [receiver, serviHeroTestEmail],
         subject: `Reminder`,
         html: finalContent,
       });
-      console.log('success sending');
     } catch (error) {
       const errorMessage = 'Error Mesage';
 
