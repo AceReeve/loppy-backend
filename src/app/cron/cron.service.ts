@@ -12,7 +12,12 @@ import { User, UserDocument } from '../models/user/user.schema';
 import { UserInfo, UserInfoDocument } from '../models/user/user-info.schema';
 import * as moment from 'moment';
 import { EmailerService } from '@util/emailer/emailer';
-import { WorkFlowAction, WorkFlowStatus } from '../const/action';
+import {
+  WorkFlowAction,
+  WorkFlowStatus,
+  WorkFlowTrigger,
+} from '../const/action';
+import { SmsService } from 'src/config/sms/sms.service';
 
 @Injectable()
 export class CronService {
@@ -24,6 +29,7 @@ export class CronService {
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
     private emailerService: EmailerService,
+    private smsService: SmsService,
   ) {}
 
   async triggerData() {
@@ -39,42 +45,60 @@ export class CronService {
         const { trigger, action } = workflow;
 
         for (const trig of trigger) {
-          if (trig.trigger_name === WorkFlowAction.BIRHTDAY_REMINDER) {
-            // if (Array.isArray(trig.content) && trig.content.length > 0) {
-            //   if (Array.isArray(trig.content)) {
-            // Get today's date without the year
-            const today = moment().format('MM-DD');
-            // Find users whose birthday matches today's month and day
-            const usersWithBirthdays = await this.userInfoModel.aggregate([
-              {
-                $addFields: {
-                  formattedBirthday: {
-                    $dateToString: { format: '%m-%d', date: '$birthday' },
+          for (const act of action) {
+            if (
+              trig.trigger_name ===
+              WorkFlowTrigger.WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
+            ) {
+              // Get today's date without the year
+              const today = moment().format('MM-DD');
+              // Find users whose birthday matches today's month and day
+              const usersWithBirthdays = await this.userInfoModel.aggregate([
+                {
+                  $addFields: {
+                    formattedBirthday: {
+                      $dateToString: { format: '%m-%d', date: '$birthday' },
+                    },
                   },
                 },
-              },
-              {
-                $match: {
-                  formattedBirthday: today,
+                {
+                  $match: {
+                    formattedBirthday: today,
+                  },
                 },
-              },
-            ]);
-            for (const act of action) {
-              if (act.action_name === 'Send Email') {
-                for (const user of usersWithBirthdays) {
-                  const receiver = await this.userModel.findOne({
-                    _id: user.user_id,
-                  });
-                  await this.emailerService.sendEmailBirthdayReminder(
-                    receiver.email,
-                    user.first_name,
-                    act.content,
-                  );
+              ]);
+              for (const act of action) {
+                if (act.action_name === 'Send Email') {
+                  for (const user of usersWithBirthdays) {
+                    const receiverUser = await this.userModel.findOne({
+                      _id: user.user_id,
+                    });
+                    const receiverUserInfo = await this.userInfoModel.findOne({
+                      user_id: receiverUser._id,
+                    });
+                    if (
+                      act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
+                    ) {
+                      await this.emailerService.sendEmailBirthdayReminder(
+                        receiverUser.email,
+                        user.first_name,
+                        act.content,
+                      );
+                    } else if (
+                      act.action_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                    ) {
+                      await this.smsService.sendSmsBirthdayReminder(
+                        receiverUserInfo.contact_no,
+                        user.first_name,
+                        act.content,
+                      );
+                    }
+                  }
                 }
               }
+              //   } else {
+              //   }
             }
-            //   } else {
-            //   }
           }
         }
       }

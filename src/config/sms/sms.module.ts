@@ -34,45 +34,43 @@ import {
 import { WorkFlowRepository } from 'src/app/repository/work-flow/work-flow.repository';
 import { WorkFlowService } from 'src/app/services/work-flow/work-flow.service';
 import { WorkFlowController } from 'src/app/controller/react-flow/react-flow.controller';
-import { StripeModule } from '../api/api.module';
+// import { StripeModule } from '../api/api.module';
 import { CronService } from 'src/app/cron/cron.service';
-import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
-import { SmsService } from 'src/config/sms/sms.service';
+import { SmsController } from 'src/app/controller/react-flow/sms.controller';
+import { SmsService } from './sms.service';
 
 @Global()
 @Module({
   imports: [
-    UserSchemaModule,
-    UserModule,
-    WorkFlowSchemaModule,
-    RoleSchemaModule,
-    OtpSchemaModule,
-    StripeModule,
-    StripeEventSchemaModule,
-    WeatherForecastSchemaModule,
-    InvitedUserSchemaModule,
-    EmailerModule,
-    FileUploadSchemaModule,
-    TeamSchemaModule,
+    // UserSchemaModule,
+    // UserModule,
+    // WorkFlowSchemaModule,
+    // RoleSchemaModule,
+    // OtpSchemaModule,
+    // StripeModule,
+    // StripeEventSchemaModule,
+    // WeatherForecastSchemaModule,
+    // InvitedUserSchemaModule,
+    // EmailerModule,
+    // FileUploadSchemaModule,
   ],
   providers: [
-    UserService,
-    UserRepository,
-    AuthRepository,
-    S3Service,
-    OauthRepository,
-    CronService,
+    // UserService,
+    // UserRepository,
+    // AuthRepository,
+    // S3Service,
+    // OauthRepository,
     SmsService,
-    {
-      provide: AbstractWorkFlowRepository,
-      useClass: WorkFlowRepository,
-    },
-    {
-      provide: AbstractWorkFlowService,
-      useClass: WorkFlowService,
-    },
+    // {
+    //   provide: AbstractWorkFlowRepository,
+    //   useClass: WorkFlowRepository,
+    // },
+    // {
+    //   provide: AbstractWorkFlowService,
+    //   useClass: WorkFlowService,
+    // },
   ],
-  controllers: [WorkFlowController],
+  controllers: [SmsController],
   exports: [],
 })
-export class WorkFlowModule {}
+export class SmsModule {}
