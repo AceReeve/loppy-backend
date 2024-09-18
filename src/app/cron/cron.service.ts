@@ -18,6 +18,11 @@ import {
   WorkFlowTrigger,
 } from '../const/action';
 import { SmsService } from 'src/config/sms/sms.service';
+import { UserRepository } from '../repository/user/user.repository';
+import {
+  InvitedUser,
+  InvitedUserDocument,
+} from '../models/invited-users/invited-users.schema';
 
 @Injectable()
 export class CronService {
@@ -28,8 +33,11 @@ export class CronService {
     private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    @InjectModel(InvitedUser.name)
+    private invitedUserModel: Model<InvitedUserDocument>,
     private emailerService: EmailerService,
     private smsService: SmsService,
+    protected readonly userRepository: UserRepository,
   ) {}
 
   async triggerData() {
@@ -39,8 +47,10 @@ export class CronService {
   @Cron('0 0 * * *') // Runs every day at midnight
   async handleCron() {
     const workflows = await this.triggerData();
-
+    console.log('1111', workflows);
     for (const workflow of workflows) {
+      console.log('workflow', workflow);
+
       if (workflow.status === WorkFlowStatus.PUBLISHED) {
         const { trigger, action } = workflow;
 
@@ -98,6 +108,45 @@ export class CronService {
               }
               //   } else {
               //   }
+            }
+
+            if (
+              trig.trigger_name ===
+              WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOM_DATE_REMINDER
+            ) {
+              // Get today's date without the year
+              const triggerDate = trig.content.find((item) => item.date)?.date;
+              if (triggerDate) {
+                const formattedTriggerDate =
+                  moment(triggerDate).format('MM-DD');
+                const today = moment().format('MM-DD');
+
+                if (formattedTriggerDate === today) {
+                  const invitedUsers = await this.invitedUserModel.find({
+                    invited_by: workflow.created_by,
+                  });
+                  const allFilteredEmail = invitedUsers.flatMap((invitedUser) =>
+                    invitedUser.users.map((user) => user.email),
+                  );
+                  const users = await this.userModel.find({
+                    email: { $in: allFilteredEmail },
+                  });
+
+                  for (const act of action) {
+                    if (
+                      act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
+                    ) {
+                      for (const user of users) {
+                        await this.emailerService.sendEmailCustomDateRemider(
+                          user.email,
+                          act.content,
+                        );
+                      }
+                    }
+                  }
+                }
+              }
+              return 'success test';
             }
           }
         }

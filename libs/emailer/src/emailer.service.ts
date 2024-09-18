@@ -91,4 +91,22 @@ export class EmailerService {
       throw new InternalServerErrorException(errorMessage);
     }
   }
+
+  async sendEmailCustomDateRemider(
+    receiver: string,
+    content: string,
+  ): Promise<any> {
+    try {
+      await this.mailerService.sendMail({
+        to: receiver,
+        subject: `Reminder`,
+        html: content,
+      });
+    } catch (error) {
+      const errorMessage = 'Error Mesage';
+
+      this.logger.error(errorMessage, error);
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
 }

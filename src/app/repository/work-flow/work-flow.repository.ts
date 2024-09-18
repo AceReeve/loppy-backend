@@ -89,7 +89,6 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         });
       }
       const savedWorkflow = await createWorkFlow.save();
-      await this.cronService.handleCron();
       return savedWorkflow;
     } catch (error) {
       throw new Error(`Error in workFlow method: ${error.message}`);
@@ -219,27 +218,52 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
     return result;
   }
-  async publishedWorkFlow(id: string): Promise<any> {
+  async publishedWorkFlow(id: string, published: Boolean): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const result = await this.workFlowModel.findOneAndUpdate(
-      {
-        created_by: user._id,
-        _id: new Types.ObjectId(id),
-      },
-      {
-        $set: {
-          status: WorkFlowStatus.PUBLISHED,
-        },
-      },
-      {
-        new: true,
-      },
-    );
 
-    if (!result) {
-      throw new Error(`workflow failed to published `);
+    if (published === true || published.toString() === 'true') {
+      const result = await this.workFlowModel.findOneAndUpdate(
+        {
+          created_by: user._id,
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            status: WorkFlowStatus.PUBLISHED,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      if (!result) {
+        throw new Error(`workflow failed to published `);
+      }
+      const results = await this.cronService.handleCron();
+
+      return result;
+    } else {
+      const result = await this.workFlowModel.findOneAndUpdate(
+        {
+          created_by: user._id,
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            status: WorkFlowStatus.SAVED,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      if (!result) {
+        throw new Error(`workflow failed to published `);
+      }
+      const results = await this.cronService.handleCron();
+
+      return result;
     }
-    return result;
   }
 
   //folder
