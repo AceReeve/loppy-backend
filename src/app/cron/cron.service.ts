@@ -142,7 +142,8 @@ export class CronService {
                         'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
                       );
                       await this.emailerService.sendEmailCustomDateRemider(
-                        serviHeroTestEmail,
+                        // serviHeroTestEmail,
+                        'RyuunosukeIchijo@gmail.com',
                         act.content,
                         'Raphael Adrian',
                         'Service Hero',
