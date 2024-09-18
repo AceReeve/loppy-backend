@@ -111,52 +111,52 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       }
       let createWorkFlow;
 
-      if (dto.folder_id) {
-        const folder = await this.workFlowFolderModel.findOne({
-          _id: new Types.ObjectId(dto.folder_id),
-        });
+      // if (dto.folder_id) {
+      //   const folder = await this.workFlowFolderModel.findOne({
+      //     _id: new Types.ObjectId(dto.folder_id),
+      //   });
 
-        if (!folder) {
-          throw new Error(`Workflow folder ${dto.folder_id} not found`);
-        }
+      //   if (!folder) {
+      //     throw new Error(`Workflow folder ${dto.folder_id} not found`);
+      //   }
 
-        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
-          {
-            _id: new Types.ObjectId(id),
+      //   createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+      //     {
+      //       _id: new Types.ObjectId(id),
+      //     },
+      //     {
+      //       $set: {
+      //         name: dto.workflow_name,
+      //         created_by: user._id,
+      //         folder_id: new Types.ObjectId(id),
+      //         trigger: dto.trigger,
+      //         action: dto.action,
+      //         status: dto.status,
+      //       },
+      //     },
+      //     {
+      //       new: true,
+      //     },
+      //   );
+      // } else {
+      createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            // name: dto.workflow_name,
+            created_by: user._id,
+            trigger: dto.trigger,
+            action: dto.action,
+            // status: dto.status,
           },
-          {
-            $set: {
-              name: dto.workflow_name,
-              created_by: user._id,
-              folder_id: new Types.ObjectId(id),
-              trigger: dto.trigger,
-              action: dto.action,
-              status: dto.status,
-            },
-          },
-          {
-            new: true,
-          },
-        );
-      } else {
-        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
-          {
-            _id: new Types.ObjectId(id),
-          },
-          {
-            $set: {
-              name: dto.workflow_name,
-              created_by: user._id,
-              trigger: dto.trigger,
-              action: dto.action,
-              status: dto.status,
-            },
-          },
-          {
-            new: true,
-          },
-        );
-      }
+        },
+        {
+          new: true,
+        },
+      );
+      // }
       return createWorkFlow;
     } catch (error) {
       throw new Error(`Error in workFlow method: ${error.message}`);
