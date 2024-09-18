@@ -115,7 +115,7 @@ export class CronService {
               WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOM_DATE_REMINDER
             ) {
               // Get today's date without the year
-              const triggerDate = trig.content.find((item) => item.date)?.date;
+              const triggerDate = trig.content.find((item) => item);
               if (triggerDate) {
                 const formattedTriggerDate =
                   moment(triggerDate).format('MM-DD');

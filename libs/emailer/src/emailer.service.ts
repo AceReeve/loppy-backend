@@ -17,6 +17,37 @@ export class EmailerService {
 
   private baseUrl = this.configService.get<string>('BASE_URL');
 
+  // private userType = {
+  //   default: 1,
+  // };
+
+  // private nodeEnv = process.env.NODE_ENV;
+  // private append =
+  //   this.nodeEnv === 'dev' || this.nodeEnv === 'local' ? ' **TEST ONLY**' : '';
+
+  private serviHeroTestEmail = this.configService.get<string>(
+    'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
+  );
+  // private sendEmail(
+  //   email: string[] | string | undefined,
+  //   type?: number,
+  // ): string | string[] {
+  //   if (this.nodeEnv === 'local' || this.nodeEnv === 'dev') {
+  //     let testEmailToSend: string = '';
+  //     switch (type) {
+  //       case this.userType.default:
+  //         if (!this.serviHeroTestEmail) {
+  //           throw new Error('Invalid test email address');
+  //         }
+  //         testEmailToSend = this.serviHeroTestEmail;
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //     return testEmailToSend;
+  //   }
+  // }
+
   async inviteUser(
     email: string,
     access_token: string,
@@ -101,6 +132,7 @@ export class EmailerService {
         subject: `Reminder`,
         html: content,
       });
+      console.log('success sending');
     } catch (error) {
       const errorMessage = 'Error Mesage';
 
