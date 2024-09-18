@@ -124,13 +124,81 @@ export class EmailerService {
 
   async sendEmailCustomDateRemider(
     receiver: string,
-    content: string,
+    additionalDetails: string,
+    recipientName: string,
+    yourName: string,
   ): Promise<any> {
     try {
+      const eventTitle = 'Team Meeting';
+      const eventDate = '2024-09-20';
+      const eventTime = '10:00 AM';
+
+      const content = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reminder</title>
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f8f9fa;
+                  margin: 0;
+                  padding: 20px;
+              }
+              .container {
+                  max-width: 600px;
+                  margin: auto;
+                  background: white;
+                  padding: 20px;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              h1 {
+                  color: #333;
+              }
+              p {
+                  color: #555;
+                  line-height: 1.6;
+              }
+              .footer {
+                  margin-top: 20px;
+                  font-size: 0.9em;
+                  color: #777;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <h1>Reminder Notification</h1>
+              <p>Dear ${recipientName},</p>
+              <p>This is a friendly reminder for your upcoming event:</p>
+              <p><strong>${eventTitle}</strong></p>
+              <p>Date: ${eventDate}</p>
+              <p>Time: ${eventTime}</p>
+              <p>${additionalDetails}</p>
+              <p>Thank you!</p>
+              <p>Best regards,<br>${yourName}</p>
+              <div class="footer">
+                  <p>If you have any questions, feel free to contact us.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+      `;
+      const finalContent = content
+        .replace('${recipientName}', recipientName)
+        .replace('${additionalDetails}', content)
+        .replace('${yourName}', yourName)
+        .replace('${eventTitle}', eventTitle)
+        .replace('${eventDate}', eventDate)
+        .replace('${eventTime}', eventTime);
+
       await this.mailerService.sendMail({
         to: receiver,
         subject: `Reminder`,
-        html: content,
+        html: finalContent,
       });
       console.log('success sending');
     } catch (error) {
