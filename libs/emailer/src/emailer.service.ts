@@ -129,10 +129,6 @@ export class EmailerService {
     yourName: string,
   ): Promise<any> {
     try {
-      const eventTitle = 'Team Meeting';
-      const eventDate = '2024-09-20';
-      const eventTime = '10:00 AM';
-
       const content = `
       <!DOCTYPE html>
       <html lang="en">
@@ -173,10 +169,7 @@ export class EmailerService {
           <div class="container">
               <h1>Reminder Notification</h1>
               <p>Dear ${recipientName},</p>
-              <p>This is a friendly reminder for your upcoming event:</p>
-              <p><strong>${eventTitle}</strong></p>
-              <p>Date: ${eventDate}</p>
-              <p>Time: ${eventTime}</p>
+              <p>This is a friendly reminder for your upcoming event</p>
               <p>${additionalDetails}</p>
               <p>Thank you!</p>
               <p>Best regards,<br>${yourName}</p>
@@ -190,10 +183,7 @@ export class EmailerService {
       const finalContent = content
         .replace('${recipientName}', recipientName)
         .replace('${additionalDetails}', content)
-        .replace('${yourName}', yourName)
-        .replace('${eventTitle}', eventTitle)
-        .replace('${eventDate}', eventDate)
-        .replace('${eventTime}', eventTime);
+        .replace('${yourName}', yourName);
 
       await this.mailerService.sendMail({
         to: receiver,
