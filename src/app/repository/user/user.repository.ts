@@ -630,6 +630,7 @@ export class UserRepository implements AbstractUserRepository {
 
     return [];
   }
+
   async getAcceptedInvitedUser(): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const invitedUser = await this.invitedUserModel
