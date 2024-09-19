@@ -66,6 +66,14 @@ export class ManageTeamController {
   }
 
   @UseGuards(AdminAuthGuard)
+  @Delete('team/:teamId')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Delete Team' })
+  async deleteTeam(@Param('teamId') teamId: string): Promise<any> {
+    return this.manageTeamService.deleteTeam(teamId);
+  }
+
+  @UseGuards(AdminAuthGuard)
   @Get('teams')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'List of All Team' })

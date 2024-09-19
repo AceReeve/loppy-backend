@@ -272,6 +272,27 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     return existingTeam;
   }
 
+  async deleteTeam(teamId: string): Promise<any> {
+    // Fetch logged-in user details (assuming you have a method like this in userRepository)
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+    // validate team if already existing
+    const isTeamExisting = await this.teamModel.findOne({
+      created_by: loggedInUser._id,
+      _id: teamId,
+    });
+
+    if (!isTeamExisting) {
+      // team not found error
+      throw new BadRequestException(
+        'Team not found. Please check the team ID and try again.',
+      );
+    }
+
+    // Delete team
+    const team = await this.teamModel.deleteOne({ _id: teamId });
+    return team;
+  }
+
   async deleteTeamMember(teamId: string, memberId: string): Promise<any> {
     const loggedInUser = await this.userRepository.getLoggedInUserDetails();
 
