@@ -18,6 +18,12 @@ import {
   WorkFlowTrigger,
 } from '../const/action';
 import { SmsService } from 'src/config/sms/sms.service';
+import { UserRepository } from '../repository/user/user.repository';
+import {
+  InvitedUser,
+  InvitedUserDocument,
+} from '../models/invited-users/invited-users.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CronService {
@@ -28,8 +34,12 @@ export class CronService {
     private userInfoModel: Model<UserInfoDocument>,
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    @InjectModel(InvitedUser.name)
+    private invitedUserModel: Model<InvitedUserDocument>,
     private emailerService: EmailerService,
     private smsService: SmsService,
+    protected readonly userRepository: UserRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   async triggerData() {
@@ -39,7 +49,6 @@ export class CronService {
   @Cron('0 0 * * *') // Runs every day at midnight
   async handleCron() {
     const workflows = await this.triggerData();
-
     for (const workflow of workflows) {
       if (workflow.status === WorkFlowStatus.PUBLISHED) {
         const { trigger, action } = workflow;
@@ -96,8 +105,50 @@ export class CronService {
                   }
                 }
               }
-              //   } else {
-              //   }
+            }
+
+            if (
+              trig.trigger_name ===
+              WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOM_DATE_REMINDER
+            ) {
+              // Get today's date without the year
+              const triggerDate = trig.content.find((item) => item);
+              if (triggerDate) {
+                const formattedTriggerDate =
+                  moment(triggerDate).format('MM-DD');
+                const today = moment().format('MM-DD');
+
+                if (formattedTriggerDate === today) {
+                  const invitedUsers = await this.invitedUserModel.find({
+                    invited_by: workflow.created_by,
+                  });
+                  const allFilteredEmail = invitedUsers.flatMap((invitedUser) =>
+                    invitedUser.users.map((user) => user.email),
+                  );
+                  const users = await this.userModel.find({
+                    email: { $in: allFilteredEmail },
+                  });
+
+                  if (
+                    act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
+                  ) {
+                    for (const user of users) {
+                      const userInfo = await this.userInfoModel.findOne({
+                        user_id: user._id,
+                      });
+                      const ownerUserInfo = await this.userInfoModel.findOne({
+                        user_id: workflow.created_by,
+                      });
+                      await this.emailerService.sendEmailCustomDateRemider(
+                        user.email,
+                        act.content,
+                        userInfo.first_name,
+                        ownerUserInfo.first_name,
+                      );
+                    }
+                  }
+                }
+              }
             }
           }
         }

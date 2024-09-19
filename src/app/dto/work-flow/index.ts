@@ -92,27 +92,27 @@ export class CreateWorkflowDto {
 }
 
 export class UpdateWorkflowDto {
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'WorkFlow Name',
-    example: 'Birthday Reminder WorkFlow',
-  })
-  workflow_name: string;
+  // @IsNotEmpty()
+  // @ApiProperty({
+  //   description: 'WorkFlow Name',
+  //   example: 'Birthday Reminder WorkFlow',
+  // })
+  // workflow_name: string;
 
-  @IsNotEmpty()
-  @IsIn([WorkFlowStatus.PUBLISHED, WorkFlowStatus.SAVED])
-  @ApiProperty({
-    description: 'Status[Publised, Saved]',
-    example: 'Saved',
-  })
-  status: string;
+  // @IsNotEmpty()
+  // @IsIn([WorkFlowStatus.PUBLISHED, WorkFlowStatus.SAVED])
+  // @ApiProperty({
+  //   description: 'Status[Publised, Saved]',
+  //   example: 'Saved',
+  // })
+  // status: string;
 
-  @IsOptional()
-  @ApiProperty({
-    description: 'Work Flow ID optional',
-    example: '12312541251561',
-  })
-  folder_id?: string;
+  // @IsOptional()
+  // @ApiProperty({
+  //   description: 'Work Flow ID optional',
+  //   example: '12312541251561',
+  // })
+  // folder_id?: string;
 
   @IsNotEmpty()
   @ValidateNested()

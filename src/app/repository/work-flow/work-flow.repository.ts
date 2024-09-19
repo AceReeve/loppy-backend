@@ -89,7 +89,6 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         });
       }
       const savedWorkflow = await createWorkFlow.save();
-      await this.cronService.handleCron();
       return savedWorkflow;
     } catch (error) {
       throw new Error(`Error in workFlow method: ${error.message}`);
@@ -111,52 +110,52 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       }
       let createWorkFlow;
 
-      if (dto.folder_id) {
-        const folder = await this.workFlowFolderModel.findOne({
-          _id: new Types.ObjectId(dto.folder_id),
-        });
+      // if (dto.folder_id) {
+      //   const folder = await this.workFlowFolderModel.findOne({
+      //     _id: new Types.ObjectId(dto.folder_id),
+      //   });
 
-        if (!folder) {
-          throw new Error(`Workflow folder ${dto.folder_id} not found`);
-        }
+      //   if (!folder) {
+      //     throw new Error(`Workflow folder ${dto.folder_id} not found`);
+      //   }
 
-        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
-          {
-            _id: new Types.ObjectId(id),
+      //   createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+      //     {
+      //       _id: new Types.ObjectId(id),
+      //     },
+      //     {
+      //       $set: {
+      //         name: dto.workflow_name,
+      //         created_by: user._id,
+      //         folder_id: new Types.ObjectId(id),
+      //         trigger: dto.trigger,
+      //         action: dto.action,
+      //         status: dto.status,
+      //       },
+      //     },
+      //     {
+      //       new: true,
+      //     },
+      //   );
+      // } else {
+      createWorkFlow = await this.workFlowModel.findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            // name: dto.workflow_name,
+            created_by: user._id,
+            trigger: dto.trigger,
+            action: dto.action,
+            // status: dto.status,
           },
-          {
-            $set: {
-              name: dto.workflow_name,
-              created_by: user._id,
-              folder_id: new Types.ObjectId(id),
-              trigger: dto.trigger,
-              action: dto.action,
-              status: dto.status,
-            },
-          },
-          {
-            new: true,
-          },
-        );
-      } else {
-        createWorkFlow = await this.workFlowModel.findOneAndUpdate(
-          {
-            _id: new Types.ObjectId(id),
-          },
-          {
-            $set: {
-              name: dto.workflow_name,
-              created_by: user._id,
-              trigger: dto.trigger,
-              action: dto.action,
-              status: dto.status,
-            },
-          },
-          {
-            new: true,
-          },
-        );
-      }
+        },
+        {
+          new: true,
+        },
+      );
+      // }
       return createWorkFlow;
     } catch (error) {
       throw new Error(`Error in workFlow method: ${error.message}`);
@@ -219,27 +218,52 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
     return result;
   }
-  async publishedWorkFlow(id: string): Promise<any> {
+  async publishedWorkFlow(id: string, published: Boolean): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const result = await this.workFlowModel.findOneAndUpdate(
-      {
-        created_by: user._id,
-        _id: new Types.ObjectId(id),
-      },
-      {
-        $set: {
-          status: WorkFlowStatus.PUBLISHED,
-        },
-      },
-      {
-        new: true,
-      },
-    );
 
-    if (!result) {
-      throw new Error(`workflow failed to published `);
+    if (published === true || published.toString() === 'true') {
+      const result = await this.workFlowModel.findOneAndUpdate(
+        {
+          created_by: user._id,
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            status: WorkFlowStatus.PUBLISHED,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      if (!result) {
+        throw new Error(`workflow failed to published `);
+      }
+      const results = await this.cronService.handleCron();
+
+      return result;
+    } else {
+      const result = await this.workFlowModel.findOneAndUpdate(
+        {
+          created_by: user._id,
+          _id: new Types.ObjectId(id),
+        },
+        {
+          $set: {
+            status: WorkFlowStatus.SAVED,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      if (!result) {
+        throw new Error(`workflow failed to published `);
+      }
+      const results = await this.cronService.handleCron();
+
+      return result;
     }
-    return result;
   }
 
   //folder
