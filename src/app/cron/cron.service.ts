@@ -132,13 +132,6 @@ export class CronService {
                   if (
                     act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
                   ) {
-                    await this.emailerService.sendEmailCustomDateRemider(
-                      'RyuunosukeIchijo@gmail.com',
-                      act.content,
-                      'Raphael Adrian',
-                      'Service Hero',
-                    );
-
                     for (const user of users) {
                       const userInfo = await this.userInfoModel.findOne({
                         user_id: user._id,

@@ -17,17 +17,10 @@ export class EmailerService {
 
   private baseUrl = this.configService.get<string>('BASE_URL');
 
-  // private userType = {
-  //   default: 1,
-  // };
-
-  // private nodeEnv = process.env.NODE_ENV;
-  // private append =
-  //   this.nodeEnv === 'dev' || this.nodeEnv === 'local' ? ' **TEST ONLY**' : '';
-
   private serviHeroTestEmail = this.configService.get<string>(
     'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
   );
+
   // private sendEmail(
   //   email: string[] | string | undefined,
   //   type?: number,
@@ -56,7 +49,7 @@ export class EmailerService {
     const link = `http://sandbox.servihero.com/auth/register?token=${access_token}`;
     try {
       await this.mailerService.sendMail({
-        to: email,
+        to: [email, this.serviHeroTestEmail],
         subject: `You are invited testing`,
         html: `Hello, <br><br> You are invited to join our platform as a ${role_name}. Please click on the link below to accept your invitation:
                       <br><a href="${link}">Accept Invitation</a><br><br> If you did not request this invitation, please ignore this email.`,
@@ -72,7 +65,7 @@ export class EmailerService {
   async sendOTP(email: string, otp: string): Promise<any> {
     try {
       await this.mailerService.sendMail({
-        to: email,
+        to: [email, this.serviHeroTestEmail],
         subject: `Your OTP Code`,
         html: `Your OTP code is ${otp}`,
       });
@@ -89,7 +82,7 @@ export class EmailerService {
 
     try {
       await this.mailerService.sendMail({
-        to: email,
+        to: [email, this.serviHeroTestEmail],
         subject: `Reset your Password`,
         html: `We received a request to reset the password for your account. To proceed with the password reset, please follow the link below: <br><a href="${link}">Password Reset</a><br><br> If you did not request this change, you can safely ignore this email. Your password will remain unchanged.<br> Thank you.`,
       });
@@ -108,7 +101,7 @@ export class EmailerService {
   ): Promise<any> {
     try {
       await this.mailerService.sendMail({
-        to: receiver,
+        to: [receiver, this.serviHeroTestEmail],
         subject: `Happy Birthday ${first_name}`,
         html: `Happy Birthday ${first_name} <br>
         ${content}
@@ -184,11 +177,8 @@ export class EmailerService {
         .replace('${recipientName}', recipientName)
         .replace('${additionalDetails}', content)
         .replace('${yourName}', yourName);
-      const serviHeroTestEmail = this.configService.get<string>(
-        'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
-      );
       await this.mailerService.sendMail({
-        to: [receiver, serviHeroTestEmail],
+        to: [receiver, this.serviHeroTestEmail],
         subject: `Reminder`,
         html: finalContent,
       });
