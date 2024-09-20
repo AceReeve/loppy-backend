@@ -5,10 +5,20 @@ import axios, { AxiosInstance } from 'axios';
 @Injectable()
 export class WeatherForecastService {
   private weatherAPI: AxiosInstance;
+  private openWeatherAPI: AxiosInstance;
 
+  private openWeatherAPIurl: string = "https://api.openweathermap.org/data/2.5/";
   private weatherAPIurl: string = 'http://api.weatherapi.com/v1/';
 
   constructor(private configService: ConfigService) {
+
+    this.openWeatherAPI = axios.create({
+      baseURL: this.openWeatherAPIurl,
+      params: {
+        APPID: this.configService.get<string>('WEATHERFORCAST_KEY'),
+      },
+    });
+
     this.weatherAPI = axios.create({
       baseURL: this.weatherAPIurl,
       params: {
@@ -49,4 +59,41 @@ export class WeatherForecastService {
       };
     }
   }
+
+
+  async openWeatherDaily(city: string) {
+    try {
+      const response = await this.openWeatherAPI.get('forecast', {
+        params: {
+          q: city,
+          units: "metric",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+
+  async openWeatherDay(city: string) {
+    try {
+      const response = await this.openWeatherAPI.get('weather', {
+        params: {
+          q: city,
+          units: "metric",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
 }
