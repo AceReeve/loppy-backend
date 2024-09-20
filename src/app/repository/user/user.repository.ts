@@ -1164,7 +1164,7 @@ export class UserRepository implements AbstractUserRepository {
       );
       return invitedUser;
     } else {
-      return {};
+      return { users: [] };
     }
   }
 }
