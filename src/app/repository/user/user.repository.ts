@@ -1158,9 +1158,13 @@ export class UserRepository implements AbstractUserRepository {
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
-    invitedUser.users = invitedUser.users.filter(
-      (user) => user.status === UserStatus.ACCEPTED,
-    );
-    return invitedUser;
+    if (invitedUser) {
+      invitedUser.users = invitedUser.users.filter(
+        (user) => user.status === UserStatus.ACCEPTED,
+      );
+      return invitedUser;
+    } else {
+      return {};
+    }
   }
 }
