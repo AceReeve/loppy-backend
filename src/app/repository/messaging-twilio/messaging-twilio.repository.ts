@@ -100,10 +100,10 @@ export class MessagingTwilioRepository
         description: dto.description,
         created_by: user._id,
         twilio_account_sid: encryptedAccountSid,
-        twilio_chat_service_sid: encryptedAuthToken,
+        twilio_chat_service_sid: encryptedChatServiceSid,
         twilio_api_key_sid: encryptedApiKeySid,
         twilio_api_key_secret: encryptedApiKeySecret,
-        twilio_auth_token: encryptedChatServiceSid,
+        twilio_auth_token: encryptedAuthToken,
         status: OrganizationStatus.ACTIVE,
       });
       const result = await createOrganization.save();
