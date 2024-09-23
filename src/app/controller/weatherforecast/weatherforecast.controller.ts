@@ -66,4 +66,34 @@ export class WeatherForecastController {
 
         return response;
     }
+
+
+    @Public()
+    @Get('/openweather/daily')
+    @ApiQuery({
+        name: 'city',
+        required: false,
+        default: 'London',
+    } as ApiQueryOptions)
+    async getDayOpenweatherByCity(
+        @Query() queries: ExpressQuery): Promise<object> {
+        const response = await this.weatherService.openWeatherDaily(String(queries.city));
+
+        return response;
+    }
+
+
+    @Public()
+    @Get('/openweather/day')
+    @ApiQuery({
+        name: 'city',
+        required: false,
+        default: 'London',
+    } as ApiQueryOptions)
+    async getDailyyOpenweatherByCity(
+        @Query() queries: ExpressQuery): Promise<object> {
+        const response = await this.weatherService.openWeatherDay(String(queries.city));
+
+        return response;
+    }
 }

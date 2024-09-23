@@ -393,7 +393,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       count: roleCounts[roleName],
     }));
 
-    const roleCount = await this.customRoleModel.find({ team: id }).exec();
+    const roleCount = await this.roleModel.find({});
 
     return {
       _id: team._id,
