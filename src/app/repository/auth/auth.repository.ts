@@ -108,11 +108,11 @@ export class AuthRepository {
     });
 
     if (data) {
-      if (data.login_by !== SignInBy.SIGN_IN_BY_GOOGLE) {
-        throw new Error(
-          `this email : '${googleSaveDTO.email}' is already registered, Please use another email!`,
-        );
-      }
+      // if (data.login_by !== SignInBy.SIGN_IN_BY_GOOGLE) {
+      //   throw new Error(
+      //     `this email : '${googleSaveDTO.email}' is already registered, Please use another email!`,
+      //   );
+      // }
       const userData = await this.userModel.findOneAndUpdate(
         { email: data.email },
         { $inc: { login_count: 1 } },
