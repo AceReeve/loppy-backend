@@ -5,7 +5,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
+import * as path from 'path';
+import * as Handlebars from 'handlebars';
+import * as fs from 'fs';
+import { join } from 'path';
 @Injectable()
 export class EmailerService {
   constructor(
@@ -21,25 +24,21 @@ export class EmailerService {
     'SERVICE_HERO_EMAIL_NOTIF_TESTING_ADDRESS',
   );
 
-  // private sendEmail(
-  //   email: string[] | string | undefined,
-  //   type?: number,
-  // ): string | string[] {
-  //   if (this.nodeEnv === 'local' || this.nodeEnv === 'dev') {
-  //     let testEmailToSend: string = '';
-  //     switch (type) {
-  //       case this.userType.default:
-  //         if (!this.serviHeroTestEmail) {
-  //           throw new Error('Invalid test email address');
-  //         }
-  //         testEmailToSend = this.serviHeroTestEmail;
-  //         break;
-  //       default:
-  //         break;
-  //     }
-  //     return testEmailToSend;
-  //   }
-  // }
+  private logo = path.join('src/config/mail/templates/logo.png');
+
+  private async renderTemplate(
+    templateName: string,
+    context: Record<string, any>,
+  ): Promise<string> {
+    const templatePath = join(
+      __dirname,
+      '../../../config/mail/templates',
+      `${templateName}.hbs`,
+    );
+    const source = fs.readFileSync(templatePath, 'utf8');
+    const template = Handlebars.compile(source);
+    return template(context);
+  }
 
   async inviteUser(
     email: string,
@@ -62,12 +61,27 @@ export class EmailerService {
     }
   }
 
-  async sendOTP(email: string, otp: string): Promise<any> {
+  async sendOTP(email: string, otp: string) {
+    const attachments = [
+      {
+        filename: 'logo.png',
+        path: this.logo,
+        cid: 'logo',
+      },
+    ];
     try {
-      await this.mailerService.sendMail({
+      const context = {
+        otp,
+      };
+      const html = await this.renderTemplate('otp-email-notification', {
+        context,
+      });
+
+      const temp = await this.mailerService.sendMail({
         to: [email, this.serviHeroTestEmail],
-        subject: `Your OTP Code`,
-        html: `Your OTP code is ${otp}`,
+        subject: `OTP Security code`,
+        html,
+        attachments,
       });
     } catch (error) {
       const errorMessage = 'Error Sending code';
