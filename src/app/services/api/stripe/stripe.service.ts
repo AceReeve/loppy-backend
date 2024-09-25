@@ -13,7 +13,7 @@ import { UserService } from '../../user/user.service';
 import { StripeEventRepository } from 'src/app/repository/stripe/stripe.event.repository';
 @Injectable()
 export class StripeService {
-  private stripe: Stripe
+  private stripe: Stripe;
 
   private pricesEnum = {
     essential: this.configService.get<string>('STARTER_HERO_PRICE_ID'),
@@ -37,7 +37,7 @@ export class StripeService {
   public async createCustomer(name: string, email: string) {
     return this.stripe.customers.create({
       name,
-      email
+      email,
     });
   }
 
@@ -51,21 +51,26 @@ export class StripeService {
       corporate: 499,
     };
 
-    const customerDetails = await this.stripe.confirmationTokens.retrieve(stripePaymentIntentDTO.confirmationToken);
+    const customerDetails = await this.stripe.confirmationTokens.retrieve(
+      stripePaymentIntentDTO.confirmationToken,
+    );
     const userDetails = await this.userService.getUser(userId);
     let customerCreated;
-    if (customerDetails.payment_method_preview.billing_details.name != userDetails.first_name + " " + userDetails.last_name &&
-      customerDetails.payment_method_preview.billing_details.email != userDetails.email
+    if (
+      customerDetails.payment_method_preview.billing_details.name !=
+        userDetails.first_name + ' ' + userDetails.last_name &&
+      customerDetails.payment_method_preview.billing_details.email !=
+        userDetails.email
     ) {
-      throw new BadRequestException("Please verify your name and email combination");
+      throw new BadRequestException(
+        'Please verify your name and email combination',
+      );
     } else {
       customerCreated = await this.stripe.customers.create({
-        name: userDetails.first_name + " " + userDetails.last_name,
+        name: userDetails.first_name + ' ' + userDetails.last_name,
         email: userDetails.email,
       });
     }
-
-
 
     if (Object.keys(prices).includes(stripePaymentIntentDTO.type)) {
       try {
@@ -104,24 +109,23 @@ export class StripeService {
     }
   }
 
-
   async createSubscription(
     stripeSubscriptionDTO: StripePaymentIntentDTO,
     userId: string,
   ): Promise<any> {
-
     const userCreds = await this.userService.getUser(userId);
     let customerCreated;
 
     const stripeCustomers = await this.stripe.customers.search({
-      query: `name:\'${userCreds.userInfo.first_name + " " + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
+      query: `name:\'${userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
     });
 
     if (stripeCustomers.data.length >= 1) {
-      customerCreated = stripeCustomers.data[0]
+      customerCreated = stripeCustomers.data[0];
     } else {
       customerCreated = await this.stripe.customers.create({
-        name: userCreds.userInfo.first_name + " " + userCreds.userInfo.last_name,
+        name:
+          userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name,
         email: userCreds.userDetails.email,
       });
     }
@@ -135,15 +139,23 @@ export class StripeService {
         const listOfSubscriptions = await this.stripe.subscriptions.list({
           customer: customerCreated.id,
         });
-        if (listOfSubscriptions !== null && (listOfSubscriptions.data !== null && listOfSubscriptions.data.length !== 0)) {
+        if (
+          listOfSubscriptions !== null &&
+          listOfSubscriptions.data !== null &&
+          listOfSubscriptions.data.length !== 0
+        ) {
           for (const subscriptionDataList of listOfSubscriptions.data) {
-            if (subscriptionDataList.status === "active") {
+            if (subscriptionDataList.status === 'active') {
               for (const subscriptionData of subscriptionDataList.items.data) {
-                if (subscriptionData.plan.id === this.pricesEnum[stripeSubscriptionDTO.type] && subscriptionData.plan.active === true) {
+                if (
+                  subscriptionData.plan.id ===
+                    this.pricesEnum[stripeSubscriptionDTO.type] &&
+                  subscriptionData.plan.active === true
+                ) {
                   activeFlag = true;
                 }
               }
-            } else if (subscriptionDataList.status === "incomplete") {
+            } else if (subscriptionDataList.status === 'incomplete') {
               incompleteFlag = true;
               subscriptionId = subscriptionDataList.id;
             }
@@ -151,58 +163,60 @@ export class StripeService {
         }
 
         if (activeFlag) {
-          throw new BadRequestException('There is already an active subscription with this plan');
-        } else if (incompleteFlag) {
-          const retrieveSubscription = await this.stripe.subscriptions.retrieve(
-            subscriptionId
+          throw new BadRequestException(
+            'There is already an active subscription with this plan',
           );
+        } else if (incompleteFlag) {
+          const retrieveSubscription =
+            await this.stripe.subscriptions.retrieve(subscriptionId);
           subscription = await this.stripe.subscriptions.update(
             subscriptionId,
             {
               items: [
                 {
                   id: retrieveSubscription.items.data[0].id,
-                  price: this.pricesEnum[stripeSubscriptionDTO.type]
-                }
+                  price: this.pricesEnum[stripeSubscriptionDTO.type],
+                },
               ],
               payment_behavior: 'default_incomplete',
-              payment_settings: { save_default_payment_method: 'on_subscription' },
+              payment_settings: {
+                save_default_payment_method: 'on_subscription',
+              },
               expand: ['latest_invoice.payment_intent'],
-            }
+            },
           );
-        }
-        else {
+        } else {
           subscription = await this.stripe.subscriptions.create({
             customer: customerCreated.id,
             items: [
               {
-                price: this.pricesEnum[stripeSubscriptionDTO.type]
-              }
+                price: this.pricesEnum[stripeSubscriptionDTO.type],
+              },
             ],
             payment_behavior: 'default_incomplete',
-            payment_settings: { save_default_payment_method: 'on_subscription' },
+            payment_settings: {
+              save_default_payment_method: 'on_subscription',
+            },
             expand: ['latest_invoice.payment_intent'],
-          })
+          });
         }
       }
-      const response = new SubscriptionResponseDTO;
+      const response = new SubscriptionResponseDTO();
       response.subscriptionId = subscription.id;
-      response.clientSecret = subscription.latest_invoice.payment_intent.client_secret
-      return response;
-
+      response.clientSecret =
+        subscription.latest_invoice.payment_intent.client_secret;
+      if (subscription.status) return response;
     } catch (e) {
       throw new BadRequestException(e.message);
     }
-
   }
 
-
-  async customerSubscriptions(
-    userId: string,
-  ): Promise<any> {
+  async customerSubscriptions(userId: string): Promise<any> {
     try {
       const user = await this.userService.getUser(userId);
-      const stripeEvent = await this.stripeEventRepository.findByUserStripeData(user.userInfo.stripe_id);
+      const stripeEvent = await this.stripeEventRepository.findByUserStripeData(
+        user.userInfo.stripe_id,
+      );
       return stripeEvent;
     } catch (e) {
       throw new BadRequestException(e.message);
@@ -214,11 +228,10 @@ export class StripeService {
     userId: string,
   ): Promise<any> {
     try {
-
       const retrieveSubscription = await this.stripe.subscriptions.retrieve(
-        updateSubscriptionDTO.subscriptionId
+        updateSubscriptionDTO.subscriptionId,
       );
-      let subscription
+      let subscription;
       if (Object.keys(this.pricesEnum).includes(updateSubscriptionDTO.type)) {
         subscription = await this.stripe.subscriptions.update(
           updateSubscriptionDTO.subscriptionId,
@@ -229,7 +242,7 @@ export class StripeService {
                 price: this.pricesEnum[updateSubscriptionDTO.type],
               },
             ],
-          }
+          },
         );
       }
 
@@ -244,9 +257,8 @@ export class StripeService {
     userId: string,
   ): Promise<any> {
     try {
-
       const subscription = await this.stripe.subscriptions.cancel(
-        cancelSubscriptionDTO.subscriptionId
+        cancelSubscriptionDTO.subscriptionId,
       );
 
       return subscription;
@@ -254,7 +266,6 @@ export class StripeService {
       throw new BadRequestException(e.message);
     }
   }
-
 
   constructEventFromPayload(signature: string, payload: Buffer) {
     const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET');

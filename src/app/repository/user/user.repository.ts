@@ -870,6 +870,7 @@ export class UserRepository implements AbstractUserRepository {
     if (validateEmail) {
       throw new BadRequestException('Email is already Registered');
     }
+
     await this.otpModel.deleteOne({
       email: email,
     });
