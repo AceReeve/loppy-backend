@@ -21,6 +21,8 @@ import { MessagingTwilioModule } from './app/modules/messaging-twilio/messaging-
 import { ServiceTitanModule } from './app/modules/service-titan/service-titan.module';
 import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
 import { CronModule } from './app/cron/cron.module';
+import { OpportunityModule } from './app/modules/opportunity/opportunity.module';
+import { LeadModule } from './app/modules/lead/lead.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CronModule } from './app/cron/cron.module';
     }),
     StripeModule,
     RoleModule,
+    OpportunityModule,
+    LeadModule,
     TwilioModule,
     DashboardModule,
     EmailNotificationModule,
