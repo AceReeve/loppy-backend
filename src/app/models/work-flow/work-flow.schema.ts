@@ -9,10 +9,16 @@ export class Trigger {
   id: string;
 
   @Prop({ required: true })
-  trigger_name: string;
+  title: string;
 
-  @Prop({ type: [], default: [] })
-  content?: any[];
+  @Prop({ required: true })
+  node_name: string;
+
+  @Prop()
+  node_type_id?: string;
+
+  @Prop({ type: Object, default: {} })
+  content?: any;
 }
 export class Action {
   @Prop({ required: true })

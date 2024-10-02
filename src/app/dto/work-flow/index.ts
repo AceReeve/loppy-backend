@@ -25,15 +25,29 @@ export class TriggerWorkFlow {
     example: 'Birthday Reminder',
     description: 'Required field when creating a Work Flow',
   })
-  trigger_name: string;
+  title: string;
 
-  @IsArray()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty({
     example: 'Birthday Reminder',
     description: 'Required field when creating a Work Flow',
   })
-  content?: [];
+  node_name: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    example: 'Birthday Reminder',
+  })
+  node_type_id?: string;
+
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Birthday Reminder',
+    description: 'Required field when creating a Work Flow',
+  })
+  content?: {};
 }
 export class ActionWorkFlow {
   @IsString()
@@ -92,28 +106,6 @@ export class CreateWorkflowDto {
 }
 
 export class UpdateWorkflowDto {
-  // @IsNotEmpty()
-  // @ApiProperty({
-  //   description: 'WorkFlow Name',
-  //   example: 'Birthday Reminder WorkFlow',
-  // })
-  // workflow_name: string;
-
-  // @IsNotEmpty()
-  // @IsIn([WorkFlowStatus.PUBLISHED, WorkFlowStatus.SAVED])
-  // @ApiProperty({
-  //   description: 'Status[Publised, Saved]',
-  //   example: 'Saved',
-  // })
-  // status: string;
-
-  // @IsOptional()
-  // @ApiProperty({
-  //   description: 'Work Flow ID optional',
-  //   example: '12312541251561',
-  // })
-  // folder_id?: string;
-
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => TriggerWorkFlow)
@@ -122,8 +114,10 @@ export class UpdateWorkflowDto {
     description: 'Trigger',
     example: {
       id: '1',
-      trigger_name: 'Birthday Reminder',
-      content: '[]',
+      title: 'Birthday!',
+      node_name: 'Birthday Reminder',
+      node_type_id: 'Birthday Reminder',
+      content: '{}',
     },
   })
   trigger: TriggerWorkFlow;
