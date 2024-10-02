@@ -71,8 +71,17 @@ export class WorkFlowController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async publishedWorkFlow(@Query('id') id: string) {
-    return this.service.publishedWorkFlow(id);
+  @ApiQuery({
+    name: 'published',
+    description: 'published',
+    example: 'true',
+    required: false,
+  })
+  async publishedWorkFlow(
+    @Query('id') id: string,
+    @Query('published') published: Boolean,
+  ) {
+    return this.service.publishedWorkFlow(id, published);
   }
 
   @Get('workflows')

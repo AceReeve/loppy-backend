@@ -100,10 +100,10 @@ export class MessagingTwilioRepository
         description: dto.description,
         created_by: user._id,
         twilio_account_sid: encryptedAccountSid,
-        twilio_chat_service_sid: encryptedAuthToken,
+        twilio_chat_service_sid: encryptedChatServiceSid,
         twilio_api_key_sid: encryptedApiKeySid,
         twilio_api_key_secret: encryptedApiKeySecret,
-        twilio_auth_token: encryptedChatServiceSid,
+        twilio_auth_token: encryptedAuthToken,
         status: OrganizationStatus.ACTIVE,
       });
       const result = await createOrganization.save();
@@ -390,6 +390,19 @@ export class MessagingTwilioRepository
   }
 
   async getTwilioAccessToken(id: string) {
+    const testAccountSid = this.configService.get<string>(
+      'TEST_CONVO_TWILIO_ACCOUNT_SID',
+    );
+    const testApiKey = this.configService.get<string>(
+      'TEST_CONVO_TWILIO_API_KEY',
+    );
+    const testApiSecret = this.configService.get<string>(
+      'TEST_CONVO_TWILIO_API_SECRET',
+    );
+    const testServiceSid = this.configService.get<string>(
+      'TEST_CONVO_TWILIO_SERVICE_SID',
+    );
+
     const user = await this.userRepository.getLoggedInUserDetails();
     const twilioCred = await this.twilioOrganizationModel.findOne({
       _id: new Types.ObjectId(id),
@@ -400,11 +413,14 @@ export class MessagingTwilioRepository
     }
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;
-    const twilioAccountSid = decrypt(twilioCred.twilio_account_sid);
-    const twilioApiKey = decrypt(twilioCred.twilio_api_key_sid);
-    const twilioApiSecret = decrypt(twilioCred.twilio_api_key_secret);
+    const twilioAccountSid =
+      testAccountSid || decrypt(twilioCred.twilio_account_sid);
+    const twilioApiKey = testApiKey || decrypt(twilioCred.twilio_api_key_sid);
+    const twilioApiSecret =
+      testApiSecret || decrypt(twilioCred.twilio_api_key_secret);
 
-    const serviceSid = decrypt(twilioCred.twilio_chat_service_sid);
+    const serviceSid =
+      testServiceSid || decrypt(twilioCred.twilio_chat_service_sid);
     const identity = user.email;
     const chatGrant = new ChatGrant({
       serviceSid: serviceSid,

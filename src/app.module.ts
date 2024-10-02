@@ -23,6 +23,7 @@ import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
 import { CronModule } from './app/cron/cron.module';
 import { OpportunityModule } from './app/modules/opportunity/opportunity.module';
 import { LeadModule } from './app/modules/lead/lead.module';
+import { SmsModule } from './config/sms/sms.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { LeadModule } from './app/modules/lead/lead.module';
     ServiceTitanModule,
     WorkFlowModule,
     CronModule,
+    SmsModule,
   ],
 
   providers: [
