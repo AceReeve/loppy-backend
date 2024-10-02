@@ -83,13 +83,16 @@ export class CronService {
       }
 
       if (dayFilter !== null) {
-        if (birthday.date() === dayFilter) {
+        if (birthday.date() === dayFilter && birthday.month() === monthFilter) {
           return true;
         }
       }
 
       if (monthFilter !== null) {
-        if (birthday.month() === monthFilter) {
+        if (
+          birthday.month() === monthFilter &&
+          birthday.isSameOrAfter(today, 'day')
+        ) {
           return true;
         }
       }
