@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
+import { LeadStatus } from 'src/app/const';
 
 export type LeadDocument = Lead & Document;
 @Schema({
@@ -12,13 +13,16 @@ export class Lead implements GenericSchema {
   _id: string;
 
   @Prop({ required: [true, 'Missing required field'] })
+  master: string;
+
+  @Prop({ required: [true, 'Missing required field'] })
   description: string;
 
   @Prop({ required: [true, 'Missing required field'] })
   category: string;
 
   @Prop({ required: [true, 'Missing required field'] })
-  itemOrder: number;
+  status: LeadStatus;
 
   @Prop({ required: [true, 'Missing required field'] })
   amount: number;

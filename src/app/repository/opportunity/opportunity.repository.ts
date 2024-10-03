@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -46,5 +46,25 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
     }
 
     return updatedOpportunities.length > 0 ? updatedOpportunities : null;
+  }
+
+  async updateOpportunity(
+    id: string,
+    updateOpportunityDto: UpdateOpportunityDTO,
+  ): Promise<Opportunity | null> {
+    try {
+      console.log(id);
+      const opportunity = await this.opportunityModel
+        .findByIdAndUpdate(id, updateOpportunityDto, { new: true })
+        .exec();
+
+      return opportunity;
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
+  async deleteOpportunity(id: string): Promise<Opportunity | null> {
+    return await this.opportunityModel.findByIdAndDelete(id).exec();
   }
 }

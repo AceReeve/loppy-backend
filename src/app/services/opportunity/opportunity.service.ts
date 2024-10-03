@@ -27,4 +27,15 @@ export class OpportunityService implements AbstractOpportunityService {
   ): Promise<Opportunity[] | null> {
     return await this.repository.updateOpportunities(updateOpportunityDto);
   }
+
+  async updateOpportunity(
+    id: string,
+    updateOpportunityDto: UpdateOpportunityDTO,
+  ): Promise<Opportunity | null> {
+    return await this.repository.updateOpportunity(id, updateOpportunityDto);
+  }
+
+  async deleteOpportunity(id: string): Promise<Opportunity | null> {
+    return await this.repository.deleteOpportunity(id);
+  }
 }

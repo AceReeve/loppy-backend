@@ -14,10 +14,13 @@ import { ApiModuleSchemaModule } from 'src/app/models/api-module/api-module.sche
 import { JwtService } from '@nestjs/jwt';
 import { OpportunityService } from 'src/app/services/opportunity/opportunity.service';
 import { OpportunityRepository } from 'src/app/repository/opportunity/opportunity.repository';
+import { UserModule } from '../user/user.module';
+import { UserService } from 'src/app/services/user/user.service';
 
 @Module({
   imports: [
     OpportunitySchemaModule,
+    UserModule,
     PermissionSchemaModule,
     ApiModuleSchemaModule,
   ],
@@ -41,6 +44,7 @@ import { OpportunityRepository } from 'src/app/repository/opportunity/opportunit
       useClass: ApiModuleRepository,
     },
     JwtService,
+    UserService,
   ],
 
   exports: [

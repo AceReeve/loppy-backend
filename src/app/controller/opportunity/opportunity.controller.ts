@@ -1,21 +1,30 @@
-import { Controller, Post, Body, Get, Put } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Put,
+  Delete,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Public } from '../../decorators/public.decorator';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
+import { JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Opportunities')
+@UseGuards(JwtAuthGuard)
 @Controller('opportunity')
 export class OpportunityController {
   constructor(
     private readonly opportunityService: AbstractOpportunityService,
   ) {}
 
-  @Public()
   @Post()
   @ApiOperation({ summary: 'Create opportunity' })
   async createOpportunity(
@@ -26,14 +35,12 @@ export class OpportunityController {
     );
   }
 
-  @Public()
   @Get()
   @ApiOperation({ summary: 'Get opportunities' })
   async getAllOpportunities(): Promise<Opportunity[] | null> {
     return await this.opportunityService.getAllOpportunities();
   }
 
-  @Public()
   @Put()
   @ApiOperation({ summary: 'Update opportunities' })
   async updateOpportunities(
@@ -42,5 +49,25 @@ export class OpportunityController {
     return await this.opportunityService.updateOpportunities(
       updateOpportunityDto,
     );
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update opportunity' })
+  async updateOpportunity(
+    @Param('id') id: string,
+    @Body() updateOpportunityDto: UpdateOpportunityDTO,
+  ): Promise<Opportunity | null> {
+    return await this.opportunityService.updateOpportunity(
+      id,
+      updateOpportunityDto,
+    );
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete opportunity' })
+  async deleteOpportunity(
+    @Param('id') id: string,
+  ): Promise<Opportunity | null> {
+    return await this.opportunityService.deleteOpportunity(id);
   }
 }

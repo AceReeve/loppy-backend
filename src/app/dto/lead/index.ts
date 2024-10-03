@@ -1,7 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { LeadStatus } from 'src/app/const';
 
 export class CreateLeadDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Master',
+    description: 'Required field when creating a lead',
+  })
+  master: string;
+
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
@@ -18,13 +33,13 @@ export class CreateLeadDTO {
   })
   category: string;
 
-  @IsNumber()
+  @IsEnum(LeadStatus)
   @IsNotEmpty()
   @ApiProperty({
-    example: 1,
+    example: 'In Progress',
     description: 'Required field when creating a lead',
   })
-  itemOrder: number;
+  status: LeadStatus;
 
   @IsNumber()
   @IsNotEmpty()
@@ -35,7 +50,7 @@ export class CreateLeadDTO {
   amount: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     example: '661f82ee17d9f28f4aecb483',
     description: 'Required field when creating a lead',

@@ -16,4 +16,15 @@ export class LeadService implements AbstractLeadService {
   async createLead(createLeadDto: CreateLeadDTO): Promise<Lead | null> {
     return await this.repository.createLead(createLeadDto);
   }
+
+  async updateLead(
+    id: string,
+    updateLeadDto: CreateLeadDTO,
+  ): Promise<Lead | null> {
+    return await this.repository.updateLead(id, updateLeadDto);
+  }
+
+  async deleteLead(id: string): Promise<Lead | null> {
+    return await this.repository.deleteLead(id);
+  }
 }
