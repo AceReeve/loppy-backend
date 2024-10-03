@@ -50,21 +50,4 @@ export class UpdateOpportunityDTO {
     description: 'Required field when creating a opportunity',
   })
   title: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: 1,
-    description: 'Required field when creating a opportunity',
-  })
-  itemOrder: number;
-
-  @ApiProperty({
-    example: ['661f82ee17d9f28f4aecb483', '662e1544f311a6f2ce0cca37'],
-    type: [String],
-  })
-  @IsArray()
-  @IsOptional()
-  @IsString({ each: true })
-  leads?: string[];
 }

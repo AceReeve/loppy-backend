@@ -42,4 +42,17 @@ export class LeadRepository implements AbstractLeadRepository {
 
     return lead;
   }
+
+  async updateLead(
+    id: string,
+    updateLeadDto: CreateLeadDTO,
+  ): Promise<Lead | null> {
+    return await this.leadModel.findByIdAndUpdate(id, updateLeadDto, {
+      new: true,
+    });
+  }
+
+  async deleteLead(id: string): Promise<any> {
+    return await this.leadModel.findByIdAndDelete(id);
+  }
 }
