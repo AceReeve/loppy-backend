@@ -8,7 +8,7 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,
@@ -19,6 +19,7 @@ import { JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Opportunities')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('Bearer')
 @Controller('opportunity')
 export class OpportunityController {
   constructor(
