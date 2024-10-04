@@ -154,3 +154,111 @@ export class TwilioCreateSubAccount {
   @IsNotEmpty()
   name: string;
 }
+
+
+
+export class CreateBundleDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  friendlyName: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  email: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  isoCountry: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  numberType: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  endUserType: string;
+}
+
+export class CreateEndUserDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  friendlyName: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  endUserType: string;
+}
+
+export class AddSupportingDocumentsDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  bundleSid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  registeredAddress: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  documentNumber: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  issuanceDate: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  friendlyName: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  documentType: string;
+}
+
+export class PurchaseNumberDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  subAccountSid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  phoneNumber: string;
+}
+
+export class AssignPhoneNumberToSubAccountDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  subAccountSid: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  phoneNumberSid: string;
+}
+
+export class AssignToBundleDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  bundleSID: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  documentId: string;
+}
+
+
+export class SubmitBundleDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  bundleSID: string;
+}
+
+export class AssignBundleToPhoneNumberDTO {
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  bundleSID: string;
+
+  @ApiProperty({ example: '0000000' })
+  @IsString()
+  phoneNumberSID: string;
+}
+

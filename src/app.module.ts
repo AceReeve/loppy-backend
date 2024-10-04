@@ -22,6 +22,7 @@ import { ServiceTitanModule } from './app/modules/service-titan/service-titan.mo
 import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
 import { CronModule } from './app/cron/cron.module';
 import { SmsModule } from './config/sms/sms.module';
+import { TwilioComplianceModule } from './app/modules/api/twilio/twilio.compliance.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { SmsModule } from './config/sms/sms.module';
     WorkFlowModule,
     CronModule,
     SmsModule,
+    TwilioComplianceModule
   ],
 
   providers: [
