@@ -7,6 +7,7 @@ import {
   UseGuards,
   Delete,
   Query,
+  Put,
 } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import {
@@ -169,5 +170,39 @@ export class MessagingTwilioController {
   @Get('get-purchased-numbers/:organization_id')
   async getPurchasedNumber(@Param('organization_id') organization_id: string) {
     return this.service.getPurchasedNumber(organization_id);
+  }
+
+  @Put('activate-workspace')
+  @ApiOperation({ summary: 'Activate WorkSpace' })
+  @ApiQuery({
+    name: 'id',
+    description: 'id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async activateWorkSpace(@Query('id') id: string) {
+    return this.service.activateWorkSpace(id);
+  }
+
+  @Put('activate-inbox')
+  @ApiOperation({ summary: 'Activate Inbox' })
+  @ApiQuery({
+    name: 'id',
+    description: 'id',
+    example: '66b462060e61af2e685d6e55',
+    required: false,
+  })
+  async activateInbox(@Query('id') id: string) {
+    return this.service.activateInbox(id);
+  }
+
+  @Get('get-activated-inbox')
+  async getActivatedInbox() {
+    return this.service.getActivatedInbox();
+  }
+
+  @Get('get-activated-workspace')
+  async getActivatedWorkSpace() {
+    return this.service.getActivatedWorkSpace();
   }
 }

@@ -76,4 +76,16 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
   async getPurchasedNumber(id: string): Promise<any> {
     return await this.repository.getPurchasedNumber(id);
   }
+  async activateWorkSpace(id: string): Promise<any> {
+    return await this.repository.activateWorkSpace(id);
+  }
+  async activateInbox(id: string): Promise<any> {
+    return await this.repository.activateInbox(id);
+  }
+  async getActivatedInbox(): Promise<any> {
+    return await this.repository.getActivatedInbox();
+  }
+  async getActivatedWorkSpace(): Promise<any> {
+    return await this.repository.getActivatedWorkSpace();
+  }
 }

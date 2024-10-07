@@ -153,11 +153,11 @@ export class MessagingTwilioRepository
       organization_name: org.organization_name,
       description: org.description,
       created_by: org.created_by,
-      twilio_account_sid: decrypt(org.twilio_account_sid),
-      twilio_chat_service_sid: decrypt(org.twilio_chat_service_sid),
-      twilio_api_key_sid: decrypt(org.twilio_api_key_sid),
-      twilio_api_key_secret: decrypt(org.twilio_api_key_secret),
-      twilio_auth_token: decrypt(org.twilio_auth_token),
+      // twilio_account_sid: decrypt(org.twilio_account_sid),
+      // twilio_chat_service_sid: decrypt(org.twilio_chat_service_sid),
+      // twilio_api_key_sid: decrypt(org.twilio_api_key_sid),
+      // twilio_api_key_secret: decrypt(org.twilio_api_key_secret),
+      // twilio_auth_token: decrypt(org.twilio_auth_token),
       status: org.status,
     }));
 
@@ -330,11 +330,11 @@ export class MessagingTwilioRepository
         `organization with the ID: ${organization_id} not found `,
       );
     }
-    result.twilio_account_sid = decrypt(result.twilio_account_sid);
-    result.twilio_chat_service_sid = decrypt(result.twilio_chat_service_sid);
-    result.twilio_api_key_sid = decrypt(result.twilio_api_key_sid);
-    result.twilio_api_key_secret = decrypt(result.twilio_api_key_secret);
-    result.twilio_auth_token = decrypt(result.twilio_auth_token);
+    // result.twilio_account_sid = decrypt(result.twilio_account_sid);
+    // result.twilio_chat_service_sid = decrypt(result.twilio_chat_service_sid);
+    // result.twilio_api_key_sid = decrypt(result.twilio_api_key_sid);
+    // result.twilio_api_key_secret = decrypt(result.twilio_api_key_secret);
+    // result.twilio_auth_token = decrypt(result.twilio_auth_token);
     return result;
   }
 
@@ -442,4 +442,9 @@ export class MessagingTwilioRepository
       organization_id: new Types.ObjectId(id),
     });
   }
+
+  async activateWorkSpace(id: string): Promise<any> {}
+  async activateInbox(id: string): Promise<any> {}
+  async getActivatedInbox(): Promise<any> {}
+  async getActivatedWorkSpace(): Promise<any> {}
 }

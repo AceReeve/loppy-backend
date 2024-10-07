@@ -14,14 +14,6 @@ export class TriggerWorkFlow {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: '1',
-    description: 'Required field when creating a Work Flow',
-  })
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
     example: 'Birthday Reminder',
     description: 'Required field when creating a Work Flow',
   })
@@ -50,14 +42,6 @@ export class TriggerWorkFlow {
   content?: {};
 }
 export class ActionWorkFlow {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: '1',
-    description: 'Required field when creating a Work Flow',
-  })
-  id: string;
-
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
@@ -98,7 +82,6 @@ export class CreateWorkflowDto {
     type: TriggerWorkFlow,
     description: 'Trigger',
     example: {
-      id: '1',
       trigger_name: 'Birthday Reminder',
       content: '[]',
     },
@@ -112,7 +95,6 @@ export class CreateWorkflowDto {
     type: ActionWorkFlow,
     description: 'Action',
     example: {
-      id: '1',
       title: 'Send Email',
       node_name: 'Send Email',
       node_type_id: 'Send Email',
@@ -131,7 +113,6 @@ export class UpdateWorkflowDto {
     type: TriggerWorkFlow,
     description: 'Trigger',
     example: {
-      id: '1',
       title: 'Birthday!',
       node_name: 'Birthday Reminder',
       node_type_id: 'Birthday Reminder',
@@ -147,7 +128,6 @@ export class UpdateWorkflowDto {
     type: ActionWorkFlow,
     description: 'Action',
     example: {
-      id: '1',
       title: 'Send Email',
       node_name: 'Send Email',
       node_type_id: 'Send Email',
