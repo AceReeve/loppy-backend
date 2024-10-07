@@ -25,10 +25,16 @@ export class Action {
   id: string;
 
   @Prop({ required: true })
-  action_name: string;
+  title: string;
 
   @Prop({ required: true })
-  content: string;
+  node_name: string;
+
+  @Prop()
+  node_type_id?: string;
+
+  @Prop({ type: Object, default: {} })
+  content?: any;
 }
 
 @Schema({

@@ -64,15 +64,30 @@ export class ActionWorkFlow {
     example: 'Birthday Reminder',
     description: 'Required field when creating a Work Flow',
   })
-  action_name: string;
+  title: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Happy Birthday',
-    description: 'Content of the action',
+    example: 'Birthday Reminder',
+    description: 'Required field when creating a Work Flow',
   })
-  content: string;
+  node_name: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    example: 'Birthday Reminder',
+    description: 'Required field when creating a Work Flow',
+  })
+  node_type_id: string;
+
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Birthday Reminder',
+    description: 'Required field when creating a Work Flow',
+  })
+  content?: {};
 }
 
 export class CreateWorkflowDto {
@@ -98,8 +113,11 @@ export class CreateWorkflowDto {
     description: 'Action',
     example: {
       id: '1',
-      action_name: 'Send Email',
-      content: 'Happy Birthday! Wishing you all the best on your special day.',
+      title: 'Send Email',
+      node_name: 'Send Email',
+      node_type_id: 'Send Email',
+      content:
+        '{ "subject": "Happy Birthday" , "message": "Happy birthday to you",}',
     },
   })
   action?: ActionWorkFlow;
@@ -130,8 +148,13 @@ export class UpdateWorkflowDto {
     description: 'Action',
     example: {
       id: '1',
-      action_name: 'Send Email',
-      content: 'Happy Birthday! Wishing you all the best on your special day.',
+      title: 'Send Email',
+      node_name: 'Send Email',
+      node_type_id: 'Send Email',
+      content: {
+        subject: 'Happy Birthday',
+        message: 'Happy birthday to you',
+      },
     },
   })
   action: ActionWorkFlow;

@@ -114,88 +114,33 @@ export class CronService {
               trig.node_name ===
               WorkFlowTrigger.WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
             ) {
-              // Get today's date without the year
-              const today = moment().format('MM-DD');
-              // Find users whose birthday matches today's month and day
-              // const usersWithBirthdays = await this.userInfoModel.aggregate([
-              //   {
-              //     $addFields: {
-              //       formattedBirthday: {
-              //         $dateToString: { format: '%m-%d', date: '$birthday' },
-              //       },
-              //     },
-              //   },
-              //   {
-              //     $match: {
-              //       formattedBirthday: today,
-              //     },
-              //   },
-              // ]);
               const users = await this.userInfoModel.find();
-              for (const act of action) {
-                if (act.action_name === 'Send Email') {
-                  // for (const user of users) {
-                  //   const receiverUser = await this.userModel.findOne({
-                  //     _id: user.user_id,
-                  //   });
-                  //   const receiverUserInfo = await this.userInfoModel.findOne({
-                  //     user_id: receiverUser._id,
-                  //   });
-                  //   if (
-                  //     act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
-                  //   ) {
-                  //     await this.emailerService.sendEmailBirthdayReminder(
-                  //       receiverUser.email,
-                  //       user.first_name,
-                  //       act.content,
-                  //     );
-                  //   } else if (
-                  //     act.action_name === WorkFlowAction.WORKFLOW_ACTION_SMS
-                  //   ) {
-                  //     await this.smsService.sendSmsBirthdayReminder(
-                  //       receiverUserInfo.contact_no,
-                  //       user.first_name,
-                  //       act.content,
-                  //     );
-                  //   }
-                  // }
-                  for (const user of users) {
-                    // Apply the filters to the user's birthday
-
-                    if (
-                      this.applyFilters(user.birthday, trig.content.filters)
-                    ) {
-                      // If filters are valid, send the notifications
-                      for (const act of action) {
-                        if (
-                          act.action_name ===
-                          WorkFlowAction.WORKFLOW_ACTION_EMAIL
-                        ) {
-                          const receiverUser = await this.userModel.findOne({
-                            _id: user.user_id,
-                          });
-                          if (receiverUser) {
-                            await this.emailerService.sendEmailBirthdayReminder(
-                              receiverUser.email,
-                              user.first_name,
-                              act.content,
-                            );
-                          }
-                        } else if (
-                          act.action_name === WorkFlowAction.WORKFLOW_ACTION_SMS
-                        ) {
-                          const receiverUserInfo =
-                            await this.userInfoModel.findOne({
-                              user_id: user.user_id,
-                            });
-                          await this.smsService.sendSmsBirthdayReminder(
-                            receiverUserInfo.contact_no,
-                            user.first_name,
-                            act.content,
-                          );
-                        }
-                      }
+              for (const user of users) {
+                // Apply the filters to the user's birthday
+                if (this.applyFilters(user.birthday, trig.content.filters)) {
+                  // If filters are valid, send the notifications
+                  if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                    const receiverUser = await this.userModel.findOne({
+                      _id: user.user_id,
+                    });
+                    if (receiverUser) {
+                      await this.emailerService.sendEmailBirthdayReminder(
+                        receiverUser.email,
+                        user.first_name,
+                        act.content,
+                      );
                     }
+                  } else if (
+                    act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                  ) {
+                    const receiverUserInfo = await this.userInfoModel.findOne({
+                      user_id: user.user_id,
+                    });
+                    await this.smsService.sendSmsBirthdayReminder(
+                      receiverUserInfo.contact_no,
+                      user.first_name,
+                      act.content,
+                    );
                   }
                 }
               }
@@ -223,9 +168,7 @@ export class CronService {
                     email: { $in: allFilteredEmail },
                   });
 
-                  if (
-                    act.action_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL
-                  ) {
+                  if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
                     for (const user of users) {
                       const userInfo = await this.userInfoModel.findOne({
                         user_id: user._id,
