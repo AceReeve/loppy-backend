@@ -24,6 +24,14 @@ import {
   TwilioNumber,
   TwilioNumberDocument,
 } from 'src/app/models/messaging-twilio/purchase-number/twilio-number.schema';
+import {
+  ActivatedTwilioInboxes,
+  ActivatedTwilioInboxesDocument,
+} from 'src/app/models/messaging-twilio/inboxes/activated-inboxes.schema';
+import {
+  ActivatedTwilioOrganizations,
+  ActivatedTwilioOrganizationsDocument,
+} from 'src/app/models/messaging-twilio/organization/activated-organization.schema';
 const algorithm = 'aes-256-ctr';
 
 const encrypt = (text: string): string => {
@@ -65,6 +73,11 @@ export class MessagingTwilioRepository
     private inboxModel: Model<TwilioInboxesDocument>,
     @InjectModel(TwilioNumber.name)
     private twilioNumberModel: Model<TwilioNumberDocument>,
+
+    @InjectModel(ActivatedTwilioInboxes.name)
+    private activatedTwilioInboxesModel: Model<ActivatedTwilioInboxesDocument>,
+    @InjectModel(ActivatedTwilioOrganizations.name)
+    private activatedTwilioOrganizationModel: Model<ActivatedTwilioOrganizationsDocument>,
   ) {
     const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
     const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
@@ -443,8 +456,99 @@ export class MessagingTwilioRepository
     });
   }
 
-  async activateWorkSpace(id: string): Promise<any> {}
-  async activateInbox(id: string): Promise<any> {}
-  async getActivatedInbox(): Promise<any> {}
-  async getActivatedWorkSpace(): Promise<any> {}
+  async activateWorkSpace(id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const validWorkSpace = await this.twilioOrganizationModel.findById(
+      new Types.ObjectId(id),
+    );
+    if (!validWorkSpace) {
+      throw new Error(`organization with the ID: ${id} not found `);
+    }
+    const isExisting = await this.activatedTwilioOrganizationModel.findOne({
+      _id: new Types.ObjectId(id),
+      activated_by: user._id,
+    });
+    if (isExisting) {
+      const result =
+        await this.activatedTwilioOrganizationModel.findOneAndUpdate(
+          {
+            activated_by: user._id,
+          },
+          {
+            $set: {
+              organization_id: new Types.ObjectId(id),
+              activated_by: user._id,
+              status: OrganizationStatus.ACTIVE,
+            },
+          },
+        );
+      return result;
+    } else {
+      const activateOrganization = new this.activatedTwilioOrganizationModel({
+        organization_id: new Types.ObjectId(id),
+        activated_by: user._id,
+        status: OrganizationStatus.ACTIVE,
+      });
+      return await activateOrganization.save();
+    }
+  }
+  async activateInbox(id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const validWorkSpace = await this.inboxModel.findById(
+      new Types.ObjectId(id),
+    );
+    if (!validWorkSpace) {
+      throw new Error(`inbox with the ID: ${id} not found `);
+    }
+    const isExisting = await this.activatedTwilioInboxesModel.findOne({
+      _id: new Types.ObjectId(id),
+      activated_by: user._id,
+    });
+    if (isExisting) {
+      const result = await this.activatedTwilioInboxesModel.findOneAndUpdate(
+        {
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            inbox_id: new Types.ObjectId(id),
+            activated_by: user._id,
+            status: OrganizationStatus.ACTIVE,
+          },
+        },
+      );
+      return result;
+    } else {
+      const activateInbox = new this.activatedTwilioInboxesModel({
+        inbox_id: new Types.ObjectId(id),
+        activated_by: user._id,
+        status: OrganizationStatus.ACTIVE,
+      });
+      return await activateInbox.save();
+    }
+  }
+  async getActivatedInbox(): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const data = await this.activatedTwilioInboxesModel.findOne({
+      activated_by: user._id,
+    });
+    return await this.inboxModel.findById(data.inbox_id);
+  }
+  async getActivatedWorkSpace(): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const data = await this.activatedTwilioOrganizationModel.findOne({
+      activated_by: user._id,
+    });
+
+    let result = await this.twilioOrganizationModel.findById(
+      data.organization_id,
+    );
+    return {
+      _id: result._id,
+      organization_name: result.organization_name,
+      description: result.description,
+      created_by: result.created_by,
+      status: result.status,
+    };
+  }
 }
