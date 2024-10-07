@@ -46,3 +46,9 @@ export enum WorkFlowType {
   FOLDER = 'Folder',
   WORKFLOW = 'Workflow',
 }
+
+export enum LeadStatus {
+  IN_PROGRESS = 'In Progress',
+  GOOD = 'Good',
+  STALLED = 'Stalled',
+}
