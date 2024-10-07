@@ -9,6 +9,14 @@ import {
   TwilioNumber,
   TwilioNumberSchema,
 } from './purchase-number/twilio-number.schema';
+import {
+  ActivatedTwilioOrganizations,
+  ActivatedTwilioOrganizationsSchema,
+} from './organization/activated-organization.schema';
+import {
+  ActivatedTwilioInboxes,
+  ActivatedTwilioInboxesSchema,
+} from './inboxes/activated-inboxes.schema';
 
 @Module({
   imports: [
@@ -20,6 +28,18 @@ import {
     ]),
     MongooseModule.forFeature([
       { name: TwilioNumber.name, schema: TwilioNumberSchema },
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: ActivatedTwilioOrganizations.name,
+        schema: ActivatedTwilioOrganizationsSchema,
+      },
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: ActivatedTwilioInboxes.name,
+        schema: ActivatedTwilioInboxesSchema,
+      },
     ]),
   ],
   exports: [MongooseModule],

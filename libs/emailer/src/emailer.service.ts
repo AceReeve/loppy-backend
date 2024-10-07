@@ -111,15 +111,13 @@ export class EmailerService {
   async sendEmailBirthdayReminder(
     receiver: string,
     first_name: string,
-    content: string,
+    content: any,
   ): Promise<any> {
     try {
       await this.mailerService.sendMail({
         to: [receiver, this.serviHeroTestEmail],
-        subject: `Happy Birthday ${first_name}`,
-        html: `Happy Birthday ${first_name} <br>
-        ${content}
-        `,
+        subject: content.subject,
+        html: content.message,
       });
     } catch (error) {
       const errorMessage = 'Error BirthDay Mesage';
