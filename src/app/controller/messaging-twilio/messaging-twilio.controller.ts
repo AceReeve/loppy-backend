@@ -108,11 +108,8 @@ export class MessagingTwilioController {
       - +15005550006: This phone number is valid and available (No error).
     `,
   })
-  async buyNumber(
-    @Query('phoneNumber') phoneNumber: string,
-    @Query('organization_id') organization_id: string,
-  ) {
-    return this.service.buyNumber(phoneNumber, organization_id);
+  async buyNumber(@Query('phoneNumber') phoneNumber: string) {
+    return this.service.buyNumber(phoneNumber);
   }
 
   @Post('inbox')
@@ -120,10 +117,10 @@ export class MessagingTwilioController {
   async inbox(@Body() inboxDTO: InboxesDTO) {
     return this.service.inbox(inboxDTO);
   }
-  @Get('inboxes/:organization_id')
+  @Get('inboxes')
   @ApiOperation({ summary: 'List of Inbox' })
-  async getAllInbox(@Param('organization_id') organization_id: string) {
-    return this.service.getAllInbox(organization_id);
+  async getAllInbox() {
+    return this.service.getAllInbox();
   }
 
   @Get('inbox/:inbox_id')
@@ -132,22 +129,10 @@ export class MessagingTwilioController {
     return this.service.getInboxById(inbox_id);
   }
 
-  @Post('add-member/:organization_id')
+  @Post('add-member')
   @ApiOperation({ summary: 'Add Member to an Organization' })
-  @ApiQuery({
-    name: 'organization_id',
-    description: 'Organization ID',
-    example: '66b462060e61af2e685d6e55',
-    required: true,
-  })
-  async addMemberToAnOrganization(
-    @Query('organization_id') organization_id: string,
-    @Body() addMemberDTO: AddMemberDTO,
-  ) {
-    return this.service.addMemberToAnOrganization(
-      organization_id,
-      addMemberDTO,
-    );
+  async addMemberToAnOrganization(@Body() addMemberDTO: AddMemberDTO) {
+    return this.service.addMemberToAnOrganization(addMemberDTO);
   }
 
   @Get('getCred')
@@ -167,12 +152,12 @@ export class MessagingTwilioController {
     return this.service.getTwilioAccessToken(id);
   }
 
-  @Get('get-purchased-numbers/:organization_id')
-  async getPurchasedNumber(@Param('organization_id') organization_id: string) {
-    return this.service.getPurchasedNumber(organization_id);
+  @Get('get-purchased-numbers')
+  async getPurchasedNumber() {
+    return this.service.getPurchasedNumber();
   }
 
-  @Put('activate-workspace')
+  @Put('activate-organization')
   @ApiOperation({ summary: 'Activate WorkSpace' })
   @ApiQuery({
     name: 'id',
@@ -201,7 +186,7 @@ export class MessagingTwilioController {
     return this.service.getActivatedInbox();
   }
 
-  @Get('get-activated-workspace')
+  @Get('get-activated-organization')
   async getActivatedWorkSpace() {
     return this.service.getActivatedWorkSpace();
   }
