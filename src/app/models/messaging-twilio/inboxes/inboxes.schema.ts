@@ -27,10 +27,13 @@ export class TwilioInboxes implements GenericSchema {
   created_by: MongooseSchema.Types.ObjectId;
 
   @Prop()
+  identity?: string;
+
+  @Prop()
   status: string;
 
-  @Prop([{ user_id: Object}])
-  members?: { user_id: string}[];
+  @Prop([{ user_id: Object }])
+  members?: { user_id: string }[];
 }
 
 export const TwilioInboxesSchema = SchemaFactory.createForClass(TwilioInboxes);

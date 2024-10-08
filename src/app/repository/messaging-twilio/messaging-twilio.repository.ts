@@ -283,7 +283,9 @@ export class MessagingTwilioRepository
 
   async inbox(dto: InboxesDTO): Promise<any> {
     const activeOrganization = await this.getActivatedWorkSpace();
-
+    const generatedNumbers = Math.floor(
+      10000 + Math.random() * 90000,
+    ).toString();
     const user = await this.userRepository.getLoggedInUserDetails();
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
@@ -295,7 +297,7 @@ export class MessagingTwilioRepository
     }
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(activeOrganization._id),
+      _id: activeOrganization._id,
     });
 
     if (!isOrganizationIDValid) {
@@ -311,6 +313,8 @@ export class MessagingTwilioRepository
     if (!isNumberValid) {
       throw new Error(`this number: ${dto.purchased_number} is not valid`);
     }
+    const inboxName = dto.inbox_name.replace(/\s+/g, '-');
+    const identity = `${inboxName}-${generatedNumbers}`;
 
     const createInbox = new this.inboxModel({
       inbox_name: dto.inbox_name,
@@ -318,6 +322,7 @@ export class MessagingTwilioRepository
       organization_id: isOrganizationIDValid._id,
       purchased_number: dto.purchased_number,
       created_by: user._id,
+      identity: identity,
       status: OrganizationStatus.ACTIVE,
     });
 
@@ -447,10 +452,7 @@ export class MessagingTwilioRepository
       serviceSid: serviceSid,
     });
     const activeInbox = await this.getActivatedInbox();
-    const userEmail = user.email;
-    const inboxId = activeInbox._id.toString();
-    const identity = `${userEmail}-${inboxId}`;
-    console.log('identity:', identity);
+    const identity = activeInbox.identity;
     const token = new AccessToken(
       twilioAccountSid,
       twilioApiKey,
