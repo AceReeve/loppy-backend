@@ -25,7 +25,7 @@ export abstract class AbstractMessagingTwilioRepository {
   abstract getAllInbox(): Promise<any>;
   abstract addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any>;
   abstract getCred(password: string): Promise<any>;
-  abstract getTwilioAccessToken(id: string): Promise<any>;
+  abstract getTwilioAccessToken(): Promise<any>;
   abstract getPurchasedNumber(): Promise<any>;
   abstract activateWorkSpace(id: string): Promise<any>;
   abstract activateInbox(id: string): Promise<any>;
@@ -54,7 +54,7 @@ export abstract class AbstractMessagingTwilioService {
   abstract getAllInbox(): Promise<any>;
   abstract addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any>;
   abstract getCred(password: string): Promise<any>;
-  abstract getTwilioAccessToken(id: string): Promise<any>;
+  abstract getTwilioAccessToken(): Promise<any>;
   abstract getPurchasedNumber(): Promise<any>;
   abstract activateWorkSpace(id: string): Promise<any>;
   abstract activateInbox(id: string): Promise<any>;

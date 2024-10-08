@@ -407,7 +407,8 @@ export class MessagingTwilioRepository
     return { sid: sid, token: token, service_sid: service_sid, secret: secret };
   }
 
-  async getTwilioAccessToken(id: string) {
+  async getTwilioAccessToken() {
+    const activeOrganization = await this.getActivatedWorkSpace();
     const testAccountSid = this.configService.get<string>(
       'TEST_CONVO_TWILIO_ACCOUNT_SID',
     );
@@ -423,11 +424,13 @@ export class MessagingTwilioRepository
 
     const user = await this.userRepository.getLoggedInUserDetails();
     const twilioCred = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(id),
+      _id: activeOrganization._id,
       created_by: user._id,
     });
     if (!twilioCred) {
-      throw new Error(`organization with the ID: ${id} not found `);
+      throw new Error(
+        `organization with the ID: ${activeOrganization._id} not found `,
+      );
     }
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;

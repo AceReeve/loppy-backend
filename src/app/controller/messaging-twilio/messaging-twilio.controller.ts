@@ -147,9 +147,9 @@ export class MessagingTwilioController {
     return this.service.getCred(password);
   }
 
-  @Get('get-twilio-access-token/:id')
-  async getTwilioAccessToken(@Param('id') id: string) {
-    return this.service.getTwilioAccessToken(id);
+  @Get('get-twilio-access-token')
+  async getTwilioAccessToken() {
+    return this.service.getTwilioAccessToken();
   }
 
   @Get('get-purchased-numbers')
