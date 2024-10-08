@@ -772,7 +772,6 @@ export class UserRepository implements AbstractUserRepository {
     if (!isInvited) {
       throw new BadRequestException('Unable to Register, User is not Invited');
     }
-    console.log('email logs', invitedUserRegistrationDTO.email);
     if (
       user.email.toLowerCase() !==
       invitedUserRegistrationDTO.email.toLowerCase()
@@ -1159,13 +1158,22 @@ export class UserRepository implements AbstractUserRepository {
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
+    const userToInclude = {
+      email: user.email,
+      role: user.role,
+      status: UserStatus.ACCEPTED,
+      invited_at: user.created_at,
+      _id: user._id,
+      user_id: user._id,
+    };
     if (invitedUser) {
       invitedUser.users = invitedUser.users.filter(
         (user) => user.status === UserStatus.ACCEPTED,
       );
+      invitedUser.users.unshift(userToInclude);
       return invitedUser;
     } else {
-      return { users: [] };
+      return { users: [userToInclude] };
     }
   }
 }

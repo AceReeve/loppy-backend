@@ -631,7 +631,21 @@ export class MessagingTwilioRepository
         created_by: result.created_by,
         status: result.status,
       };
+    } else {
+      let result = await this.twilioOrganizationModel.findOne({
+        created_by: user._id,
+      });
+      if (result) {
+        return {
+          _id: result._id,
+          organization_name: result.organization_name,
+          description: result.description,
+          created_by: result.created_by,
+          status: result.status,
+        };
+      } else {
+        throw new Error(`No Organization found`);
+      }
     }
-    return {};
   }
 }

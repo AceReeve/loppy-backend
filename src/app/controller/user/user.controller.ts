@@ -245,7 +245,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('Bearer')
   @Get('members')
-  @ApiOperation({ summary: 'Get all accepted members' })
+  @ApiOperation({ summary: 'Get all members' })
   async getMember(): Promise<any> {
     return await this.userService.getMember();
   }
