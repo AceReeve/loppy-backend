@@ -613,13 +613,10 @@ export class MessagingTwilioRepository
         status: OrganizationStatus.ACTIVE,
       });
       if (data) {
-        console.log('return 1');
         return await this.inboxModel.findById(data.inbox_id);
       } else {
         const result = await this.inboxModel.find({ created_by: user._id });
         if (result) {
-          console.log('return 2');
-
           return result[0];
         } else {
           throw new Error(`No Inbox found`);
