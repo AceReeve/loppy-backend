@@ -238,12 +238,12 @@ export class MessagingTwilioRepository
     const activeOrganization = await this.getActivatedWorkSpace();
     const user = await this.userRepository.getLoggedInUserDetails();
     const organization = await this.twilioOrganizationModel.findOne({
-      _id: activeOrganization.organization_id,
+      _id: activeOrganization._id,
     });
 
     if (!organization) {
       throw new Error(
-        `Organization with the ID: ${activeOrganization.organization_id} not found`,
+        `Organization with the ID: ${activeOrganization._id} not found`,
       );
     }
 
@@ -282,6 +282,8 @@ export class MessagingTwilioRepository
   }
 
   async inbox(dto: InboxesDTO): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace();
+
     const user = await this.userRepository.getLoggedInUserDetails();
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
@@ -293,12 +295,12 @@ export class MessagingTwilioRepository
     }
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(dto.organization_id),
+      _id: new Types.ObjectId(activeOrganization._id),
     });
 
     if (!isOrganizationIDValid) {
       throw new Error(
-        `organization with the ID: ${dto.organization_id} not found`,
+        `organization with the ID: ${activeOrganization._id} not found`,
       );
     }
 
@@ -357,7 +359,7 @@ export class MessagingTwilioRepository
   async getAllInbox() {
     const activeOrganization = await this.getActivatedWorkSpace();
     const result = await this.inboxModel.find({
-      organization_id: activeOrganization.organization_id,
+      organization_id: activeOrganization._id,
     });
     return result;
   }
@@ -381,7 +383,7 @@ export class MessagingTwilioRepository
 
     // Update the organization with the valid members
     const updatedOrganization = await this.inboxModel.findOneAndUpdate(
-      { _id: activeOrganization.organization_id },
+      { _id: activeOrganization._id },
       {
         $push: { members: { $each: validMembers } },
       },
@@ -460,7 +462,7 @@ export class MessagingTwilioRepository
   async getPurchasedNumber(): Promise<any> {
     const activeOrganization = await this.getActivatedWorkSpace();
     return await this.twilioNumberModel.find({
-      organization_id: activeOrganization.organization_id,
+      organization_id: activeOrganization._id,
     });
   }
 
