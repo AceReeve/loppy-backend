@@ -494,6 +494,9 @@ export class MessagingTwilioRepository
             status: OrganizationStatus.INACTIVE,
           },
         },
+        {
+          new: true,
+        },
       );
       result = await this.activatedTwilioOrganizationModel.findOneAndUpdate(
         {
@@ -534,14 +537,12 @@ export class MessagingTwilioRepository
   }
   async activateInbox(id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const validWorkSpace = await this.inboxModel.findById(
-      new Types.ObjectId(id),
-    );
-    if (!validWorkSpace) {
+    const validInbox = await this.inboxModel.findById(new Types.ObjectId(id));
+    if (!validInbox) {
       throw new Error(`inbox with the ID: ${id} not found `);
     }
     const isExisting = await this.activatedTwilioInboxesModel.findOne({
-      inbox_id: validWorkSpace._id,
+      inbox_id: validInbox._id,
       activated_by: user._id,
     });
     let result: {};
@@ -555,10 +556,13 @@ export class MessagingTwilioRepository
             status: OrganizationStatus.INACTIVE,
           },
         },
+        {
+          new: true,
+        },
       );
       result = await this.activatedTwilioInboxesModel.findOneAndUpdate(
         {
-          inbox_id: validWorkSpace._id,
+          inbox_id: validInbox._id,
           activated_by: user._id,
         },
         {
@@ -567,6 +571,9 @@ export class MessagingTwilioRepository
             activated_by: user._id,
             status: OrganizationStatus.ACTIVE,
           },
+        },
+        {
+          new: true,
         },
       );
     } else {
@@ -578,6 +585,9 @@ export class MessagingTwilioRepository
           $set: {
             status: OrganizationStatus.INACTIVE,
           },
+        },
+        {
+          new: true,
         },
       );
 
