@@ -7,12 +7,16 @@ import {
 } from 'src/app/dto/opportunity';
 import { AbstractOpportunityRepository } from 'src/app/interface/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
+import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 
 @Injectable()
 export class OpportunityRepository implements AbstractOpportunityRepository {
   constructor(
     @InjectModel(Opportunity.name)
     private opportunityModel: Model<Opportunity & Document>,
+
+    @InjectModel(Pipeline.name)
+    private pipelineModel: Model<Pipeline & Document>,
   ) {}
 
   async getAllOpportunities(): Promise<Opportunity[] | null> {
@@ -25,7 +29,29 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
   async createOpportunity(
     createOpportunityDto: CreateOpportunityDTO,
   ): Promise<Opportunity | null> {
-    return await this.opportunityModel.create(createOpportunityDto);
+    // return await this.opportunityModel.create(createOpportunityDto);
+
+    const { pipeline_id, ...opportunityData } = createOpportunityDto;
+
+    // Create a new lead
+    const opportunity = await this.opportunityModel.create(opportunityData);
+
+    if (!opportunity) {
+      throw new Error('Opportunity creation failed');
+    }
+
+    // Update the opportunity by pushing the new opportunity's _id into the opportunitys array
+    const updatedOpportunity = await this.pipelineModel.findByIdAndUpdate(
+      pipeline_id,
+      { $push: { opportunitys: opportunity._id } },
+      { new: true }, // Return the updated document
+    );
+
+    if (!updatedOpportunity) {
+      throw new Error(`Opportunity with id ${pipeline_id} not found`);
+    }
+
+    return opportunity;
   }
 
   async updateOpportunities(

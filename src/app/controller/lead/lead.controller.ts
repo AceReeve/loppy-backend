@@ -27,6 +27,12 @@ export class LeadController {
     return await this.leadService.createLead(createLeadDTO);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get lead by id' })
+  async getLeadById(@Param('id') id: string): Promise<Lead | null> {
+    return await this.leadService.getLeadById(id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get leads' })
   async getAllLeads(): Promise<Lead[] | null> {
