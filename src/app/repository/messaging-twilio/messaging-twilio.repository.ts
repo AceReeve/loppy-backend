@@ -594,6 +594,7 @@ export class MessagingTwilioRepository
     if (activeInbox) {
       const data = await this.activatedTwilioInboxesModel.findOne({
         inbox_id: activeInbox?._id,
+        status: OrganizationStatus.ACTIVE,
       });
       if (data) {
         return await this.inboxModel.findById(data.inbox_id);
@@ -612,6 +613,7 @@ export class MessagingTwilioRepository
     const user = await this.userRepository.getLoggedInUserDetails();
     const data = await this.activatedTwilioOrganizationModel.findOne({
       activated_by: user._id,
+      status: OrganizationStatus.ACTIVE,
     });
     if (data) {
       let result = await this.twilioOrganizationModel.findById(
