@@ -40,6 +40,7 @@ export enum UserRole {
 
 export enum OrganizationStatus {
   ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
 }
 
 export enum WorkFlowType {

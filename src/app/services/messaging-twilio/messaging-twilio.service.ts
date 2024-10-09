@@ -35,8 +35,8 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     );
   }
 
-  async buyNumber(phoneNumber: string, organization_id): Promise<any> {
-    return await this.repository.buyNumber(phoneNumber, organization_id);
+  async buyNumber(phoneNumber: string): Promise<any> {
+    return await this.repository.buyNumber(phoneNumber);
   }
 
   async inbox(inbox: InboxesDTO): Promise<any> {
@@ -45,8 +45,8 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
   async getAllOrganization(): Promise<any> {
     return await this.repository.getAllOrganization();
   }
-  async getAllInbox(organization_id: string): Promise<any> {
-    return await this.repository.getAllInbox(organization_id);
+  async getAllInbox(): Promise<any> {
+    return await this.repository.getAllInbox();
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
@@ -57,23 +57,29 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     return await this.repository.getOrganizationById(organization_id);
   }
 
-  async addMemberToAnOrganization(
-    organization_id: string,
-    addMemberDTO: AddMemberDTO,
-  ): Promise<any> {
-    return await this.repository.addMemberToAnOrganization(
-      organization_id,
-      addMemberDTO,
-    );
+  async addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any> {
+    return await this.repository.addMemberToAnOrganization(addMemberDTO);
   }
 
   async getCred(password: string): Promise<any> {
     return await this.repository.getCred(password);
   }
-  async getTwilioAccessToken(id: string): Promise<any> {
-    return await this.repository.getTwilioAccessToken(id);
+  async getTwilioAccessToken(): Promise<any> {
+    return await this.repository.getTwilioAccessToken();
   }
-  async getPurchasedNumber(id: string): Promise<any> {
-    return await this.repository.getPurchasedNumber(id);
+  async getPurchasedNumber(): Promise<any> {
+    return await this.repository.getPurchasedNumber();
+  }
+  async activateWorkSpace(id: string): Promise<any> {
+    return await this.repository.activateWorkSpace(id);
+  }
+  async activateInbox(id: string): Promise<any> {
+    return await this.repository.activateInbox(id);
+  }
+  async getActivatedInbox(): Promise<any> {
+    return await this.repository.getActivatedInbox();
+  }
+  async getActivatedWorkSpace(): Promise<any> {
+    return await this.repository.getActivatedWorkSpace();
   }
 }

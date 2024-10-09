@@ -65,13 +65,13 @@ export class InboxesDTO {
   })
   description: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: 'organization_id',
-    description: 'Required field when creating Inbox',
-  })
-  organization_id: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // @ApiProperty({
+  //   example: 'organization_id',
+  //   description: 'Required field when creating Inbox',
+  // })
+  // organization_id: string;
 
   @IsString()
   @IsNotEmpty()
