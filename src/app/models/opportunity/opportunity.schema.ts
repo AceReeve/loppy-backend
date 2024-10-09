@@ -16,9 +16,6 @@ export class Opportunity implements GenericSchema {
   title: string;
 
   @Prop({ required: [true, 'Missing required field'] })
-  itemOrder: number;
-
-  @Prop({ required: [true, 'Missing required field'] })
   lead_value: number;
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Lead' }] })

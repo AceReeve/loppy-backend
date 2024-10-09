@@ -71,7 +71,7 @@ export class ActionWorkFlow {
     example: 'Birthday Reminder',
     description: 'Required field when creating a Work Flow',
   })
-  content?: {};
+  content?: { [key: string]: any };
 }
 
 export class CreateWorkflowDto {

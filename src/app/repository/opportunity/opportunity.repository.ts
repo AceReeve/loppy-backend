@@ -21,11 +21,7 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
   ) {}
 
   async getAllOpportunities(): Promise<Opportunity[] | null> {
-    return await this.opportunityModel
-      .find({})
-      .populate('leads')
-      .sort({ itemOrder: 1 })
-      .exec();
+    return await this.opportunityModel.find({}).populate('leads').exec();
   }
   async createOpportunity(
     createOpportunityDto: CreateOpportunityDTO,

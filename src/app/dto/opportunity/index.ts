@@ -22,14 +22,6 @@ export class CreateOpportunityDTO {
     example: 1,
     description: 'Required field when creating a opportunity',
   })
-  itemOrder: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: 1,
-    description: 'Required field when creating a opportunity',
-  })
   lead_value: number;
 
   @IsString()
