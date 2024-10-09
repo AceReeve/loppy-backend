@@ -234,14 +234,17 @@ export class MessagingTwilioRepository
       throw new Error(`Failed to fetch available numbers: ${error.message}`);
     }
   }
-  async buyNumber(phoneNumber: string, organization_id: string): Promise<any> {
+  async buyNumber(phoneNumber: string): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace();
     const user = await this.userRepository.getLoggedInUserDetails();
     const organization = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(organization_id),
+      _id: activeOrganization._id,
     });
 
     if (!organization) {
-      throw new Error(`Organization with the ID: ${organization_id} not found`);
+      throw new Error(
+        `Organization with the ID: ${activeOrganization._id} not found`,
+      );
     }
 
     const decryptedSid = decrypt(organization.twilio_account_sid);
@@ -279,6 +282,10 @@ export class MessagingTwilioRepository
   }
 
   async inbox(dto: InboxesDTO): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace();
+    const generatedNumbers = Math.floor(
+      10000 + Math.random() * 90000,
+    ).toString();
     const user = await this.userRepository.getLoggedInUserDetails();
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
@@ -290,12 +297,12 @@ export class MessagingTwilioRepository
     }
 
     const isOrganizationIDValid = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(dto.organization_id),
+      _id: activeOrganization._id,
     });
 
     if (!isOrganizationIDValid) {
       throw new Error(
-        `organization with the ID: ${dto.organization_id} not found`,
+        `organization with the ID: ${activeOrganization._id} not found`,
       );
     }
 
@@ -306,6 +313,8 @@ export class MessagingTwilioRepository
     if (!isNumberValid) {
       throw new Error(`this number: ${dto.purchased_number} is not valid`);
     }
+    const inboxName = dto.inbox_name.replace(/\s+/g, '-');
+    const identity = `${inboxName}-${generatedNumbers}`;
 
     const createInbox = new this.inboxModel({
       inbox_name: dto.inbox_name,
@@ -313,6 +322,7 @@ export class MessagingTwilioRepository
       organization_id: isOrganizationIDValid._id,
       purchased_number: dto.purchased_number,
       created_by: user._id,
+      identity: identity,
       status: OrganizationStatus.ACTIVE,
     });
 
@@ -351,17 +361,17 @@ export class MessagingTwilioRepository
     return result;
   }
 
-  async getAllInbox(organization_id: string) {
+  async getAllInbox() {
+    const activeOrganization = await this.getActivatedWorkSpace();
     const result = await this.inboxModel.find({
-      organization_id: new Types.ObjectId(organization_id),
+      organization_id: activeOrganization._id,
     });
     return result;
   }
 
-  async addMemberToAnOrganization(
-    organization_id: string,
-    addMemberDTO: AddMemberDTO,
-  ): Promise<any> {
+  async addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace();
+
     const { members } = addMemberDTO;
 
     // Fetch existing members in the organization
@@ -378,7 +388,7 @@ export class MessagingTwilioRepository
 
     // Update the organization with the valid members
     const updatedOrganization = await this.inboxModel.findOneAndUpdate(
-      { _id: new Types.ObjectId(organization_id) },
+      { _id: activeOrganization._id },
       {
         $push: { members: { $each: validMembers } },
       },
@@ -402,7 +412,8 @@ export class MessagingTwilioRepository
     return { sid: sid, token: token, service_sid: service_sid, secret: secret };
   }
 
-  async getTwilioAccessToken(id: string) {
+  async getTwilioAccessToken() {
+    const activeOrganization = await this.getActivatedWorkSpace();
     const testAccountSid = this.configService.get<string>(
       'TEST_CONVO_TWILIO_ACCOUNT_SID',
     );
@@ -418,11 +429,13 @@ export class MessagingTwilioRepository
 
     const user = await this.userRepository.getLoggedInUserDetails();
     const twilioCred = await this.twilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(id),
+      _id: activeOrganization._id,
       created_by: user._id,
     });
     if (!twilioCred) {
-      throw new Error(`organization with the ID: ${id} not found `);
+      throw new Error(
+        `organization with the ID: ${activeOrganization._id} not found `,
+      );
     }
     const AccessToken = jwt.AccessToken;
     const ChatGrant = AccessToken.ChatGrant;
@@ -434,11 +447,12 @@ export class MessagingTwilioRepository
 
     const serviceSid =
       testServiceSid || decrypt(twilioCred.twilio_chat_service_sid);
-    const identity = user.email;
+    // const identity = user.email;
     const chatGrant = new ChatGrant({
       serviceSid: serviceSid,
     });
-
+    const activeInbox = await this.getActivatedInbox();
+    const identity = activeInbox.identity;
     const token = new AccessToken(
       twilioAccountSid,
       twilioApiKey,
@@ -450,9 +464,10 @@ export class MessagingTwilioRepository
     return token.toJwt();
   }
 
-  async getPurchasedNumber(id: string): Promise<any> {
+  async getPurchasedNumber(): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace();
     return await this.twilioNumberModel.find({
-      organization_id: new Types.ObjectId(id),
+      organization_id: activeOrganization._id,
     });
   }
 
@@ -465,48 +480,89 @@ export class MessagingTwilioRepository
       throw new Error(`organization with the ID: ${id} not found `);
     }
     const isExisting = await this.activatedTwilioOrganizationModel.findOne({
-      _id: new Types.ObjectId(id),
+      organization_id: validWorkSpace._id,
       activated_by: user._id,
     });
+    let result: {};
     if (isExisting) {
-      const result =
-        await this.activatedTwilioOrganizationModel.findOneAndUpdate(
-          {
+      await this.activatedTwilioOrganizationModel.updateMany(
+        {
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            status: OrganizationStatus.INACTIVE,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      result = await this.activatedTwilioOrganizationModel.findOneAndUpdate(
+        {
+          organization_id: validWorkSpace._id,
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            organization_id: new Types.ObjectId(id),
             activated_by: user._id,
+            status: OrganizationStatus.ACTIVE,
           },
-          {
-            $set: {
-              organization_id: new Types.ObjectId(id),
-              activated_by: user._id,
-              status: OrganizationStatus.ACTIVE,
-            },
-          },
-        );
-      return result;
+        },
+        {
+          new: true,
+        },
+      );
     } else {
+      await this.activatedTwilioOrganizationModel.updateMany(
+        {
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            status: OrganizationStatus.INACTIVE,
+          },
+        },
+      );
+
       const activateOrganization = new this.activatedTwilioOrganizationModel({
         organization_id: new Types.ObjectId(id),
         activated_by: user._id,
         status: OrganizationStatus.ACTIVE,
       });
-      return await activateOrganization.save();
+      result = await activateOrganization.save();
     }
+    return result;
   }
   async activateInbox(id: string): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const validWorkSpace = await this.inboxModel.findById(
-      new Types.ObjectId(id),
-    );
-    if (!validWorkSpace) {
+    const validInbox = await this.inboxModel.findById(new Types.ObjectId(id));
+    if (!validInbox) {
       throw new Error(`inbox with the ID: ${id} not found `);
     }
     const isExisting = await this.activatedTwilioInboxesModel.findOne({
-      _id: new Types.ObjectId(id),
+      inbox_id: validInbox._id,
       activated_by: user._id,
     });
+    let result: {};
     if (isExisting) {
-      const result = await this.activatedTwilioInboxesModel.findOneAndUpdate(
+      await this.activatedTwilioInboxesModel.updateMany(
         {
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            status: OrganizationStatus.INACTIVE,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      result = await this.activatedTwilioInboxesModel.findOneAndUpdate(
+        {
+          inbox_id: validInbox._id,
           activated_by: user._id,
         },
         {
@@ -516,39 +572,91 @@ export class MessagingTwilioRepository
             status: OrganizationStatus.ACTIVE,
           },
         },
+        {
+          new: true,
+        },
       );
-      return result;
     } else {
+      await this.activatedTwilioInboxesModel.updateMany(
+        {
+          activated_by: user._id,
+        },
+        {
+          $set: {
+            status: OrganizationStatus.INACTIVE,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+
       const activateInbox = new this.activatedTwilioInboxesModel({
         inbox_id: new Types.ObjectId(id),
         activated_by: user._id,
         status: OrganizationStatus.ACTIVE,
       });
-      return await activateInbox.save();
+      result = await activateInbox.save();
     }
+    return result;
   }
   async getActivatedInbox(): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
-    const data = await this.activatedTwilioInboxesModel.findOne({
-      activated_by: user._id,
+    const activeWorkSpace = await this.getActivatedWorkSpace();
+    const activeInbox = await this.inboxModel.find({
+      organization_id: activeWorkSpace._id,
     });
-    return await this.inboxModel.findById(data.inbox_id);
+    const ids = activeInbox.map((inbox) => inbox._id);
+    if (activeInbox) {
+      const data = await this.activatedTwilioInboxesModel.findOne({
+        inbox_id: { $in: ids },
+        status: OrganizationStatus.ACTIVE,
+      });
+      if (data) {
+        return await this.inboxModel.findById(data.inbox_id);
+      } else {
+        const result = await this.inboxModel.find({ created_by: user._id });
+        if (result) {
+          return result[0];
+        } else {
+          throw new Error(`No Inbox found`);
+        }
+      }
+    }
+    throw new Error(`No Inbox found`);
   }
   async getActivatedWorkSpace(): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
     const data = await this.activatedTwilioOrganizationModel.findOne({
       activated_by: user._id,
+      status: OrganizationStatus.ACTIVE,
     });
-
-    let result = await this.twilioOrganizationModel.findById(
-      data.organization_id,
-    );
-    return {
-      _id: result._id,
-      organization_name: result.organization_name,
-      description: result.description,
-      created_by: result.created_by,
-      status: result.status,
-    };
+    if (data) {
+      let result = await this.twilioOrganizationModel.findById(
+        data.organization_id,
+      );
+      return {
+        _id: result._id,
+        organization_name: result.organization_name,
+        description: result.description,
+        created_by: result.created_by,
+        status: result.status,
+      };
+    } else {
+      let result = await this.twilioOrganizationModel.findOne({
+        created_by: user._id,
+      });
+      if (result) {
+        return {
+          _id: result._id,
+          organization_name: result.organization_name,
+          description: result.description,
+          created_by: result.created_by,
+          status: result.status,
+        };
+      } else {
+        throw new Error(`No Organization found`);
+      }
+    }
   }
 }
