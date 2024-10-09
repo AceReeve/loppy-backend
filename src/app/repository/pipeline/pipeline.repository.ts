@@ -23,6 +23,18 @@ export class PipelineRepository implements AbstractPipelineRepository {
       })
       .exec();
   }
+
+  async getPipeline(id: string): Promise<Pipeline | null> {
+    return await this.pipelineModel
+      .findById(id)
+      .populate({
+        path: 'opportunities',
+        populate: {
+          path: 'leads',
+        },
+      })
+      .exec();
+  }
   async createPipeline(
     createPipelineDto: CreatePipelineDTO,
   ): Promise<Pipeline | null> {

@@ -9,6 +9,7 @@ export abstract class AbstractPipelineRepository {
   abstract createPipeline(
     createPipelineDto: CreatePipelineDTO,
   ): Promise<Pipeline | null>;
+  abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],
@@ -24,6 +25,7 @@ export abstract class AbstractPipelineService {
   abstract createPipeline(
     createPipelineDto: CreatePipelineDTO,
   ): Promise<Pipeline | null>;
+  abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],

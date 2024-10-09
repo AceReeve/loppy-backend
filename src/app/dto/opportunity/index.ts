@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateOpportunityDTO {
   @IsString()
@@ -33,6 +39,32 @@ export class CreateOpportunityDTO {
     description: 'Required field when creating a opportunity',
   })
   pipeline_id: string;
+}
+
+export class UpdateOpportunitiesDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '661f82ee17d9f28f4aecb483',
+    description: 'Required field when creating a opportunity',
+  })
+  pipeline_id: string;
+
+  @IsArray()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Title',
+    description: 'Required field when creating a opportunity',
+  })
+  pipeline_opportunities: string[];
+
+  @IsArray()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: [],
+    description: 'Required field when creating a opportunity',
+  })
+  updated_items: UpdateOpportunityDTO[];
 }
 
 export class UpdateOpportunityDTO {

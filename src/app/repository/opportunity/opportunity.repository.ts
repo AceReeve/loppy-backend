@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
   CreateOpportunityDTO,
+  UpdateOpportunitiesDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { AbstractOpportunityRepository } from 'src/app/interface/opportunity';
@@ -43,7 +44,7 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
     // Update the opportunity by pushing the new opportunity's _id into the opportunitys array
     const updatedOpportunity = await this.pipelineModel.findByIdAndUpdate(
       pipeline_id,
-      { $push: { opportunitys: opportunity._id } },
+      { $push: { opportunities: opportunity._id } },
       { new: true }, // Return the updated document
     );
 
@@ -55,11 +56,11 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
   }
 
   async updateOpportunities(
-    updateOpportunityDto: UpdateOpportunityDTO[],
+    updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[] | null> {
     const updatedOpportunities: Opportunity[] = [];
 
-    for (const opportunityData of updateOpportunityDto) {
+    for (const opportunityData of updateOpportunityDto.updated_items) {
       const { _id, ...updateFields } = opportunityData;
 
       const updatedOpportunity = await this.opportunityModel
@@ -70,6 +71,13 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
         updatedOpportunities.push(updatedOpportunity);
       }
     }
+
+    // update the pipeline opportunities
+    await this.pipelineModel
+      .findByIdAndUpdate(updateOpportunityDto.pipeline_id, {
+        $set: { opportunities: updateOpportunityDto.pipeline_opportunities },
+      })
+      .exec();
 
     return updatedOpportunities.length > 0 ? updatedOpportunities : null;
   }

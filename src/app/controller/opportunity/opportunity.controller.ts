@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,
+  UpdateOpportunitiesDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
@@ -45,7 +46,7 @@ export class OpportunityController {
   @Put()
   @ApiOperation({ summary: 'Update opportunities' })
   async updateOpportunities(
-    @Body() updateOpportunityDto: UpdateOpportunityDTO[],
+    @Body() updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[]> {
     return await this.opportunityService.updateOpportunities(
       updateOpportunityDto,
