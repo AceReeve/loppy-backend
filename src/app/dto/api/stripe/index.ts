@@ -154,3 +154,211 @@ export class TwilioCreateSubAccount {
   @IsNotEmpty()
   name: string;
 }
+
+////TWILIO A2P
+
+export class CreateCustomerProfileDTO {
+  @ApiProperty({ example: 'johndoe@example.com' })
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateEndUserDTO {
+  @ApiProperty({ example: 'johndoe@example.com' })
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'John' })
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty({ example: 'Doe' })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty({ example: '+11234567890' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty({ example: 'Starter Profile End User' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class createAddressDTO {
+  @ApiProperty({ example: 'Example City' })
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @ApiProperty({ example: 'John Doe' })
+  @IsString()
+  @IsNotEmpty()
+  customerName: string;
+
+  @ApiProperty({ example: 'US' })
+  @IsString()
+  @IsNotEmpty()
+  isoCountry: string;
+
+  @ApiProperty({ example: '12345' })
+  @IsString()
+  @IsNotEmpty()
+  postalCode: string;
+
+  @ApiProperty({ example: 'CA' })
+  @IsString()
+  @IsNotEmpty()
+  region: string;
+
+  @ApiProperty({ example: '123 Example Street' })
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @ApiProperty({ example: 'Apt B' })
+  @IsString()
+  @IsNotEmpty()
+  streetSecondary: string;
+}
+
+export class CreateSupportingDocumentDTO {
+  @ApiProperty({ example: 'ADXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  addressSIDs: string;
+
+  @ApiProperty({ example: 'SP Document Address' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+
+export class CreateCustomerProfileEntityAssignmentDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileSID: string;
+
+  @ApiProperty({ example: 'SP Document Address' })
+  @IsString()
+  @IsNotEmpty()
+  objectSID: string;
+}
+
+export class CreateCustomerProfileEvaluationDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileSID: string;
+
+  @ApiProperty({ example: 'SP Document Address' })
+  @IsString()
+  @IsNotEmpty()
+  policySID: string;
+}
+
+export class UpdateCustomerProfileDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileSID: string;
+}
+
+export class CreateTrustProductDTO {
+  @ApiProperty({ example: 'johndoe@example.com' })
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateEndUserTrustHubDTO {
+  @ApiProperty({ example: '' })
+  @IsString()
+  @IsNotEmpty()
+  brandName: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  vertical: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  mobilePhoneNumber: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateTrustProductEntityAssignmentDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileSID: string;
+
+  @ApiProperty({ example: 'ITXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  endUserSID: string;
+}
+
+export class CreateTrustProductEvaluationDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileSID: string;
+}
+
+export class UpdateTrustProductDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  trustProductSID: string;
+}
+
+export class CreateBrandRegistrationDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  a2PProfileBundleSID: string;
+
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  customerProfileBundleSID: string;
+}
+
+export class FetchBrandRegistrationsDTO {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  brandRegistrationSID: string;
+}
+
+export class CreateBrandRegistrationsOTP {
+  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
+  @IsString()
+  @IsNotEmpty()
+  brandRegistrationSID: string;
+}
