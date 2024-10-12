@@ -10,30 +10,13 @@ export class FileUploadPipe implements PipeTransform {
     image_4?: Express.Multer.File[];
     image_5?: Express.Multer.File[];
   }) {
-    
     if (!value) return;
 
-    const {
-      image_1,
-      image_2,
-      image_3,
-      image_4,
-      image_5
-    } = value;
+    const { image_1, image_2, image_3, image_4, image_5 } = value;
 
-    const images = [
-      image_1,
-      image_2,
-      image_3,
-      image_4,
-      image_5,
-    ];
+    const images = [image_1, image_2, image_3, image_4, image_5];
 
-    const allowedMimeType = [
-      'image/png',
-      'image/jpg',
-      'image/jpeg'
-    ];
+    const allowedMimeType = ['image/png', 'image/jpg', 'image/jpeg'];
 
     images.forEach((image) => {
       if (!_.isEmpty(image)) {
@@ -54,7 +37,7 @@ export class FileUploadPipe implements PipeTransform {
       } else {
       }
     });
-  
+
     return value;
   }
 }

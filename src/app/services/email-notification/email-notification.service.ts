@@ -3,4 +3,4 @@ import { AbstractEmailNotificationService } from 'src/app/interface/email-notifi
 
 @Injectable()
 export class EmailNotificationService
-  implements AbstractEmailNotificationService { }
+  implements AbstractEmailNotificationService {}

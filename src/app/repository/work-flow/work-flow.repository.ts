@@ -260,7 +260,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
     return result;
   }
-  async publishedWorkFlow(id: string, published: Boolean): Promise<any> {
+  async publishedWorkFlow(id: string, published: boolean): Promise<any> {
     const user = await this.userRepository.getLoggedInUserDetails();
 
     if (published === true || published.toString() === 'true') {

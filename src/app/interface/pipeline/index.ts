@@ -19,6 +19,12 @@ export abstract class AbstractPipelineRepository {
     updatePipelineDto: UpdatePipelineDTO,
   ): Promise<Pipeline | null>;
   abstract deletePipeline(id: string): Promise<Pipeline | null>;
+  abstract exportPipelines(
+    from?: Date,
+    to?: Date,
+    all?: boolean,
+  ): Promise<Buffer>;
+  abstract importPipelines(filePath: string): Promise<any>;
 }
 
 export abstract class AbstractPipelineService {
@@ -35,4 +41,14 @@ export abstract class AbstractPipelineService {
     updatePipelineDto: UpdatePipelineDTO,
   ): Promise<Pipeline | null>;
   abstract deletePipeline(id: string): Promise<Pipeline | null>;
+  abstract exportPipelines(
+    from?: Date,
+    to?: Date,
+    all?: boolean,
+  ): Promise<Buffer>;
+  abstract importPipelines(filePath: string): Promise<any>;
+}
+
+export interface ExcelPipelineData {
+  title: string;
 }

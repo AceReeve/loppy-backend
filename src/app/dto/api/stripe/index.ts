@@ -100,7 +100,6 @@ export class SummarizePaymentDTO {
   confirmationToken: string;
 }
 
-
 export class SubscriptionResponseDTO {
   @ApiProperty({
     description: 'Subscription ID`',
@@ -114,7 +113,6 @@ export class SubscriptionResponseDTO {
   @IsString()
   clientSecret: string;
 }
-
 
 export class UpdateSubscriptionDTO {
   @ApiProperty({

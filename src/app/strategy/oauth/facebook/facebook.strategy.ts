@@ -8,12 +8,11 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
-  constructor
-    (protected readonly configService: ConfigService,
-      protected readonly oauthRepository: OauthRepository,
-      private readonly jwtService: JwtService,
-
-    ) {
+  constructor(
+    protected readonly configService: ConfigService,
+    protected readonly oauthRepository: OauthRepository,
+    private readonly jwtService: JwtService,
+  ) {
     super({
       clientID: configService.get<string>('FACEBOOK_APP_ID'),
       clientSecret: configService.get<string>('FACEBOOK_APP_SECRET'),
@@ -26,7 +25,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
   generateJWT(payload: object, exp: string): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRATION')
+      expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
     });
   }
   async validate(
@@ -39,7 +38,10 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
 
     //use jwt token instead of token provided by facebook
     const payload = { email: emails[0].value };
-    const access_token = this.generateJWT(payload, this.configService.get<string>('JWT_EXPIRATION'));
+    const access_token = this.generateJWT(
+      payload,
+      this.configService.get<string>('JWT_EXPIRATION'),
+    );
     //----//
     const user = {
       email: emails[0].value,

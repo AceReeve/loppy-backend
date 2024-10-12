@@ -179,7 +179,9 @@ export class TwilioService {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
     await this.initializeTwilioClient(userData._id);
-    let twilioInfo = await this.twilioModel.findOne({ user_id: userData._id });
+    const twilioInfo = await this.twilioModel.findOne({
+      user_id: userData._id,
+    });
     if (!twilioInfo) {
       throw new Error('This user doest not have twilio number');
     }

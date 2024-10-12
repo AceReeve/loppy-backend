@@ -18,7 +18,7 @@ export abstract class AbstractContactsService {
   abstract exportContacts(
     fromDate: Date,
     toDate: Date,
-    all: Boolean,
+    all: boolean,
   ): Promise<any>;
 }
 export abstract class AbstractContactsRepository {
@@ -39,7 +39,7 @@ export abstract class AbstractContactsRepository {
   abstract exportContacts(
     fromDate: Date,
     toDate: Date,
-    all: Boolean,
+    all: boolean,
   ): Promise<any>;
 }
 export interface ExcelContactData {

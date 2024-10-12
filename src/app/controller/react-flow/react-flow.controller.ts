@@ -79,7 +79,7 @@ export class WorkFlowController {
   })
   async publishedWorkFlow(
     @Query('id') id: string,
-    @Query('published') published: Boolean,
+    @Query('published') published: boolean,
   ) {
     return this.service.publishedWorkFlow(id, published);
   }

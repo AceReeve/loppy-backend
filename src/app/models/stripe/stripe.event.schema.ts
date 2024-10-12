@@ -37,8 +37,6 @@ export class StripeEvent implements GenericSchema {
 
   @Prop()
   stripeSubscriptionExpirationDate?: string;
-
-
 }
 
 export const StripeEventSchema = SchemaFactory.createForClass(StripeEvent);

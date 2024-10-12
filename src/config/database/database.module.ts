@@ -5,12 +5,12 @@ import { DatabaseConnection } from './database.service';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-    imports: [
-        ConfigModule,
-        MongooseModule.forRootAsync({
-            imports: [ConfigModule],
-            useClass: DatabaseConnection,
-        }),
-    ],
+  imports: [
+    ConfigModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useClass: DatabaseConnection,
+    }),
+  ],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

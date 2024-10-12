@@ -15,4 +15,4 @@ import { EmailNotificationService } from 'src/app/services/email-notification/em
     },
   ],
 })
-export class EmailNotificationModule { }
+export class EmailNotificationModule {}

@@ -12,8 +12,9 @@ import * as _ from 'lodash';
 @Injectable()
 export class DashboardRepository {
   constructor(
-    @InjectModel(Dashboard.name) private dashboardModel: Model<Dashboard & Document>,
-  ) { }
+    @InjectModel(Dashboard.name)
+    private dashboardModel: Model<Dashboard & Document>,
+  ) {}
 
   async getAllUsers(): Promise<Dashboard[] | null> {
     return await this.dashboardModel.find({});

@@ -632,7 +632,7 @@ export class MessagingTwilioRepository
       status: OrganizationStatus.ACTIVE,
     });
     if (data) {
-      let result = await this.twilioOrganizationModel.findById(
+      const result = await this.twilioOrganizationModel.findById(
         data.organization_id,
       );
       return {
@@ -643,7 +643,7 @@ export class MessagingTwilioRepository
         status: result.status,
       };
     } else {
-      let result = await this.twilioOrganizationModel.findOne({
+      const result = await this.twilioOrganizationModel.findOne({
         created_by: user._id,
       });
       if (result) {

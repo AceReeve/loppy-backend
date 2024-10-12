@@ -2,7 +2,7 @@ import {
   PipeTransform,
   Injectable,
   ArgumentMetadata,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import { validate, ValidationError } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
@@ -30,35 +30,45 @@ export class ValidationPipe implements PipeTransform<GenericResponse> {
   }
 
   private getChildrenErrors(errors: ValidationError[]): any {
-    const childErrors: any = []
+    const childErrors: any = [];
     _.map(errors, (validationErr: ValidationError) => {
       const getChildErrors = (childErr: ValidationError[] | undefined) => {
-        if(!validationErr.constraints && childErr) {
-            return _.map(childErr, (deepChild: ValidationError) => {
-            if(_.isEmpty(deepChild.children)) {
+        if (!validationErr.constraints && childErr) {
+          return _.map(childErr, (deepChild: ValidationError) => {
+            if (_.isEmpty(deepChild.children)) {
               childErrors.push(deepChild);
               return;
-            };
+            }
             getChildErrors(deepChild.children);
           });
         }
-      }
-      if(!validationErr.constraints) getChildErrors(validationErr.children);
+      };
+      if (!validationErr.constraints) getChildErrors(validationErr.children);
     });
 
     return childErrors;
   }
 
   private transformValidation(errors: ValidationError[]): ValidationResponse {
-    let childErrs = this.getChildrenErrors(errors);
-    let compactErrors = _.concat(_.filter(errors, (validationError: ValidationError) => validationError.constraints !== undefined), childErrs);
+    const childErrs = this.getChildrenErrors(errors);
+    const compactErrors = _.concat(
+      _.filter(
+        errors,
+        (validationError: ValidationError) =>
+          validationError.constraints !== undefined,
+      ),
+      childErrs,
+    );
 
-    const transformedError = _.map(compactErrors, (validationErr: ValidationError) => {
-      const key = validationErr.property;
-      return {
-        [key]: _.map(validationErr.constraints, (constraint) => constraint),
-      };
-    });
+    const transformedError = _.map(
+      compactErrors,
+      (validationErr: ValidationError) => {
+        const key = validationErr.property;
+        return {
+          [key]: _.map(validationErr.constraints, (constraint) => constraint),
+        };
+      },
+    );
 
     return {
       errors: transformedError,

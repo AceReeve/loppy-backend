@@ -83,7 +83,7 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
     updateOpportunityDto: UpdateOpportunityDTO,
   ): Promise<Opportunity | null> {
     try {
-      console.log(id);
+      // console.log(id);
       const opportunity = await this.opportunityModel
         .findByIdAndUpdate(id, updateOpportunityDto, { new: true })
         .exec();

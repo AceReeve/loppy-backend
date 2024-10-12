@@ -23,7 +23,7 @@ import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
     ContactsSchemaModule,
     OtpSchemaModule,
     MessagingTwilioSchemaModule,
-    WorkFlowSchemaModule
+    WorkFlowSchemaModule,
   ],
   providers: [],
   exports: [
@@ -37,7 +37,7 @@ import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
     ContactsSchemaModule,
     OtpSchemaModule,
     MessagingTwilioSchemaModule,
-    WorkFlowSchemaModule
+    WorkFlowSchemaModule,
   ],
 })
 export class ModelModule {}

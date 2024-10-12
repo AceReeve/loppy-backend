@@ -123,7 +123,12 @@ export class TwilioController {
     @Query('areaCode') areaCode?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.twilioService.fetchAvailableNumbers(countryCode, type, areaCode, limit);
+    return this.twilioService.fetchAvailableNumbers(
+      countryCode,
+      type,
+      areaCode,
+      limit,
+    );
   }
 
   @Post('buy-number')
@@ -145,6 +150,6 @@ export class TwilioController {
 
   @Get('all-purchased-numbers')
   async fetchAllPurchasedNumbers() {
-      return await this.twilioService.fetchAllPurchasedNumbers();
+    return await this.twilioService.fetchAllPurchasedNumbers();
   }
 }

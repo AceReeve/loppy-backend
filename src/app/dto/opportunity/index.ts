@@ -11,10 +11,18 @@ export class CreateOpportunityDTO {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Title',
+    example: 'Survey Filled Out',
     description: 'Required field when creating a opportunity',
   })
   title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '#0000FF',
+    description: 'Required field when creating a opportunity',
+  })
+  color?: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -45,7 +53,7 @@ export class UpdateOpportunitiesDTO {
   @IsArray()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Title',
+    example: 'Customer Responded',
     description: 'Required field when creating a opportunity',
   })
   pipeline_opportunities: string[];
@@ -71,10 +79,18 @@ export class UpdateOpportunityDTO {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Title',
+    example: 'Customer Responded',
     description: 'Required field when creating a opportunity',
   })
   title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '#0000FF',
+    description: 'Required field when creating a opportunity',
+  })
+  color?: string;
 
   @IsNumber()
   @IsNotEmpty()

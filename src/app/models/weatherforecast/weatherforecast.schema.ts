@@ -4,25 +4,25 @@ import { GenericSchema } from '../generic.schema';
 
 export type WeatherForecastDocument = WeatherForecast & Document;
 @Schema({
-    versionKey: false,
-    collection: 'weatherforecast',
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  versionKey: false,
+  collection: 'weatherforecast',
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class WeatherForecast implements GenericSchema {
-    _id: string;
+  _id: string;
 
-    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
-    user_id: MongooseSchema.Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  user_id: MongooseSchema.Types.ObjectId;
 
-    @Prop()
-    temperature?: string;
+  @Prop()
+  temperature?: string;
 
-    @Prop()
-    notificationType?: string;
+  @Prop()
+  notificationType?: string;
 
-    @Prop()
-    updatedLocation?: string;
-
+  @Prop()
+  updatedLocation?: string;
 }
 
-export const WeatherForecastSchema = SchemaFactory.createForClass(WeatherForecast);
+export const WeatherForecastSchema =
+  SchemaFactory.createForClass(WeatherForecast);

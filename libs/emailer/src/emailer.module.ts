@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { EmailerService } from './emailer.service';
-import { MailerService, MailerModule, MAILER_OPTIONS } from '@nestjs-modules/mailer';
+import {
+  MailerService,
+  MailerModule,
+  MAILER_OPTIONS,
+} from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [
-    MailerModule,
-    ConfigModule,
-  ],
+  imports: [MailerModule, ConfigModule],
   providers: [
-    EmailerService, MailerService,
+    EmailerService,
+    MailerService,
     {
       provide: MAILER_OPTIONS,
       useFactory: async (configService: ConfigService) => ({
@@ -30,4 +32,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   ],
   exports: [EmailerService],
 })
-export class EmailerModule { }
+export class EmailerModule {}

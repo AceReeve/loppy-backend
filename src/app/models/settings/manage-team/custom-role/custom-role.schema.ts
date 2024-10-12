@@ -4,22 +4,20 @@ import { GenericSchema } from '../../../generic.schema';
 export type CustomeRoleDocument = CustomeRole & Document;
 
 @Schema({
-    versionKey: false,
-    collection: 'customRole',
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  versionKey: false,
+  collection: 'customRole',
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class CustomeRole implements GenericSchema {
-    _id: string;
+  _id: string;
 
-    @Prop()
-    role: string;
-    
-    @Prop()
-    description: string;
+  @Prop()
+  role: string;
 
-    @Prop() 
-    team: string;
+  @Prop()
+  description: string;
 
+  @Prop()
+  team: string;
 }
 export const CustomeRoleSchema = SchemaFactory.createForClass(CustomeRole);
-

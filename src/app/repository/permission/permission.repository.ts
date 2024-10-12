@@ -9,7 +9,7 @@ export class PermissionRepository implements AbstractPermissionRepository {
   constructor(
     @InjectModel(Permission.name)
     private permissionModel: Model<Permission & Document>,
-  ) { }
+  ) {}
   async findOne(input: FilterQuery<Permission>): Promise<Permission | null> {
     return await this.permissionModel.findOne(input);
   }

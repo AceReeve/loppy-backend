@@ -15,6 +15,9 @@ export class Opportunity implements GenericSchema {
   @Prop({ required: [true, 'Missing required field'] })
   title: string;
 
+  @Prop({ type: String, default: '#0000FF' })
+  color: string;
+
   @Prop({ required: [true, 'Missing required field'] })
   lead_value: number;
 

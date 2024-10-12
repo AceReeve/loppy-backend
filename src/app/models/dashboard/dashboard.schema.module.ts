@@ -4,7 +4,9 @@ import { Dashboard, DashboardSchema } from './dashboard.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Dashboard.name, schema: DashboardSchema }]),
+    MongooseModule.forFeature([
+      { name: Dashboard.name, schema: DashboardSchema },
+    ]),
   ],
   exports: [MongooseModule],
 })

@@ -7,11 +7,11 @@ export class WeatherForecastService {
   private weatherAPI: AxiosInstance;
   private openWeatherAPI: AxiosInstance;
 
-  private openWeatherAPIurl: string = "https://api.openweathermap.org/data/2.5/";
+  private openWeatherAPIurl: string =
+    'https://api.openweathermap.org/data/2.5/';
   private weatherAPIurl: string = 'http://api.weatherapi.com/v1/';
 
   constructor(private configService: ConfigService) {
-
     this.openWeatherAPI = axios.create({
       baseURL: this.openWeatherAPIurl,
       params: {
@@ -60,13 +60,12 @@ export class WeatherForecastService {
     }
   }
 
-
   async openWeatherDaily(city: string) {
     try {
       const response = await this.openWeatherAPI.get('forecast', {
         params: {
           q: city,
-          units: "metric",
+          units: 'metric',
         },
       });
       return response.data;
@@ -77,14 +76,13 @@ export class WeatherForecastService {
       };
     }
   }
-
 
   async openWeatherDay(city: string) {
     try {
       const response = await this.openWeatherAPI.get('weather', {
         params: {
           q: city,
-          units: "metric",
+          units: 'metric',
         },
       });
       return response.data;
@@ -95,5 +93,4 @@ export class WeatherForecastService {
       };
     }
   }
-
 }

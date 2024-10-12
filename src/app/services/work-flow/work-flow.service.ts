@@ -15,7 +15,7 @@ export class WorkFlowService implements AbstractWorkFlowService {
   async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
     return await this.repository.updateWorkFlow(id, dto);
   }
-  async publishedWorkFlow(id: string, published: Boolean): Promise<any> {
+  async publishedWorkFlow(id: string, published: boolean): Promise<any> {
     return await this.repository.publishedWorkFlow(id, published);
   }
 

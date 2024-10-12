@@ -230,14 +230,14 @@ export class ContactsRepository implements AbstractContactsRepository {
     return { message: 'All Contacts imported successfully' };
   }
 
-  async exportContacts(from?: Date, to?: Date, all?: Boolean): Promise<Buffer> {
+  async exportContacts(from?: Date, to?: Date, all?: boolean): Promise<Buffer> {
     const user = this.request.user as Partial<User> & { sub: string };
     const userData = await this.userModel.findOne({ email: user.email });
     if (!userData) {
       throw new BadRequestException('User not found');
     }
 
-    let query: any = { user_id: userData._id };
+    const query: any = { user_id: userData._id };
     if (from && to && all !== true) {
       const fromStartOfDay = new Date(from);
       fromStartOfDay.setUTCHours(0, 0, 0, 0);
@@ -311,14 +311,14 @@ export class ContactsRepository implements AbstractContactsRepository {
     const userId = userData._id;
     if (!userId) throw new BadRequestException('Invalid user id');
 
-    let query: Record<string, any> = {
+    const query: Record<string, any> = {
       user_id: userId,
     };
 
     if (searchKey) {
       const regex = new RegExp(searchKey, 'i'); // Common regex for string fields
-      let numericSearchKey = Number(searchKey); // Convert searchKey to number
-      let searchKeyIsNumeric = !isNaN(numericSearchKey); // Check if conversion is valid
+      const numericSearchKey = Number(searchKey); // Convert searchKey to number
+      const searchKeyIsNumeric = !isNaN(numericSearchKey); // Check if conversion is valid
 
       query.$or = [
         { first_name: regex },

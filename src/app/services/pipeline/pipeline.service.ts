@@ -39,4 +39,16 @@ export class PipelineService implements AbstractPipelineService {
   async deletePipeline(id: string): Promise<Pipeline | null> {
     return await this.repository.deletePipeline(id);
   }
+
+  async exportPipelines(
+    from?: Date,
+    to?: Date,
+    all?: boolean,
+  ): Promise<Buffer> {
+    return await this.repository.exportPipelines(from, to, all);
+  }
+
+  async importPipelines(filePath: string): Promise<any> {
+    return await this.repository.importPipelines(filePath);
+  }
 }

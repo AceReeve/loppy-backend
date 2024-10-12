@@ -20,7 +20,7 @@ export class Dashboard implements GenericSchema {
   @Prop()
   last_name: string;
 
-  @Prop({ type: Date, })
+  @Prop({ type: Date })
   date: Date;
 
   @Prop()
@@ -37,7 +37,6 @@ export class Dashboard implements GenericSchema {
 
   @Prop()
   existing_customer: string;
-
 }
 
 export const DashboardSchema = SchemaFactory.createForClass(Dashboard);

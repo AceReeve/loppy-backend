@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class StripeWebhookService {
-  private stripe: Stripe
+  private stripe: Stripe;
 
   private pricesEnum = {
     essential: this.configService.get<string>('STARTER_HERO_PRICE_ID'),
@@ -17,7 +17,7 @@ export class StripeWebhookService {
   constructor(
     private readonly repository: StripeEventRepository,
     private userService: UserService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {
     this.stripe = new Stripe(
       this.configService.get<string>('STRIPE_SECRET_KEY'),
@@ -27,8 +27,7 @@ export class StripeWebhookService {
     );
   }
 
-  async addStripeEvent(id: string
-  ): Promise<any> {
+  async addStripeEvent(id: string): Promise<any> {
     try {
       return await this.repository.addStripeEvent(id);
     } catch (error) {
@@ -37,37 +36,37 @@ export class StripeWebhookService {
   }
 
   async processSubscriptionUpdate(event: Stripe.Event) {
-
     let data;
-    let eventType = event.type;
+    const eventType = event.type;
     let session;
     let userId;
     let product;
 
     switch (eventType) {
-
       case 'payment_intent.succeeded' || 'payment_intent.created': {
         await this.addStripeEvent(event.id);
         data = event.data as Stripe.PaymentIntent;
-        session = await this.stripe.paymentIntents.retrieve(
-          data.object.id
-        );
+        session = await this.stripe.paymentIntents.retrieve(data.object.id);
         const customerId = session?.customer as string;
-        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const customer = (await this.stripe.customers.retrieve(
+          customerId,
+        )) as Stripe.Customer;
         const user = await this.userService.getUserByEmail(customer.email);
         if (user) {
           userId = user.userDetails._id;
-          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          const stripeEvent = await this.repository.findByStripeEventId(
+            event.id,
+          );
           this.repository.createUserStripeSubscriptionData(
             stripeEvent.id,
             customerId,
-            "",
+            '',
             userId,
             'Payment-Intent',
             session.status,
-            "",
-            "",
-            ""
+            '',
+            '',
+            '',
           );
         }
         break;
@@ -76,12 +75,12 @@ export class StripeWebhookService {
       case 'customer.subscription.updated' || 'customer.subscription.created': {
         await this.addStripeEvent(event.id);
         data = event.data as Stripe.CustomerSubscriptionUpdatedEvent;
-        session = await this.stripe.subscriptions.retrieve(
-          data.object.id
-        );
+        session = await this.stripe.subscriptions.retrieve(data.object.id);
 
         const customerId = session?.customer as string;
-        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const customer = (await this.stripe.customers.retrieve(
+          customerId,
+        )) as Stripe.Customer;
 
         const priceId = session?.items.data[0]?.price.id;
 
@@ -91,10 +90,14 @@ export class StripeWebhookService {
           userId = user.userDetails._id;
 
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            product = await this.stripe.products.retrieve(
+              session?.items.data[0]?.plan.product,
+            );
             subscriptionPlan = product.name;
           }
-          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          const stripeEvent = await this.repository.findByStripeEventId(
+            event.id,
+          );
           this.repository.createUserStripeSubscriptionData(
             stripeEvent.id,
             customerId,
@@ -104,7 +107,8 @@ export class StripeWebhookService {
             session.status,
             new Date(session.current_period_start * 1000).toISOString(),
             new Date(session.current_period_end * 1000).toISOString(),
-            subscriptionPlan);
+            subscriptionPlan,
+          );
         }
         break;
       }
@@ -112,12 +116,12 @@ export class StripeWebhookService {
       case 'customer.subscription.deleted': {
         await this.addStripeEvent(event.id);
         data = event.data as Stripe.CustomerSubscriptionDeletedEvent;
-        session = await this.stripe.subscriptions.retrieve(
-          data.object.id
-        );
+        session = await this.stripe.subscriptions.retrieve(data.object.id);
 
         const customerId = session?.customer as string;
-        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const customer = (await this.stripe.customers.retrieve(
+          customerId,
+        )) as Stripe.Customer;
 
         const priceId = session.items.data[0].plan.id;
 
@@ -126,10 +130,14 @@ export class StripeWebhookService {
           let subscriptionPlan;
           userId = user.userDetails._id;
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            product = await this.stripe.products.retrieve(
+              session?.items.data[0]?.plan.product,
+            );
             subscriptionPlan = product.name;
           }
-          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          const stripeEvent = await this.repository.findByStripeEventId(
+            event.id,
+          );
           this.repository.createUserStripeSubscriptionData(
             stripeEvent.id,
             customerId,
@@ -139,22 +147,22 @@ export class StripeWebhookService {
             session.status,
             new Date(session.current_period_start * 1000).toISOString(),
             new Date(session.current_period_end * 1000).toISOString(),
-            subscriptionPlan);
+            subscriptionPlan,
+          );
         }
         break;
       }
       case 'checkout.session.expired': {
         await this.addStripeEvent(event.id);
         data = event.data as Stripe.CheckoutSessionExpiredEvent;
-        session = await this.stripe.checkout.sessions.retrieve(
-          data.object.id,
-          {
-            expand: ['line_items']
-          }
-        );
+        session = await this.stripe.checkout.sessions.retrieve(data.object.id, {
+          expand: ['line_items'],
+        });
 
         const customerId = session?.customer as string;
-        const customer = await this.stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const customer = (await this.stripe.customers.retrieve(
+          customerId,
+        )) as Stripe.Customer;
 
         const priceId = session?.line_items.data[0]?.price.id;
 
@@ -163,10 +171,14 @@ export class StripeWebhookService {
           let subscriptionPlan;
           userId = user.userDetails._id;
           if (Object.values(this.pricesEnum).includes(priceId)) {
-            product = await this.stripe.products.retrieve(session?.items.data[0]?.plan.product);
+            product = await this.stripe.products.retrieve(
+              session?.items.data[0]?.plan.product,
+            );
             subscriptionPlan = product.name;
           }
-          const stripeEvent = await this.repository.findByStripeEventId(event.id);
+          const stripeEvent = await this.repository.findByStripeEventId(
+            event.id,
+          );
           this.repository.createUserStripeSubscriptionData(
             stripeEvent.id,
             customerId,
@@ -176,7 +188,8 @@ export class StripeWebhookService {
             session.status,
             new Date(session.current_period_start * 1000).toISOString(),
             new Date(session.current_period_end * 1000).toISOString(),
-            subscriptionPlan);
+            subscriptionPlan,
+          );
         }
         break;
       }
@@ -188,12 +201,12 @@ export class StripeWebhookService {
     return await this.userService.updateUserStripeId(event.id, userId);
   }
 
-
-  async getUserStripeData(id: string
-  ): Promise<any> {
+  async getUserStripeData(id: string): Promise<any> {
     try {
       const userInfo = await this.userService.findByUserId(id);
-      const result = await this.repository.findByUserStripeData(userInfo.stripe_id)
+      const result = await this.repository.findByUserStripeData(
+        userInfo.stripe_id,
+      );
       if (result === null) {
         throw Error;
       } else {
@@ -208,20 +221,21 @@ export class StripeWebhookService {
       const stripeEvent = await this.repository.findByStripeEventId(randomId);
       await this.repository.createUserStripeSubscriptionData(
         stripeEvent.id,
-        "",
-        "",
+        '',
+        '',
         id,
-        "",
-        "inactive",
-        "",
-        "",
-        ""
+        '',
+        'inactive',
+        '',
+        '',
+        '',
       );
-      await this.userService.updateUserStripeId(stripeEvent.stripe_event_id, id);
+      await this.userService.updateUserStripeId(
+        stripeEvent.stripe_event_id,
+        id,
+      );
       const userInfo = await this.userService.findByUserId(id);
       return await this.repository.findByUserStripeData(userInfo.stripe_id);
     }
   }
-
-
 }

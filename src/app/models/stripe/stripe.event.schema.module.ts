@@ -4,7 +4,9 @@ import { StripeEvent, StripeEventSchema } from './stripe.event.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: StripeEvent.name, schema: StripeEventSchema }]),
+    MongooseModule.forFeature([
+      { name: StripeEvent.name, schema: StripeEventSchema },
+    ]),
   ],
   exports: [MongooseModule],
 })
