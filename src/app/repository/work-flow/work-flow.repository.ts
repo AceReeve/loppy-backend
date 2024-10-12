@@ -124,6 +124,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
           const opportunityData = {
             title: dto.action.content?.title,
+            color: dto.action.content?.color,
             lead_value: dto.action.content?.lead_value,
           };
 
