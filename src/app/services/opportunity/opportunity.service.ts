@@ -5,6 +5,7 @@ import {
 } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,
+  UpdateOpportunitiesDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
@@ -23,7 +24,7 @@ export class OpportunityService implements AbstractOpportunityService {
   }
 
   async updateOpportunities(
-    updateOpportunityDto: UpdateOpportunityDTO[],
+    updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[] | null> {
     return await this.repository.updateOpportunities(updateOpportunityDto);
   }

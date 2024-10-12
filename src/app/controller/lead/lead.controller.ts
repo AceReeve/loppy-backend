@@ -8,7 +8,7 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractLeadService } from 'src/app/interface/lead';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
@@ -16,6 +16,7 @@ import { JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Leads')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('Bearer')
 @Controller('lead')
 export class LeadController {
   constructor(private readonly leadService: AbstractLeadService) {}
@@ -24,6 +25,12 @@ export class LeadController {
   @ApiOperation({ summary: 'Create lead' })
   async createLead(@Body() createLeadDTO: CreateLeadDTO): Promise<Lead | null> {
     return await this.leadService.createLead(createLeadDTO);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get lead by id' })
+  async getLeadById(@Param('id') id: string): Promise<Lead | null> {
+    return await this.leadService.getLeadById(id);
   }
 
   @Get()

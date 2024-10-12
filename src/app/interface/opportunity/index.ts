@@ -2,6 +2,7 @@ import { User } from 'src/app/models/user/user.schema';
 import { GenericInterfaceRepoistory } from '../generic.interface.repository';
 import {
   CreateOpportunityDTO,
+  UpdateOpportunitiesDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
@@ -14,7 +15,7 @@ export abstract class AbstractOpportunityRepository {
   ): Promise<Opportunity | null>;
   abstract getAllOpportunities(): Promise<Opportunity[] | null>;
   abstract updateOpportunities(
-    updateOpportunityDto: UpdateOpportunityDTO[],
+    updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[] | null>;
   abstract updateOpportunity(
     id: string,
@@ -29,7 +30,7 @@ export abstract class AbstractOpportunityService {
   ): Promise<Opportunity | null>;
   abstract getAllOpportunities(): Promise<Opportunity[] | null>;
   abstract updateOpportunities(
-    updateOpportunityDto: UpdateOpportunityDTO[],
+    updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[] | null>;
   abstract updateOpportunity(
     id: string,
