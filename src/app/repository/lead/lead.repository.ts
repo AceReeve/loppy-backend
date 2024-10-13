@@ -19,6 +19,11 @@ export class LeadRepository implements AbstractLeadRepository {
   async getAllLeads(): Promise<Lead[] | null> {
     return await this.leadModel.find({});
   }
+
+  async getLeadById(id: string): Promise<Lead | null> {
+    return await this.leadModel.findById(id);
+  }
+
   async createLead(createLeadDto: CreateLeadDTO): Promise<Lead | null> {
     const { opportunity_id, ...leadData } = createLeadDto;
 

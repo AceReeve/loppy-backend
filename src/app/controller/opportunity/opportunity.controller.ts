@@ -8,10 +8,11 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,
+  UpdateOpportunitiesDTO,
   UpdateOpportunityDTO,
 } from 'src/app/dto/opportunity';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from 'src/app/guard/auth';
 
 @ApiTags('Opportunities')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('Bearer')
 @Controller('opportunity')
 export class OpportunityController {
   constructor(
@@ -44,7 +46,7 @@ export class OpportunityController {
   @Put()
   @ApiOperation({ summary: 'Update opportunities' })
   async updateOpportunities(
-    @Body() updateOpportunityDto: UpdateOpportunityDTO[],
+    @Body() updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[]> {
     return await this.opportunityService.updateOpportunities(
       updateOpportunityDto,

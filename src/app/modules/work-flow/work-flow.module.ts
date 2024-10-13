@@ -38,6 +38,8 @@ import { StripeModule } from '../api/api.module';
 import { CronService } from 'src/app/cron/cron.service';
 import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 import { SmsService } from 'src/config/sms/sms.service';
+import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
+import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
 
 @Global()
 @Module({
@@ -54,6 +56,8 @@ import { SmsService } from 'src/config/sms/sms.service';
     EmailerModule,
     FileUploadSchemaModule,
     TeamSchemaModule,
+    OpportunitySchemaModule,
+    PipelineSchemaModule,
   ],
   providers: [
     UserService,

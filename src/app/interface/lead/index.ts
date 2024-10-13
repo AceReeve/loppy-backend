@@ -7,6 +7,7 @@ export type UserRepositoryInterface = GenericInterfaceRepoistory<User>;
 
 export abstract class AbstractLeadRepository {
   abstract createLead(createLeadDto: CreateLeadDTO): Promise<Lead | null>;
+  abstract getLeadById(id: string): Promise<Lead | null>;
   abstract getAllLeads(): Promise<Lead[] | null>;
   abstract updateLead(
     id: string,
@@ -17,6 +18,7 @@ export abstract class AbstractLeadRepository {
 
 export abstract class AbstractLeadService {
   abstract createLead(createLeadDto: CreateLeadDTO): Promise<Lead | null>;
+  abstract getLeadById(id: string): Promise<Lead | null>;
   abstract getAllLeads(): Promise<Lead[] | null>;
   abstract updateLead(
     id: string,
