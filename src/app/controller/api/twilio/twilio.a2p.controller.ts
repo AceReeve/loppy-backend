@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { createAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateEndUserDTO, CreateEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, FetchBrandRegistrationsDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
+import { CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, FetchBrandRegistrationsDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
 import { TwilioA2PService } from "src/app/services/api/twilio/twilio.a2p.service";
 
 @ApiTags('Twilio')
@@ -9,27 +9,36 @@ import { TwilioA2PService } from "src/app/services/api/twilio/twilio.a2p.service
 export class TwilioA2PController {
     constructor(private readonly twilioA2PService: TwilioA2PService) { }
 
-    // Step 1: Fetch Regulatory Policies for a Specific Country
+
     @Get('fetch-policies')
     async fetchPolicies() {
         return this.twilioA2PService.fetchPolicies();
     }
 
-    // Step 2: Create a Compliance Bundle
+
     @Post('create-customer-profile')
     async createCustomerProfile(@Body() CreateCustomerProfileDTO: CreateCustomerProfileDTO) {
         return this.twilioA2PService.createCustomerProfile(CreateCustomerProfileDTO);
     }
 
-    // Step 2: Create a Compliance Bundle
-    @Post('create-end-user')
-    async createEndUser(@Body() createEndUserDTO: CreateEndUserDTO) {
-        return this.twilioA2PService.createEndUser(createEndUserDTO);
+
+    @Post('create-end-user-sole-proprietor')
+    async createEndUserSoleProprietor(@Body() createEndUserDTO: CreateSoleProprietorEndUserDTO) {
+        return this.twilioA2PService.createSoleProprietorEndUser(createEndUserDTO);
     }
 
-    // Step 3: Add Supporting Documents to Bundle
+    @Post('create-end-user-low-and-standard-business-profile')
+    async createEndUserLowAndStandardBusinessProfile(@Body() createEndUserDTO: CreateLowAndStandardEndUserBusninessProfileDTO) {
+        return this.twilioA2PService.createLowAndStandardEndUserBusinessProfile(createEndUserDTO);
+    }
+
+    @Post('create-end-user-low-and-standard-representative')
+    async createEndUserLowAndStandardRepresentatibe(@Body() createEndUserDTO: CreateLowAndStandardEndUserRepresentativeDTO) {
+        return this.twilioA2PService.createLowAndStandardEndUserRepresentative(createEndUserDTO);
+    }
+
     @Post('create-address')
-    async createAddress(@Body() createAddressDTO: createAddressDTO) {
+    async createAddress(@Body() createAddressDTO: CreateAddressDTO) {
         return this.twilioA2PService.createAddress(createAddressDTO);
     }
 
@@ -60,10 +69,16 @@ export class TwilioA2PController {
         return this.twilioA2PService.createTrustProduct(createTrustProductDTO);
     }
 
-    @Post('create-end-user-trust-hub')
-    async createEndUserTrustHub(@Body() createEndUserTrustHubDTO: CreateEndUserTrustHubDTO
+    @Post('create-end-user-sole-proprietor-trust-hub')
+    async createEndUserSoleProprietorTrustHub(@Body() createEndUserTrustHubDTO: CreateSoleProprietorEndUserTrustHubDTO
     ) {
-        return this.twilioA2PService.createEndUserTrustHub(createEndUserTrustHubDTO);
+        return this.twilioA2PService.createSoleProprietorEndUserTrustHub(createEndUserTrustHubDTO);
+    }
+
+    @Post('create-end-user-sole-proprietor-trust-hub')
+    async createEndUserLowAndStandardTrustHub(@Body() createEndUserTrustHubDTO: CreateLowAndStandardEndUserTrustHubDTO
+    ) {
+        return this.twilioA2PService.createLowAndStandardEndUserTrustHub(createEndUserTrustHubDTO);
     }
 
     @Post('create-trust-product-entity-assignment')

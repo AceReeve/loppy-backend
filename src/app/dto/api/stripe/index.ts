@@ -17,6 +17,7 @@ import {
   MinLength,
   ValidateNested,
   IsDateString,
+  IsBoolean,
 } from 'class-validator';
 
 export class StripeDTO {
@@ -167,9 +168,14 @@ export class CreateCustomerProfileDTO {
   @IsString()
   @IsNotEmpty()
   friendlyName: string;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isSoleProprietor: boolean;
 }
 
-export class CreateEndUserDTO {
+export class CreateSoleProprietorEndUserDTO {
   @ApiProperty({ example: 'johndoe@example.com' })
   @IsString()
   @IsNotEmpty()
@@ -196,7 +202,59 @@ export class CreateEndUserDTO {
   friendlyName: string;
 }
 
-export class createAddressDTO {
+export class CreateLowAndStandardEndUserBusninessProfileDTO {
+  @ApiProperty({ example: 'Acme, Inc.' })
+  @IsString()
+  @IsNotEmpty()
+  businessName: string;
+
+  @ApiProperty({ example: 'USA_AND_CANADA' })
+  @IsString()
+  @IsNotEmpty()
+  businessRegionsOfOperation: string;
+
+  @ApiProperty({ example: 'Partnership' })
+  @IsString()
+  @IsNotEmpty()
+  businessType: string;
+
+  @ApiProperty({ example: 'EIN' })
+  @IsString()
+  @IsNotEmpty()
+  businessRegistrationIdentifier: string;
+
+  @ApiProperty({ example: 'direct_customer' })
+  @IsString()
+  @IsNotEmpty()
+  businessIdentity: string;
+
+  @ApiProperty({ example: 'EDUCATION' })
+  @IsString()
+  @IsNotEmpty()
+  businessIndustry: string;
+
+  @ApiProperty({ example: '123456789' })
+  @IsString()
+  @IsNotEmpty()
+  businessRegistrationNumber: string;
+
+  @ApiProperty({ example: 'https://www.example.com' })
+  @IsString()
+  @IsNotEmpty()
+  socialMediaProfileURLs: string;
+
+  @ApiProperty({ example: 'https://www.example.com' })
+  @IsString()
+  @IsNotEmpty()
+  websiteURL: string;
+
+  @ApiProperty({ example: 'Acme, Inc. - Business Information EndUser resource' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateAddressDTO {
   @ApiProperty({ example: 'Example City' })
   @IsString()
   @IsNotEmpty()
@@ -268,6 +326,11 @@ export class CreateCustomerProfileEvaluationDTO {
   @IsString()
   @IsNotEmpty()
   policySID: string;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isSoleProprietor: boolean;
 }
 
 export class UpdateCustomerProfileDTO {
@@ -287,9 +350,14 @@ export class CreateTrustProductDTO {
   @IsString()
   @IsNotEmpty()
   friendlyName: string;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isSoleProprietor: boolean;
 }
 
-export class CreateEndUserTrustHubDTO {
+export class CreateSoleProprietorEndUserTrustHubDTO {
   @ApiProperty({ example: '' })
   @IsString()
   @IsNotEmpty()
@@ -306,6 +374,55 @@ export class CreateEndUserTrustHubDTO {
   mobilePhoneNumber: string;
 
   @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateLowAndStandardEndUserTrustHubDTO {
+  @ApiProperty({ example: '' })
+  @IsString()
+  @IsNotEmpty()
+  companyType: string;
+
+  @ApiProperty({ example: 'John Doe Starter Customer Profile Bundle' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+}
+
+export class CreateLowAndStandardEndUserRepresentativeDTO {
+  @ApiProperty({ example: 'CEO' })
+  @IsString()
+  @IsNotEmpty()
+  jobPosition: string;
+
+  @ApiProperty({ example: 'Doe' })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty({ example: '+12225557890' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty({ example: 'Jane' })
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty({ example: 'jdoe@example.com' })
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'CEO' })
+  @IsString()
+  @IsNotEmpty()
+  businessTitle: string;
+
+  @ApiProperty({ example: 'Acme, Inc Authorized Rep 1' })
   @IsString()
   @IsNotEmpty()
   friendlyName: string;
@@ -328,6 +445,11 @@ export class CreateTrustProductEvaluationDTO {
   @IsString()
   @IsNotEmpty()
   customerProfileSID: string;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isSoleProprietor: boolean;
 }
 
 export class UpdateTrustProductDTO {
@@ -347,6 +469,16 @@ export class CreateBrandRegistrationDTO {
   @IsString()
   @IsNotEmpty()
   customerProfileBundleSID: string;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isSoleProprietor: boolean;
+
+  @ApiProperty({ example: 'true' })
+  @IsBoolean()
+  @IsNotEmpty()
+  isLowVolume: boolean;
 }
 
 export class FetchBrandRegistrationsDTO {
