@@ -16,6 +16,8 @@ import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { CronService } from 'src/app/cron/cron.service';
 import { WorkFlowStatus } from 'src/app/const/action';
 import { WorkFlowType } from 'src/app/const';
+import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
+import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -26,6 +28,10 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     private workFlowModel: Model<WorkFlowDocument>,
     @InjectModel(WorkFlowFolder.name)
     private workFlowFolderModel: Model<WorkFlowFolderDocument>,
+    @InjectModel(Opportunity.name)
+    private opportunityModel: Model<Opportunity & Document>,
+    @InjectModel(Pipeline.name)
+    private pipelineModel: Model<Pipeline & Document>,
     private cronService: CronService,
   ) {}
 
@@ -108,6 +114,56 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       if (!workflow) {
         throw new Error(`Workflow ${id} not found`);
       }
+
+      // create opportunity if the content_type is 'opportunity'
+      if (dto.action) {
+        if (dto.action.content?.content_type === 'opportunity') {
+          // title: string;
+          // lead_value: number;
+          // pipeline_id: string;
+
+          const opportunityData = {
+            title: dto.action.content?.title,
+            color: dto.action.content?.color,
+            lead_value: dto.action.content?.lead_value,
+          };
+
+          const pipeline_id = dto.action.content?.pipeline_id;
+
+          // Create a new opportunity
+          if (!dto.action.content?._id) {
+            const opportunity =
+              await this.opportunityModel.create(opportunityData);
+
+            if (!opportunity) {
+              throw new Error('Opportunity creation failed');
+            }
+
+            // Update the opportunity by pushing the new opportunity's _id into the opportunitys array
+            const updatedOpportunity =
+              await this.pipelineModel.findByIdAndUpdate(
+                pipeline_id,
+                { $push: { opportunities: opportunity._id } },
+                { new: true }, // Return the updated document
+              );
+
+            if (!updatedOpportunity) {
+              throw new Error(`Opportunity with id ${pipeline_id} not found`);
+            }
+          } else {
+            // update opportunity
+            const opportunity = await this.opportunityModel.findByIdAndUpdate(
+              dto.action.content?._id,
+              opportunityData,
+              { new: true },
+            );
+            if (!opportunity) {
+              throw new Error('Opportunity update failed');
+            }
+          }
+        }
+      }
+
       let createWorkFlow;
 
       // if (dto.folder_id) {

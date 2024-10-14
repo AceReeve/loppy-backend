@@ -25,6 +25,7 @@ import { OpportunityModule } from './app/modules/opportunity/opportunity.module'
 import { LeadModule } from './app/modules/lead/lead.module';
 import { SmsModule } from './config/sms/sms.module';
 import { TwilioA2PModule } from './app/modules/api/twilio/twilio.a2p.module';
+import { PipelineModule } from './app/modules/pipeline/pipeline.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { TwilioA2PModule } from './app/modules/api/twilio/twilio.a2p.module';
     }),
     StripeModule,
     RoleModule,
+    PipelineModule,
     OpportunityModule,
     LeadModule,
     TwilioModule,

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import {
-  AbstractOpportunityRepository,
-  AbstractOpportunityService,
-} from 'src/app/interface/opportunity';
-import { OpportunityController } from 'src/app/controller/opportunity/opportunity.controller';
-import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
+  AbstractPipelineRepository,
+  AbstractPipelineService,
+} from 'src/app/interface/pipeline';
+import { PipelineController } from 'src/app/controller/pipeline/pipeline.controller';
+import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
 import { PermissionSchemaModule } from 'src/app/models/permission/permission.schema.module';
 import { AbstractPermissionRepository } from 'src/app/interface/permission';
 import { PermissionRepository } from 'src/app/repository/permission/permission.repository';
@@ -12,30 +12,28 @@ import { AbstractApiModuleRepository } from 'src/app/interface/api-module';
 import { ApiModuleRepository } from 'src/app/repository/api-module/api-module.repository';
 import { ApiModuleSchemaModule } from 'src/app/models/api-module/api-module.schema.module';
 import { JwtService } from '@nestjs/jwt';
-import { OpportunityService } from 'src/app/services/opportunity/opportunity.service';
-import { OpportunityRepository } from 'src/app/repository/opportunity/opportunity.repository';
+import { PipelineService } from 'src/app/services/pipeline/pipeline.service';
+import { PipelineRepository } from 'src/app/repository/pipeline/pipeline.repository';
 import { UserModule } from '../user/user.module';
 import { UserService } from 'src/app/services/user/user.service';
-import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
 
 @Module({
   imports: [
-    OpportunitySchemaModule,
+    PipelineSchemaModule,
     UserModule,
     PermissionSchemaModule,
     ApiModuleSchemaModule,
-    PipelineSchemaModule,
   ],
-  controllers: [OpportunityController],
+  controllers: [PipelineController],
   // Inversion
   providers: [
     {
-      provide: AbstractOpportunityService,
-      useClass: OpportunityService,
+      provide: AbstractPipelineService,
+      useClass: PipelineService,
     },
     {
-      provide: AbstractOpportunityRepository,
-      useClass: OpportunityRepository,
+      provide: AbstractPipelineRepository,
+      useClass: PipelineRepository,
     },
     {
       provide: AbstractPermissionRepository,
@@ -51,13 +49,13 @@ import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.mo
 
   exports: [
     {
-      provide: AbstractOpportunityService,
-      useClass: OpportunityService,
+      provide: AbstractPipelineService,
+      useClass: PipelineService,
     },
     {
-      provide: AbstractOpportunityRepository,
-      useClass: OpportunityRepository,
+      provide: AbstractPipelineRepository,
+      useClass: PipelineRepository,
     },
   ],
 })
-export class OpportunityModule {}
+export class PipelineModule {}
