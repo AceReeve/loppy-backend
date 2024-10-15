@@ -24,6 +24,7 @@ import { CronModule } from './app/cron/cron.module';
 import { OpportunityModule } from './app/modules/opportunity/opportunity.module';
 import { LeadModule } from './app/modules/lead/lead.module';
 import { SmsModule } from './config/sms/sms.module';
+import { GmailModule } from './app/modules/gmail/gmail.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SmsModule } from './config/sms/sms.module';
     WorkFlowModule,
     CronModule,
     SmsModule,
+    GmailModule
   ],
 
   providers: [
