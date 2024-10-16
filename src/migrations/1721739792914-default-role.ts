@@ -14,6 +14,11 @@ export const up = async () => {
       },
       {
         _id: new ObjectId(),
+        role_name: 'Super Admin',
+        description: 'Highest level of access with full control over the system',
+      },
+      {
+        _id: new ObjectId(),
         role_name: 'Administrator',
         description:
           'Highest level of access with full control over the system',
@@ -33,6 +38,7 @@ export const up = async () => {
         role_name: 'Observer',
         description: 'Minimal access for users who are not logged in',
       },
+      
     ];
 
     for (const role of defaultRole) {
