@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Param, Post, Req, Res } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, FetchBrandRegistrationsDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
+import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchBrandRegistrationsDTO, FetchMessagingServiceDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
+import RequestWithRawBody from "src/app/interface/stripe/requestWithRawBody.interface";
 import { TwilioA2PService } from "src/app/services/api/twilio/twilio.a2p.service";
 
 @ApiTags('Twilio')
@@ -105,7 +106,7 @@ export class TwilioA2PController {
         return this.twilioA2PService.createBrandRegistrations(createBrandRegistrationDTO);
     }
 
-    @Post('create-brand-registrations')
+    @Post('fetch-brand-registrations')
     async fetchBrandRegistrations(@Body() fetchBrandRegistrationDTO: FetchBrandRegistrationsDTO
     ) {
         return this.twilioA2PService.fetchBrandRegistrations(fetchBrandRegistrationDTO);
@@ -117,10 +118,57 @@ export class TwilioA2PController {
         return this.twilioA2PService.createBrandRegistrationOtp(fetchBrandRegistrationsOTP);
     }
 
+    @Post('create-messaging-service')
+    async createMessagingService(@Body() createMessagingService: CreateMessagingServiceDTO
+    ) {
+        return this.twilioA2PService.createService(createMessagingService);
+    }
+
+    @Post('fetch-messaging-service-usecase')
+    async fetchUsAppToPersonUseCase(@Body() fetchMessagingServiceDTO: FetchMessagingServiceDTO
+    ) {
+        return this.twilioA2PService.fetchUsAppToPersonUsecase(fetchMessagingServiceDTO);
+    }
+
+    @Post('create-us-app-to-person')
+    async createUsAppToPerson(@Body() createUsAppToPersonDTO: CreateUsAppToPersonDTO
+    ) {
+        return this.twilioA2PService.createUsAppToPerson(createUsAppToPersonDTO);
+    }
+
+    @Post('fetch-us-app-to-person')
+    async fetchUsAppToPerson(@Body() fetchUsAppToPersonDTO: FetchUsAppToPersonDTO
+    ) {
+        return this.twilioA2PService.fetchUsAppToPerson(fetchUsAppToPersonDTO);
+    }
+
+    @Post('delete-us-app-to-person')
+    async deleteUsAppToPerson(@Body() deleteUsAppToPerson: FetchUsAppToPersonDTO
+    ) {
+        return this.twilioA2PService.deleteUsAppToPerson(deleteUsAppToPerson);
+    }
+
+    @Post('add-phone-number-to-messaging-service')
+    async addPhoneNumberToMessagingService(@Body() addPhoneNumberToMessagingServiceDTO: AddPhoneNumberToMessagingServiceDTO
+    ) {
+        return this.twilioA2PService.addPhoneNumberToMessagingService(addPhoneNumberToMessagingServiceDTO);
+    }
+
     @Post('create-mock-brand-registrations')
     async createMockBrandRegistrations(@Body() createBrandRegistrationDTO: CreateBrandRegistrationDTO
     ) {
         return this.twilioA2PService.createMockBrandRegistrations(createBrandRegistrationDTO);
     }
 
+
+    // @Post('webhook')
+    // async handleIncomingEvents(
+    //     @Headers('x-twilio-signature') signature: string,
+    //     @Req() request: RequestWithRawBody,
+    //     @Res() response: Response
+    // ) {
+
+    //     // Do something with the webhook data here
+    //     return 'Webhook received';
+    // }
 }

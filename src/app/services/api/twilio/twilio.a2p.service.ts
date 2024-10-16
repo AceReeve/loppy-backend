@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, FetchBrandRegistrationsDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
+import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchBrandRegistrationsDTO, FetchMessagingServiceDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
+import { TwilioA2PRepository } from 'src/app/repository/twilio-a2p/twilio.a2p.repository';
 import * as Twilio from 'twilio';
 
 @Injectable()
 export class TwilioA2PService {
     private client: Twilio.Twilio;
 
-    constructor() {
+    constructor(
+        private readonly repository: TwilioA2PRepository,
+    ) {
         this.client = Twilio(
             process.env.TWILIO_ACCOUNT_SID,
             process.env.TWILIO_AUTH_TOKEN,
@@ -35,7 +38,7 @@ export class TwilioA2PService {
             policySid: policySid,
             statusCallback: "https://www.example.com/status-callback-endpoint",
         });
-
+        this.repository.createTwilioA2PEntry(customerProfile.sid);
         console.log(customerProfile.sid);
         return customerProfile.sid;
     }
@@ -335,78 +338,57 @@ export class TwilioA2PService {
         return brandRegistrationOtp.accountSid;
     }
 
-    //messaging service for standard and low-volume standard
-    async createService() {
+    //Low and Standard 4
+
+    // Sole Proprietor 4
+    async createService(createMessagingServiceDTO: CreateMessagingServiceDTO) {
         const service = await this.client.messaging.v1.services.create({
-            fallbackUrl: "https://www.example.com/fallback",
-            friendlyName: "Acme, Inc.'s A2P 10DLC Messaging Service",
-            inboundRequestUrl: "https://www.example.com/inbound-messages-webhook",
+            fallbackUrl: createMessagingServiceDTO.fallbackURL,
+            friendlyName: createMessagingServiceDTO.friendlyName,
+            inboundRequestUrl: createMessagingServiceDTO.inboundRequestURL,
         });
 
         console.log(service.sid);
     }
 
-    async fetchUsAppToPersonUsecase() {
+    // Low and Standard 5.1
+
+    async fetchUsAppToPersonUsecase(fetchMessagingServiceDTO: FetchMessagingServiceDTO) {
         const usAppToPersonUsecase = await this.client.messaging.v1
-            .services("MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+            .services(fetchMessagingServiceDTO.messagingServiceSID)
             .usAppToPersonUsecases.fetch({
-                brandRegistrationSid: "BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                brandRegistrationSid: fetchMessagingServiceDTO.brandRegistrationSID,
             });
 
         console.log(usAppToPersonUsecase.usAppToPersonUsecases);
     }
 
-    // low and standard
-    async createUsAppToPersonLowAndStandard() {
+    // Low and Standard 5.2
+
+    // Sole Proprietor 5
+    async createUsAppToPerson(createUsAppToPersonDTO: CreateUsAppToPersonDTO) {
+
         const usAppToPerson = await this.client.messaging.v1
-            .services("MGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+            .services(createUsAppToPersonDTO.messagingServiceSID)
             .usAppToPerson.create({
-                brandRegistrationSid: "BNaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                description: "Send marketing messages about sales and offers",
+                brandRegistrationSid: createUsAppToPersonDTO.brandRegistrationSID,
+                description: createUsAppToPersonDTO.description,
                 hasEmbeddedLinks: true,
                 hasEmbeddedPhone: true,
-                messageFlow:
-                    "End users opt in by visiting www.example.com, creating a new user account, consenting to receive marketing messages via text, and providing a valid mobile phone number.",
-                messageSamples: ["Message Sample 1", "Message Sample 2"],
-                usAppToPersonUsecase: "MARKETING",
+                messageFlow: createUsAppToPersonDTO.messageFlow,
+                messageSamples: createUsAppToPersonDTO.messageSamples.split(","),
+                usAppToPersonUsecase: createUsAppToPersonDTO.useCase,
+                optOutKeywords: createUsAppToPersonDTO.optOutKeywords.split(","),
             });
 
         console.log(usAppToPerson.sid);
-    }
-
-    //Sole proprietor 5
-    async createUsAppToPerson() {
-        const usAppToPerson = await this.client.messaging.v1
-            .services("MGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-            .usAppToPerson.create({
-                brandRegistrationSid: "BNaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                description: "Send marketing messages about sales and offers",
-                hasEmbeddedLinks: true,
-                hasEmbeddedPhone: true,
-                helpKeywords: ["HELP", "SUPPORT"],
-                helpMessage:
-                    "Acme Corporation: Please visit www.example.com to get support. To opt-out, reply STOP.",
-                messageFlow:
-                    "End users opt-in by visiting www.example.com and adding their phone number. They then check a box agreeing to receive text messages from Example Brand. Term and Conditions at www.example.com/tc. Privacy Policy at www.example.com/privacy",
-                messageSamples: [
-                    "Book your next OWL FLIGHT for just 1 EUR",
-                    "Twilio draw the OWL event is ON",
-                ],
-                optOutKeywords: ["STOP", "END"],
-                optOutMessage:
-                    "You have successfully been unsubscribed from Acme Corporation. You will not receive any more messages from this number.",
-                usAppToPersonUsecase: "SOLE_PROPRIETOR",
-            });
-
-        console.log(usAppToPerson.sid);
-        return usAppToPerson.sid;
     }
 
     //Sole proprietor 5.1
-    async fetchUsAppToPerson() {
+    async fetchUsAppToPerson(fetchUsAppToPersonDTO: FetchUsAppToPersonDTO) {
         const usAppToPerson = await this.client.messaging.v1
-            .services("MGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-            .usAppToPerson("QE2c6890da8086d771620e9b13fadeba0b")
+            .services(fetchUsAppToPersonDTO.messagingServiceSID)
+            .usAppToPerson(fetchUsAppToPersonDTO.usAppToPersonSID)
             .fetch();
 
         console.log(usAppToPerson.sid);
@@ -414,13 +396,24 @@ export class TwilioA2PService {
     }
 
     //Sole proprietor 5.2 DELETE A2P Messaging campaign use case
-    async deleteUsAppToPerson() {
+    async deleteUsAppToPerson(fetchUsAppToPersonDTO: FetchUsAppToPersonDTO) {
         await this.client.messaging.v1
-            .services("MGaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-            .usAppToPerson("QE2c6890da8086d771620e9b13fadeba0b")
+            .services(fetchUsAppToPersonDTO.messagingServiceSID)
+            .usAppToPerson(fetchUsAppToPersonDTO.usAppToPersonSID)
             .remove();
     }
 
+
+    // Low and Standard 6
+    async addPhoneNumberToMessagingService(addPhoneNumberToMessagingServiceDTO: AddPhoneNumberToMessagingServiceDTO) {
+        const phoneNumber = await this.client.messaging.v1
+            .services(addPhoneNumberToMessagingServiceDTO.messagingServiceSID)
+            .phoneNumbers.create({
+                phoneNumberSid: addPhoneNumberToMessagingServiceDTO.phoneNumberSID,
+            });
+
+        console.log(phoneNumber.sid);
+    }
 
     async createMockBrandRegistrations(createBrandRegistrations: CreateBrandRegistrationDTO) {
         const brandRegistration = await this.client.messaging.v1.brandRegistrations.create(
@@ -435,4 +428,18 @@ export class TwilioA2PService {
         console.log(brandRegistration.sid);
         return brandRegistration.sid;
     }
+
+    // async createSink() {
+    //     const sink = await this.client.events.v1.sinks.create({
+    //         description: "My A2P Sink",
+    //         sinkConfiguration: {
+    //             destination: "http://example.org/webhook",
+    //             method: "<POST|GET>",
+    //             batch_events: "<true|false>",
+    //         },
+    //         sinkType: "webhook",
+    //     });
+
+    //     console.log(sink.dateCreated);
+    // }
 }

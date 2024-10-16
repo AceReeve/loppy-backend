@@ -494,3 +494,95 @@ export class CreateBrandRegistrationsOTP {
   @IsNotEmpty()
   brandRegistrationSID: string;
 }
+
+export class CreateMessagingServiceDTO {
+  @ApiProperty({ example: 'https://www.example.com/fallback' })
+  @IsString()
+  @IsNotEmpty()
+  fallbackURL: string;
+
+  @ApiProperty({ example: 'Acme, Inc A2P 10DLC Messaging Service' })
+  @IsString()
+  @IsNotEmpty()
+  friendlyName: string;
+
+  @ApiProperty({ example: 'https://www.example.com/inbound-messages-webhook' })
+  @IsString()
+  @IsNotEmpty()
+  inboundRequestURL: string;
+}
+
+export class FetchMessagingServiceDTO {
+  @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  messagingServiceSID: string;
+
+  @ApiProperty({ example: 'BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  brandRegistrationSID: string;
+
+}
+
+export class CreateUsAppToPersonDTO {
+  @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  messagingServiceSID: string;
+
+  @ApiProperty({ example: 'BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  brandRegistrationSID: string;
+
+  @ApiProperty({ example: 'Send marketing messages about sales and offers' })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @ApiProperty({ example: 'End users opt in by visiting www.example.com, creating a new user account, consenting to receive marketing messages via text, and providing a valid mobile phone number.' })
+  @IsString()
+  @IsNotEmpty()
+  messageFlow: string;
+
+  @ApiProperty({ example: 'Message Sample 1, Message Sample 2' })
+  @IsString()
+  @IsNotEmpty()
+  messageSamples: string;
+
+  @ApiProperty({ example: 'MARKETING, SOLE_PROPRIETOR' })
+  @IsString()
+  @IsNotEmpty()
+  useCase: string;
+
+  @ApiProperty({ example: 'STOP, END' })
+  @IsString()
+  @IsNotEmpty()
+  optOutKeywords: string;
+
+}
+
+export class AddPhoneNumberToMessagingServiceDTO {
+  @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  messagingServiceSID: string;
+
+  @ApiProperty({ example: 'BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumberSID: string;
+}
+
+export class FetchUsAppToPersonDTO {
+  @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  messagingServiceSID: string;
+
+  @ApiProperty({ example: 'QNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
+  @IsString()
+  @IsNotEmpty()
+  usAppToPersonSID: string;
+}
