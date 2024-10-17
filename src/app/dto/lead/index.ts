@@ -55,5 +55,5 @@ export class CreateLeadDTO {
     example: '661f82ee17d9f28f4aecb483',
     description: 'Required field when creating a lead',
   })
-  opportunity_id: string;
+  stage_id: string;
 }

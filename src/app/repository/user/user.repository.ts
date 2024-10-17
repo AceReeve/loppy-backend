@@ -145,7 +145,7 @@ export class UserRepository implements AbstractUserRepository {
   async changePassword(dto: ChangePasswordDto): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const passwordMatch = await bcrypt.compare(
-      dto.current_pasword,
+      dto.current_password,
       user.password,
     );
     if (!passwordMatch) {

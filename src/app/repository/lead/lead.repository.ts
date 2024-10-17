@@ -25,24 +25,24 @@ export class LeadRepository implements AbstractLeadRepository {
   }
 
   async createLead(createLeadDto: CreateLeadDTO): Promise<Lead | null> {
-    const { opportunity_id, ...leadData } = createLeadDto;
+    const { stage_id, ...leadData } = createLeadDto;
 
     // Create a new lead
     const lead = await this.leadModel.create(leadData);
 
     if (!lead) {
-      throw new Error('Lead creation failed');
+      throw new Error('Opportunity creation failed');
     }
 
     // Update the opportunity by pushing the new lead's _id into the leads array
     const updatedOpportunity = await this.opportunityModel.findByIdAndUpdate(
-      opportunity_id,
+      stage_id,
       { $push: { leads: lead._id } },
       { new: true }, // Return the updated document
     );
 
     if (!updatedOpportunity) {
-      throw new Error(`Opportunity with id ${opportunity_id} not found`);
+      throw new Error(`Stage with id ${stage_id} not found`);
     }
 
     return lead;

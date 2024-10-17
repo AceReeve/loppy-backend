@@ -32,7 +32,7 @@ import { extname } from 'path';
 @ApiTags('Pipelines')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('Bearer')
-@Controller('pipeline')
+@Controller('pipelines')
 export class PipelineController {
   constructor(private readonly pipelineService: AbstractPipelineService) {}
 

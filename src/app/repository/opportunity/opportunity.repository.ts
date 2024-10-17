@@ -97,4 +97,38 @@ export class OpportunityRepository implements AbstractOpportunityRepository {
   async deleteOpportunity(id: string): Promise<Opportunity | null> {
     return await this.opportunityModel.findByIdAndDelete(id).exec();
   }
+
+  async getAllOpportunitiesPaginated(
+    page: number,
+    limit: number,
+    search: string,
+  ): Promise<any> {
+    const query = search
+      ? {
+          $or: [{ title: { $regex: search, $options: 'i' } }],
+        }
+      : {};
+
+    // Get the total number of matching records
+    const totalRecords = await this.opportunityModel.countDocuments(query);
+
+    // Get the paginated results based on the search query
+    const records = await this.opportunityModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // Return the structured response
+    return {
+      records,
+      info: {
+        totalPages,
+        totalRecords,
+      },
+    };
+  }
 }
