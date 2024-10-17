@@ -6,7 +6,7 @@ import { Opportunity } from '../opportunity/opportunity.schema';
 export type PipelineDocument = Pipeline & Document;
 @Schema({
   versionKey: false,
-  collection: 'pipeline',
+  collection: 'pipelines',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class Pipeline implements GenericSchema {
