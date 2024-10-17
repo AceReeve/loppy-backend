@@ -7,6 +7,7 @@ import {
   Delete,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
@@ -71,5 +72,19 @@ export class OpportunityController {
     @Param('id') id: string,
   ): Promise<Opportunity | null> {
     return await this.opportunityService.deleteOpportunity(id);
+  }
+
+  @Get('paginated')
+  @ApiOperation({ summary: 'Get opportunities paginated' })
+  async getAllOpportunitiesPaginated(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+  ): Promise<any> {
+    return await this.opportunityService.getAllOpportunitiesPaginated(
+      page,
+      limit,
+      search,
+    );
   }
 }

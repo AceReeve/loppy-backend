@@ -39,4 +39,16 @@ export class OpportunityService implements AbstractOpportunityService {
   async deleteOpportunity(id: string): Promise<Opportunity | null> {
     return await this.repository.deleteOpportunity(id);
   }
+
+  async getAllOpportunitiesPaginated(
+    page: number,
+    limit: number,
+    search: string,
+  ): Promise<any> {
+    return await this.repository.getAllOpportunitiesPaginated(
+      page,
+      limit,
+      search,
+    );
+  }
 }
