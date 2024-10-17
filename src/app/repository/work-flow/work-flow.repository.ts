@@ -120,7 +120,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
 
       // create opportunity if the content_type is 'opportunity'
       if (dto.action) {
-        if (dto.action.content?.content_type === 'opportunity') {
+        if (dto.action.title === 'Create new Opportunity') {
           const leadData = {
             master: dto.action.content?.user,
             description: dto.action.content?.description,
