@@ -63,7 +63,7 @@ export class ServiceTitanService {
             order: 'desc',
           },
           // Add a timeout to handle cases where requests are hanging
-          timeout: 5000, // Adjust the timeout as needed
+          timeout: 10000, // Adjust the timeout as needed
         }),
       );
       return response.data;
@@ -77,6 +77,123 @@ export class ServiceTitanService {
       throw new Error('Could not retrieve data: ' + error.message);
     }
   }
+
+//////////
+async getAllCustomers(  
+  page: number = 1, 
+  pageSize: number = 50, 
+  startDate: string = `${new Date().getFullYear()}-01-01`, 
+  endDate: string = `${new Date().getFullYear()}-12-31`): Promise<any[]> {
+
+  const customers = [];
+  let currentPage = page;
+  let hasMore = true;
+
+  // while (hasMore) {
+    // Fetch customers with date filtering applied at the API level
+    const customerPage = await this.fetchData(
+      `crm/v2/tenant/${this.tenant}/customers`,
+      { 
+        page: currentPage, 
+        pageSize,
+        createdOnOrAfter: startDate,
+        createdBefore: endDate
+      }
+    );
+
+    if (customerPage.data) {
+      console.log(customerPage.data)
+      customers.push(...customerPage.data);
+    } else {
+      throw new Error('Unexpected response structure: data field not found');
+    }
+
+    // hasMore = customerPage.hasMore;
+    // currentPage++;
+  // }
+  return customers;
+}
+
+async getCallsV1(customerId: string): Promise<any> {
+  const allCalls = await this.fetchData(`telecom/v2/tenant/${this.tenant}/calls`);
+  const customerCalls = allCalls.data.filter(call => call.leadCall?.customer?.id === customerId );
+  return customerCalls;
+}
+
+// Fetch jobs for the customer to calculate lifetime value
+async getJobsV1(customerId: string): Promise<any> {
+  const jobsData = await this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, { customerId });
+  
+  // Check if jobsData.data is an array
+  return Array.isArray(jobsData.data) ? jobsData.data : [];
+}
+
+// Fetch campaigns for the customer
+async getCampaignsV1(customerId: string): Promise<any> {
+  return this.fetchData(`marketing/v2/tenant/${this.tenant}/campaigns`, { customerId });
+}
+
+// Fetch the last interaction for the customer
+// this api " INTERACTIONS" is having error 404 for enhancement
+async getInteractions(customerId: string): Promise<any> {
+  return this.fetchData(`crm/v2/tenant/${this.tenant}/interactions`, { customerId });
+}
+
+async getAllCustomersOverview(page: number, page_size:number, start_date: string, end_date:string): Promise<any[]> {
+  const customers = await this.getAllCustomers(page, page_size, start_date, end_date);
+  const customersOverview = [];
+  for (const customer of customers) {
+    const [jobs, campaigns, interactions, calls] = await Promise.all([
+      this.getJobsV1(customer.id).catch((error) => {
+        return [];
+      }),
+
+      this.getCampaignsV1(customer.id).catch((error) => {
+        return { data: [] };
+      }),
+      this.getInteractions(customer.id).catch((error) => {
+        if (error.message === error.message) {
+          return []; 
+        } else {
+          return [];
+        }
+      }),
+
+      this.getCallsV1(customer.id).catch((error) => {
+        return []; 
+      }),
+    ]);
+    const lifetimeValue = jobs.length
+  ? jobs.reduce((acc, job) => {
+      // Check if the job has no charge
+      if (!job.noCharge) {
+        return acc + (job.totalAmount || 0);
+      }
+      return acc;
+    }, 0)
+  : 0;
+
+    // Get last campaign and last interaction safely
+    const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
+    const lastInteraction = interactions?.length ? interactions[0].type : 'None';
+
+    const contactPhones = calls.map(call => 
+      call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
+    );
+    // Aggregate the data for each customer
+    customersOverview.push({
+      name: customer.name || 'Unknown',
+      phone: contactPhones.toString(),
+      source: customer.customFields?.source || 'Unknown',
+      lifetimeValue,
+      lastCampaign,
+      lastInteraction,
+      created_on: customer.createdOn
+    });
+  }
+
+  return customersOverview;
+}
 
   getInventoryBills(page: number, pageSize: number): Promise<any> {
     return this.fetchData(
@@ -108,10 +225,23 @@ export class ServiceTitanService {
   }
 
   async getCustomers(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, {
+    const startYear = new Date().getFullYear() - 1;
+    const endYear = new Date().getFullYear();
+
+    const response = await this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, {
       page,
       pageSize,
     });
+
+    const customers = response.data || [];
+    
+    const filteredCustomers = customers.filter((customer: any) => {
+      const createdOnDate = new Date(customer.createdOn);
+      return createdOnDate.getFullYear() === startYear;
+    });
+    console.log('data count',response.data.length)
+    console.log('startYear',startYear)
+    // return filteredCustomers;
   }
 
   async getAppointmentAssignments(
