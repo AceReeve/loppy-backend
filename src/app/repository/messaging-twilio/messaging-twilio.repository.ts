@@ -607,7 +607,7 @@ export class MessagingTwilioRepository
       organization_id: activeWorkSpace._id,
     });
     const ids = activeInbox.map((inbox) => inbox._id);
-    if (activeInbox) {
+    if (activeInbox?.length) {
       const data = await this.activatedTwilioInboxesModel.findOne({
         inbox_id: { $in: ids },
         status: OrganizationStatus.ACTIVE,
