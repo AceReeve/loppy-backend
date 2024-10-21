@@ -1,31 +1,27 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { GenericSchema } from '../generic.schema';
-import { LeadStatus } from 'src/app/const';
 
-export type LeadDocument = Lead & Document;
+export type LeadTriggerDocument = LeadTrigger & Document;
 @Schema({
   versionKey: false,
-  collection: 'opportunities',
+  collection: 'opportunity_triggers',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
-export class Lead implements GenericSchema {
+export class LeadTrigger implements GenericSchema {
   _id: string;
 
   @Prop({ required: [true, 'Missing required field'] })
-  master: string;
+  trigger_name: string;
 
   @Prop({ required: [true, 'Missing required field'] })
-  description: string;
+  trigger_type: string; // opportunity status changed
 
   @Prop({ required: [true, 'Missing required field'] })
-  category: string;
+  filter_type: string; // assign to
 
   @Prop({ required: [true, 'Missing required field'] })
-  status: LeadStatus;
-
-  @Prop({ required: [true, 'Missing required field'] })
-  amount: number;
+  filter_value: string; // user
 }
 
-export const LeadSchema = SchemaFactory.createForClass(Lead);
+export const LeadTriggerSchema = SchemaFactory.createForClass(LeadTrigger);

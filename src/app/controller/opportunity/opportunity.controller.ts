@@ -7,6 +7,7 @@ import {
   Delete,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
@@ -18,17 +19,17 @@ import {
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 import { JwtAuthGuard } from 'src/app/guard/auth';
 
-@ApiTags('Opportunities')
+@ApiTags('Stages')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('Bearer')
-@Controller('opportunity')
+@Controller('stages')
 export class OpportunityController {
   constructor(
     private readonly opportunityService: AbstractOpportunityService,
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create opportunity' })
+  @ApiOperation({ summary: 'Create stage' })
   async createOpportunity(
     @Body() createOpportunityDTO: CreateOpportunityDTO,
   ): Promise<Opportunity | null> {
@@ -38,13 +39,13 @@ export class OpportunityController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get opportunities' })
+  @ApiOperation({ summary: 'Get stages' })
   async getAllOpportunities(): Promise<Opportunity[] | null> {
     return await this.opportunityService.getAllOpportunities();
   }
 
   @Put()
-  @ApiOperation({ summary: 'Update opportunities' })
+  @ApiOperation({ summary: 'Update stages' })
   async updateOpportunities(
     @Body() updateOpportunityDto: UpdateOpportunitiesDTO,
   ): Promise<Opportunity[]> {
@@ -54,7 +55,7 @@ export class OpportunityController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update opportunity' })
+  @ApiOperation({ summary: 'Update stage' })
   async updateOpportunity(
     @Param('id') id: string,
     @Body() updateOpportunityDto: UpdateOpportunityDTO,
@@ -66,10 +67,24 @@ export class OpportunityController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete opportunity' })
+  @ApiOperation({ summary: 'Delete stage' })
   async deleteOpportunity(
     @Param('id') id: string,
   ): Promise<Opportunity | null> {
     return await this.opportunityService.deleteOpportunity(id);
+  }
+
+  @Get('paginated')
+  @ApiOperation({ summary: 'Get stages paginated' })
+  async getAllOpportunitiesPaginated(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+  ): Promise<any> {
+    return await this.opportunityService.getAllOpportunitiesPaginated(
+      page,
+      limit,
+      search,
+    );
   }
 }

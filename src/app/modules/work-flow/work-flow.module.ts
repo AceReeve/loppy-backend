@@ -40,6 +40,7 @@ import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.
 import { SmsService } from 'src/config/sms/sms.service';
 import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
 import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
+import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
 
 @Global()
 @Module({
@@ -57,6 +58,7 @@ import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.mo
     FileUploadSchemaModule,
     TeamSchemaModule,
     OpportunitySchemaModule,
+    LeadSchemaModule,
     PipelineSchemaModule,
   ],
   providers: [

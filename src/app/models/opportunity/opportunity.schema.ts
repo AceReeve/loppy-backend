@@ -6,7 +6,7 @@ import { Lead } from '../lead/lead.schema';
 export type OpportunityDocument = Opportunity & Document;
 @Schema({
   versionKey: false,
-  collection: 'opportunity',
+  collection: 'stages',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class Opportunity implements GenericSchema {
