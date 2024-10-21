@@ -4,6 +4,28 @@ import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegis
 import { TwilioA2PRepository } from 'src/app/repository/twilio-a2p/twilio.a2p.repository';
 import * as Twilio from 'twilio';
 import { Query } from 'express-serve-static-core'
+import { UserRepository } from 'src/app/repository/user/user.repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { TwilioOrganizations, TwilioOrganizationsDocument } from 'src/app/models/messaging-twilio/organization/organization.schema';
+import { ActivatedTwilioOrganizationsDocument } from 'src/app/models/messaging-twilio/organization/activated-organization.schema';
+import { Model } from 'mongoose';
+import { MessagingTwilioRepository } from 'src/app/repository/messaging-twilio/messaging-twilio.repository';
+import * as crypto from 'crypto';
+
+const algorithm = 'aes-256-ctr';
+const decrypt = (hash: string): string => {
+    const [iv, encrypted] = hash.split(':');
+    const decipher = crypto.createDecipheriv(
+        algorithm,
+        Buffer.from(process.env.TWILIO_API_KEY_SECRET),
+        Buffer.from(iv, 'hex'),
+    );
+    const decrypted = Buffer.concat([
+        decipher.update(Buffer.from(encrypted, 'hex')),
+        decipher.final(),
+    ]);
+    return decrypted.toString();
+};
 
 @Injectable()
 export class TwilioA2PService {
@@ -11,11 +33,22 @@ export class TwilioA2PService {
 
     constructor(
         private readonly repository: TwilioA2PRepository,
+        private readonly messagingTwilioRepository: MessagingTwilioRepository,
     ) {
+        this.fetchSubAccountSID();
+    }
+
+    async fetchSubAccountSID(): Promise<any> {
+        const twilioAccount = await this.messagingTwilioRepository.getTwilioClient();
+        console.log("1312312312", twilioAccount)
         this.client = Twilio(
-            process.env.TWILIO_ACCOUNT_SID,
-            process.env.TWILIO_AUTH_TOKEN,
+            // process.env.TWILIO_ACCOUNT_SID,
+            // process.env.TWILIO_AUTH_TOKEN,
+            twilioAccount?.sid,
+            twilioAccount?.token
+
         );
+
     }
 
     //Sole Proprietor 1.1

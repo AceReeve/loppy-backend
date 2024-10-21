@@ -61,8 +61,7 @@ const decrypt = (hash: string): string => {
 
 @Injectable()
 export class MessagingTwilioRepository
-  implements AbstractMessagingTwilioRepository
-{
+  implements AbstractMessagingTwilioRepository {
   private twilioClient: Twilio;
   constructor(
     protected readonly configService: ConfigService,
@@ -280,6 +279,35 @@ export class MessagingTwilioRepository
       );
     }
   }
+
+
+  async getTwilioClient(): Promise<{ sid: string, token: string }> {
+    const activeOrganization = await this.getActivatedWorkSpace();
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const organization = await this.twilioOrganizationModel.findOne({
+      _id: activeOrganization._id,
+    });
+
+    if (!organization) {
+      throw new Error(
+        `Organization with the ID: ${activeOrganization._id} not found`,
+      );
+    }
+
+    const decryptedSid = decrypt(organization.twilio_account_sid);
+
+
+    const subAccount = await this.twilioClient.api
+      .accounts(decryptedSid)
+      .fetch();
+
+    const twilio_auth_token =
+      process.env.TEST_TWILIO_AUTH_TOKEN || subAccount.authToken;
+    // Initialize a new Twilio client with the decrypted credentials
+
+    return { sid: decryptedSid, token: twilio_auth_token };
+  }
+
 
   async inbox(dto: InboxesDTO): Promise<any> {
     const activeOrganization = await this.getActivatedWorkSpace();

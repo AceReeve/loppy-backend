@@ -79,10 +79,12 @@ export class UserRepository implements AbstractUserRepository {
     private teamModel: Model<TeamDocument>,
     private readonly s3: S3Service,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async getLoggedInUserDetails(): Promise<any> {
     const user = this.request.user as Partial<User> & { sub: string };
+    console.log("85767867", this.request.user);
+    console.log("0989089080", user)
     return await this.userModel.findOne({ email: user.email });
   }
 

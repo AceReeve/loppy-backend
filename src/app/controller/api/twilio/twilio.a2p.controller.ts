@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Headers, Param, Post, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Param, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiQueryOptions, ApiTags } from "@nestjs/swagger";
 import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
 import RequestWithRawBody from "src/app/interface/stripe/requestWithRawBody.interface";
 import { TwilioA2PService } from "src/app/services/api/twilio/twilio.a2p.service";
 import { Query as ExpressQuery } from 'express-serve-static-core';
+import { JwtAuthGuard } from "src/app/guard/auth";
 
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('Bearer')
 @ApiTags('Twilio')
 @Controller('A2P')
-@ApiBearerAuth('Bearer')
 export class TwilioA2PController {
     constructor(private readonly twilioA2PService: TwilioA2PService) { }
 
