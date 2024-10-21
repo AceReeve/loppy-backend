@@ -48,6 +48,11 @@ export class ContactsService implements AbstractContactsService {
       tags,
     );
   }
+
+  async getAllContact(): Promise<any> {
+    return await this.abstractContactsRepository.getAllContact();
+  }
+
   async exportContacts(
     fromDate?: Date,
     toDate?: Date,

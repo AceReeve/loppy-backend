@@ -27,6 +27,9 @@ export class PipelineRepository implements AbstractPipelineRepository {
         path: 'opportunities',
         populate: {
           path: 'leads',
+          populate: {
+            path: 'owner_id',
+          },
         },
       })
       .exec();
@@ -39,6 +42,9 @@ export class PipelineRepository implements AbstractPipelineRepository {
         path: 'opportunities',
         populate: {
           path: 'leads',
+          populate: {
+            path: 'owner_id',
+          },
         },
       })
       .exec();
