@@ -54,6 +54,7 @@ export abstract class AbstractUserRepository {
   abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
   abstract createPassword(createPasswordDto: CreatePasswordDto): Promise<any>;
   abstract getAcceptedInvitedUser(): Promise<any>;
+  abstract getAllUsers(): Promise<any>;
 }
 
 export abstract class AbstractUserService {
@@ -97,6 +98,7 @@ export abstract class AbstractUserService {
   ): Promise<any>;
   abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
   abstract createPassword(createPasswordDto: CreatePasswordDto): Promise<any>;
+  abstract getAllUsers(): Promise<any>;
 }
 export interface RegisterResponseData {
   _id: string;

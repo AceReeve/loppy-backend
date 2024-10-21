@@ -14,7 +14,7 @@ import {
 } from 'src/app/models/work-flow/work-flow-folder.schema';
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { CronService } from 'src/app/cron/cron.service';
-import { WorkFlowStatus } from 'src/app/const/action';
+import { WorkFlowAction, WorkFlowStatus } from 'src/app/const/action';
 import { WorkFlowType } from 'src/app/const';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
@@ -118,15 +118,22 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         throw new Error(`Workflow ${id} not found`);
       }
 
-      // create opportunity if the content_type is 'opportunity'
+      // WORKFLOW_ACTION_CREATE_NEW_OPPORTUNITY
       if (dto.action) {
-        if (dto.action.title === 'Create new Opportunity') {
+        if (
+          dto.action.node_name ===
+          WorkFlowAction.WORKFLOW_ACTION_CREATE_NEW_OPPORTUNITY
+        ) {
           const leadData = {
-            master: dto.action.content?.user,
-            description: dto.action.content?.description,
-            category: dto.action.content?.category,
+            owner_id: dto.action.content?.owner_id,
+            stage_id: dto.action.content?.stage_id,
+            pipeline_id: dto.action.content?.pipeline_id,
+            primary_contact_name_id:
+              dto.action.content?.primary_contact_name_id,
+            opportunity_name: dto.action.content?.opportunity_name,
+            opportunity_source: dto.action.content?.opportunity_source,
             status: dto.action.content?.status,
-            amount: dto.action.content?.lead_value,
+            opportunity_value: dto.action.content?.opportunity_value,
           };
 
           const stage_id = dto.action.content?.stage_id;
@@ -160,52 +167,6 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
               },
             );
           }
-
-          // title: string;
-          // lead_value: number;
-          // pipeline_id: string;
-
-          // const opportunityData = {
-          //   title: dto.action.content?.title,
-          //   color: dto.action.content?.color,
-          //   lead_value: dto.action.content?.lead_value,
-          // };
-
-          // const pipeline_id = dto.action.content?.pipeline_id;
-
-          // // Create a new opportunity
-          // if (!dto.action.content?._id) {
-          //   const opportunity =
-          //     await this.opportunityModel.create(opportunityData);
-
-          //   if (!opportunity) {
-          //     throw new Error('Opportunity creation failed');
-          //   }
-
-          //   // Update the opportunity by pushing the new opportunity's _id into the opportunitys array
-          //   const updatedOpportunity =
-          //     await this.pipelineModel.findByIdAndUpdate(
-          //       pipeline_id,
-          //       { $push: { opportunities: opportunity._id } },
-          //       { new: true }, // Return the updated document
-          //     );
-
-          //   if (!updatedOpportunity) {
-          //     throw new Error(`Opportunity with id ${pipeline_id} not found`);
-          //   }
-          // } else {
-          //   // update opportunity
-          //   const opportunity = await this.opportunityModel.findByIdAndUpdate(
-          //     dto.action.content?._id,
-          //     opportunityData,
-          //     { new: true },
-          //   );
-          //   if (!opportunity) {
-          //     throw new Error('Opportunity update failed');
-          //   }
-          // }
-
-          // const { stage_id, ...leadData } = createLeadDto;
         }
       }
 

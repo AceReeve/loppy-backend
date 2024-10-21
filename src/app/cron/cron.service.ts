@@ -110,6 +110,7 @@ export class CronService {
 
         for (const trig of trigger) {
           for (const act of action) {
+            // WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
             if (
               trig.node_name ===
               WorkFlowTrigger.WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
@@ -146,6 +147,7 @@ export class CronService {
               }
             }
 
+            // WORKFLOW_TRIGGER_CUSTOM_DATE_REMINDER
             if (
               trig.node_name ===
               WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOM_DATE_REMINDER

@@ -13,6 +13,7 @@ export abstract class AbstractContactsService {
     sort_dir?: string,
     tags?: string | string[],
   ): Promise<any>;
+  abstract getAllContact(): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
   abstract contactList(): Promise<any>;
   abstract exportContacts(
@@ -35,6 +36,7 @@ export abstract class AbstractContactsRepository {
     sort_dir?: string,
     tags?: string | string[],
   ): Promise<any>;
+  abstract getAllContact(): Promise<any>;
   abstract getContactByID(id: string): Promise<any>;
   abstract exportContacts(
     fromDate: Date,
