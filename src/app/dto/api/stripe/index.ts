@@ -18,6 +18,7 @@ import {
   ValidateNested,
   IsDateString,
   IsBoolean,
+  isArray,
 } from 'class-validator';
 
 export class StripeDTO {
@@ -444,7 +445,7 @@ export class CreateTrustProductEvaluationDTO {
   @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
   @IsString()
   @IsNotEmpty()
-  customerProfileSID: string;
+  trustProductSID: string;
 
   @ApiProperty({ example: 'true' })
   @IsBoolean()
@@ -481,12 +482,6 @@ export class CreateBrandRegistrationDTO {
   isLowVolume: boolean;
 }
 
-export class FetchBrandRegistrationsDTO {
-  @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
-  @IsString()
-  @IsNotEmpty()
-  brandRegistrationSID: string;
-}
 
 export class CreateBrandRegistrationsOTP {
   @ApiProperty({ example: 'BUaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
@@ -512,18 +507,6 @@ export class CreateMessagingServiceDTO {
   inboundRequestURL: string;
 }
 
-export class FetchMessagingServiceDTO {
-  @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
-  @IsString()
-  @IsNotEmpty()
-  messagingServiceSID: string;
-
-  @ApiProperty({ example: 'BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
-  @IsString()
-  @IsNotEmpty()
-  brandRegistrationSID: string;
-
-}
 
 export class CreateUsAppToPersonDTO {
   @ApiProperty({ example: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' })
@@ -546,20 +529,20 @@ export class CreateUsAppToPersonDTO {
   @IsNotEmpty()
   messageFlow: string;
 
-  @ApiProperty({ example: 'Message Sample 1, Message Sample 2' })
-  @IsString()
-  @IsNotEmpty()
-  messageSamples: string;
+  @ApiProperty({ type: [String], example: ["sample message 1", "sample message 2"] })
+  @IsArray()
+  @IsOptional()
+  messageSamples: string[];
 
   @ApiProperty({ example: 'MARKETING, SOLE_PROPRIETOR' })
   @IsString()
   @IsNotEmpty()
   useCase: string;
 
-  @ApiProperty({ example: 'STOP, END' })
-  @IsString()
-  @IsNotEmpty()
-  optOutKeywords: string;
+  @ApiProperty({ type: [String], example: ["STOP", "END"] })
+  @IsArray()
+  @IsOptional()
+  optOutKeywords: string[];
 
 }
 

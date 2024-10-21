@@ -15,6 +15,12 @@ export class TwilioA2P implements GenericSchema {
     customer_profile_sid?: string;
 
     @Prop()
+    brand_sid?: string;
+
+    @Prop()
+    campaign_sid?: string;
+
+    @Prop()
     account_sid?: string;
 
     @Prop()

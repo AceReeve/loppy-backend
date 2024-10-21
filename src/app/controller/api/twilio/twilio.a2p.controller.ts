@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Headers, Param, Post, Req, Res } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchBrandRegistrationsDTO, FetchMessagingServiceDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
+import { Body, Controller, Get, Headers, Param, Post, Query, Req, Res } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiQueryOptions, ApiTags } from "@nestjs/swagger";
+import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from "src/app/dto/api/stripe";
 import RequestWithRawBody from "src/app/interface/stripe/requestWithRawBody.interface";
 import { TwilioA2PService } from "src/app/services/api/twilio/twilio.a2p.service";
+import { Query as ExpressQuery } from 'express-serve-static-core';
 
 @ApiTags('Twilio')
 @Controller('A2P')
@@ -76,7 +77,7 @@ export class TwilioA2PController {
         return this.twilioA2PService.createSoleProprietorEndUserTrustHub(createEndUserTrustHubDTO);
     }
 
-    @Post('create-end-user-sole-proprietor-trust-hub')
+    @Post('create-end-user-low-and-standard-trust-hub')
     async createEndUserLowAndStandardTrustHub(@Body() createEndUserTrustHubDTO: CreateLowAndStandardEndUserTrustHubDTO
     ) {
         return this.twilioA2PService.createLowAndStandardEndUserTrustHub(createEndUserTrustHubDTO);
@@ -106,10 +107,15 @@ export class TwilioA2PController {
         return this.twilioA2PService.createBrandRegistrations(createBrandRegistrationDTO);
     }
 
-    @Post('fetch-brand-registrations')
-    async fetchBrandRegistrations(@Body() fetchBrandRegistrationDTO: FetchBrandRegistrationsDTO
+    @Get('fetch-brand-registrations')
+    @ApiOperation({ summary: 'fetch brand registration' })
+    @ApiQuery({
+        name: 'brandRegistrationSID',
+        required: true,
+    } as ApiQueryOptions)
+    async fetchBrandRegistrations(query: ExpressQuery
     ) {
-        return this.twilioA2PService.fetchBrandRegistrations(fetchBrandRegistrationDTO);
+        return this.twilioA2PService.fetchBrandRegistrations(query);
     }
 
     @Post('create-brand-registrations-otp')
@@ -124,10 +130,19 @@ export class TwilioA2PController {
         return this.twilioA2PService.createService(createMessagingService);
     }
 
-    @Post('fetch-messaging-service-usecase')
-    async fetchUsAppToPersonUseCase(@Body() fetchMessagingServiceDTO: FetchMessagingServiceDTO
+    @Get('fetch-messaging-service-usecase')
+    @ApiOperation({ summary: 'fetch messaging service usecase' })
+    @ApiQuery({
+        name: 'messagingServiceSID',
+        required: true,
+    } as ApiQueryOptions)
+    @ApiQuery({
+        name: 'brandRegistrationSID',
+        required: true,
+    } as ApiQueryOptions)
+    async fetchUsAppToPersonUseCase(@Query() request: ExpressQuery,
     ) {
-        return this.twilioA2PService.fetchUsAppToPersonUsecase(fetchMessagingServiceDTO);
+        return this.twilioA2PService.fetchUsAppToPersonUsecase(request);
     }
 
     @Post('create-us-app-to-person')
@@ -136,10 +151,19 @@ export class TwilioA2PController {
         return this.twilioA2PService.createUsAppToPerson(createUsAppToPersonDTO);
     }
 
-    @Post('fetch-us-app-to-person')
-    async fetchUsAppToPerson(@Body() fetchUsAppToPersonDTO: FetchUsAppToPersonDTO
+    @Get('fetch-us-app-to-person')
+    @ApiOperation({ summary: 'fetch us app to person' })
+    @ApiQuery({
+        name: 'messagingServiceSID',
+        required: true,
+    } as ApiQueryOptions)
+    @ApiQuery({
+        name: 'usAppToPersonSID',
+        required: true,
+    } as ApiQueryOptions)
+    async fetchUsAppToPerson(@Query() request: ExpressQuery
     ) {
-        return this.twilioA2PService.fetchUsAppToPerson(fetchUsAppToPersonDTO);
+        return this.twilioA2PService.fetchUsAppToPerson(request);
     }
 
     @Post('delete-us-app-to-person')

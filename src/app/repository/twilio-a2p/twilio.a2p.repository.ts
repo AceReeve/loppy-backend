@@ -19,6 +19,8 @@ export class TwilioA2PRepository {
 
     async updateTwilioA2PEntry(
         customerProfileSID: string,
+        brandSID: string,
+        campaignSID: string,
         accountSID: string,
         endUserSID: string,
         endUserType: string,
@@ -32,6 +34,8 @@ export class TwilioA2PRepository {
                 $set:
                 {
                     customer_profile_sid: customerProfileSID,
+                    brand_sid: brandSID,
+                    campaign_sid: campaignSID,
                     account_sid: accountSID,
                     end_user_sid: endUserSID,
                     end_user_type: endUserType,

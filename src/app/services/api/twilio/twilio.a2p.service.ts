@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchBrandRegistrationsDTO, FetchMessagingServiceDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
+import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
 import { TwilioA2PRepository } from 'src/app/repository/twilio-a2p/twilio.a2p.repository';
 import * as Twilio from 'twilio';
+import { Query } from 'express-serve-static-core'
 
 @Injectable()
 export class TwilioA2PService {
@@ -270,7 +271,7 @@ export class TwilioA2PService {
     async createTrustProductEvaluation(createTrustProductEvaluationDTO: CreateTrustProductEvaluationDTO) {
         const policySid = createTrustProductEvaluationDTO.isSoleProprietor === true ? 'RN670d5d2e282a6130ae063b234b6019c8' : 'RNb0d4771c2c98518d916a3d4cd70a8f8b';
         const trustProductsEvaluation = await this.client.trusthub.v1
-            .trustProducts(createTrustProductEvaluationDTO.customerProfileSID)
+            .trustProducts(createTrustProductEvaluationDTO.trustProductSID)
             .trustProductsEvaluations.create({
                 policySid: policySid,
             });
@@ -319,9 +320,9 @@ export class TwilioA2PService {
     }
 
     // Sole proprietor 3.1
-    async fetchBrandRegistrations(fetchBrandRegistrationDTO: FetchBrandRegistrationsDTO) {
+    async fetchBrandRegistrations(query?: Query) {
         const brandRegistration = await this.client.messaging.v1
-            .brandRegistrations(fetchBrandRegistrationDTO.brandRegistrationSID)
+            .brandRegistrations(String(query.brandRegistrationSID))
             .fetch();
 
         console.log(brandRegistration.sid);
@@ -353,11 +354,11 @@ export class TwilioA2PService {
 
     // Low and Standard 5.1
 
-    async fetchUsAppToPersonUsecase(fetchMessagingServiceDTO: FetchMessagingServiceDTO) {
+    async fetchUsAppToPersonUsecase(query?: Query) {
         const usAppToPersonUsecase = await this.client.messaging.v1
-            .services(fetchMessagingServiceDTO.messagingServiceSID)
+            .services(String(query.messagingServiceSID))
             .usAppToPersonUsecases.fetch({
-                brandRegistrationSid: fetchMessagingServiceDTO.brandRegistrationSID,
+                brandRegistrationSid: String(query.brandRegistrationSID),
             });
 
         console.log(usAppToPersonUsecase.usAppToPersonUsecases);
@@ -376,19 +377,25 @@ export class TwilioA2PService {
                 hasEmbeddedLinks: true,
                 hasEmbeddedPhone: true,
                 messageFlow: createUsAppToPersonDTO.messageFlow,
-                messageSamples: createUsAppToPersonDTO.messageSamples.split(","),
+                messageSamples: createUsAppToPersonDTO.messageSamples,
                 usAppToPersonUsecase: createUsAppToPersonDTO.useCase,
-                optOutKeywords: createUsAppToPersonDTO.optOutKeywords.split(","),
+                optOutKeywords: createUsAppToPersonDTO.optOutKeywords,
             });
+
+
+        // if (usAppToPerson.sid !== null && usAppToPerson.sid !== "") {
+        //     usAppToPerson.brandRegistrationSid
+        //     this.repository.createTwilioA2PEntry()
+        // }
 
         console.log(usAppToPerson.sid);
     }
 
     //Sole proprietor 5.1
-    async fetchUsAppToPerson(fetchUsAppToPersonDTO: FetchUsAppToPersonDTO) {
+    async fetchUsAppToPerson(query?: Query) {
         const usAppToPerson = await this.client.messaging.v1
-            .services(fetchUsAppToPersonDTO.messagingServiceSID)
-            .usAppToPerson(fetchUsAppToPersonDTO.usAppToPersonSID)
+            .services(String(query.messagingServiceSID))
+            .usAppToPerson(String(query.usAppToPersonSID))
             .fetch();
 
         console.log(usAppToPerson.sid);
