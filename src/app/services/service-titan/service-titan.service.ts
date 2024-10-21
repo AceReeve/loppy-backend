@@ -144,14 +144,14 @@ async getAllCustomersOverview(page: number, page_size:number, start_date: string
   const customersOverview = [];
   for (const customer of customers) {
     const [jobs, campaigns, interactions, calls] = await Promise.all([
-      this.getJobsV1(customer.id).catch((error) => {
+      await this.getJobsV1(customer.id).catch((error) => {
         return [];
       }),
 
-      this.getCampaignsV1(customer.id).catch((error) => {
+      await this.getCampaignsV1(customer.id).catch((error) => {
         return { data: [] };
       }),
-      this.getInteractions(customer.id).catch((error) => {
+      await  this.getInteractions(customer.id).catch((error) => {
         if (error.message === error.message) {
           return []; 
         } else {
@@ -159,7 +159,7 @@ async getAllCustomersOverview(page: number, page_size:number, start_date: string
         }
       }),
 
-      this.getCallsV1(customer.id).catch((error) => {
+      await this.getCallsV1(customer.id).catch((error) => {
         return []; 
       }),
     ]);
