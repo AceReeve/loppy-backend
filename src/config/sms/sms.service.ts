@@ -67,4 +67,21 @@ export class SmsService {
       throw new InternalServerErrorException(errorMessage);
     }
   }
+
+  async sendSmsWeatherReminder(
+    receiver: string,
+    first_name: string,
+    content: string,
+  ): Promise<any> {
+    try {
+      await this.twilioClient.messages.create({
+        body: `Hi ${first_name}!, <br> ${content}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: receiver,
+      });
+    } catch (error) {
+      const errorMessage = 'Error Weather Message';
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
 }

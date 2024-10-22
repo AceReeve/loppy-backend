@@ -10,6 +10,7 @@ export enum WorkFlowTrigger {
   WORKFLOW_TRIGGER_OPPORTUNITY_CHANGED = 'Opportunity Changed',
   WORKFLOW_TRIGGER_PIPELINE_STAGE_CHANGED = 'Pipeline Stage Changed',
   WORKFLOW_TRIGGER_STALE_OPPORTUNITIES = 'Stale Opportunities',
+  WORKFLOW_TRIGGER_WEATHER_REMINDER = 'Weather Reminder',
 }
 
 export enum WorkFlowAction {
