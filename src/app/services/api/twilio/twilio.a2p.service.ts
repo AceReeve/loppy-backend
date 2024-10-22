@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
 import { TwilioA2PRepository } from 'src/app/repository/twilio-a2p/twilio.a2p.repository';
@@ -35,7 +35,6 @@ export class TwilioA2PService {
         private readonly repository: TwilioA2PRepository,
         private readonly messagingTwilioRepository: MessagingTwilioRepository,
     ) {
-        this.fetchSubAccountSID();
     }
 
     async fetchSubAccountSID(): Promise<any> {
@@ -53,6 +52,7 @@ export class TwilioA2PService {
 
     //Sole Proprietor 1.1
     async fetchPolicies() {
+        await this.fetchSubAccountSID();
         const policy = await this.client.trusthub.v1
             .policies("RN806dd6cd175f314e1f96a9727ee271f4")
             .fetch();
@@ -65,6 +65,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.2
     async createCustomerProfile(createCustomerProfileDTO: CreateCustomerProfileDTO) {
+        await this.fetchSubAccountSID();
         const policySid = createCustomerProfileDTO.isSoleProprietor === true ? 'RN806dd6cd175f314e1f96a9727ee271f4' : 'RNdfbf3fae0e1107f8aded0e7cead80bf5';
         const customerProfile = await this.client.trusthub.v1.customerProfiles.create({
             email: createCustomerProfileDTO.email,
@@ -79,6 +80,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.3
     async createSoleProprietorEndUser(createEndUserDTO: CreateSoleProprietorEndUserDTO) {
+        await this.fetchSubAccountSID();
         const endUser = await this.client.trusthub.v1.endUsers.create({
             attributes: {
                 email: createEndUserDTO.email,
@@ -96,6 +98,7 @@ export class TwilioA2PService {
 
     //Low and Standard Step 1.2
     async createLowAndStandardEndUserBusinessProfile(createEndUserDTO: CreateLowAndStandardEndUserBusninessProfileDTO) {
+        await this.fetchSubAccountSID();
         const endUser = await this.client.trusthub.v1.endUsers.create({
             attributes: {
                 business_name: createEndUserDTO.businessName,
@@ -119,6 +122,7 @@ export class TwilioA2PService {
 
     //Low and standard 1.4
     async createLowAndStandardEndUserRepresentative(createEndUser: CreateLowAndStandardEndUserRepresentativeDTO) {
+        await this.fetchSubAccountSID();
         const endUser = await this.client.trusthub.v1.endUsers.create({
             attributes: {
                 job_position: createEndUser.jobPosition,
@@ -140,6 +144,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.4
     async createAddress(createAddress: CreateAddressDTO) {
+        await this.fetchSubAccountSID();
         const address = await this.client.addresses.create({
             city: createAddress.city,
             customerName: createAddress.customerName,
@@ -158,6 +163,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.5
     async createSupportingDocument(createSupportingDocumentDTO: CreateSupportingDocumentDTO) {
+        await this.fetchSubAccountSID();
         const supportingDocument =
             await this.client.trusthub.v1.supportingDocuments.create({
                 attributes: {
@@ -190,6 +196,7 @@ export class TwilioA2PService {
     //object_sid = Starter Customer Profile SID from step 1.2
 
     async createCustomerProfileEntityAssignment(createCustomerProfileEntityAssignmentDTO: CreateCustomerProfileEntityAssignmentDTO) {
+        await this.fetchSubAccountSID();
         const customerProfilesEntityAssignment = await this.client.trusthub.v1
             .customerProfiles(createCustomerProfileEntityAssignmentDTO.customerProfileSID)
             .customerProfilesEntityAssignments.create({
@@ -204,6 +211,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.7
     async createCustomerProfileEvaluation(createCustomerProfileEvaluationDTO: CreateCustomerProfileEvaluationDTO) {
+        await this.fetchSubAccountSID();
         const policySid = createCustomerProfileEvaluationDTO.isSoleProprietor === true ? 'RN806dd6cd175f314e1f96a9727ee271f4' : 'RNdfbf3fae0e1107f8aded0e7cead80bf5';
         const customerProfilesEvaluation = await this.client.trusthub.v1
             .customerProfiles(createCustomerProfileEvaluationDTO.customerProfileSID)
@@ -220,6 +228,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 1.8
     async updateCustomerProfile(updateCustomerProfileDTO: UpdateCustomerProfileDTO) {
+        await this.fetchSubAccountSID();
         const customerProfile = await this.client.trusthub.v1
             .customerProfiles(updateCustomerProfileDTO.customerProfileSID)
             .update({ status: "pending-review" });
@@ -232,6 +241,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 2.2
     async createTrustProduct(createTrustProductDTO: CreateTrustProductDTO) {
+        await this.fetchSubAccountSID();
         const policySid = createTrustProductDTO.isSoleProprietor === true ? 'RN670d5d2e282a6130ae063b234b6019c8' : 'RNb0d4771c2c98518d916a3d4cd70a8f8b';
         const trustProduct = await this.client.trusthub.v1.trustProducts.create({
             email: createTrustProductDTO.email,
@@ -245,6 +255,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 2.3
     async createSoleProprietorEndUserTrustHub(createEndUser: CreateSoleProprietorEndUserTrustHubDTO) {
+        await this.fetchSubAccountSID();
         const endUser = await this.client.trusthub.v1.endUsers.create({
             attributes: {
                 brand_name: createEndUser.brandName,
@@ -261,6 +272,7 @@ export class TwilioA2PService {
 
     //Low and Standard 2.2
     async createLowAndStandardEndUserTrustHub(createEndUser: CreateLowAndStandardEndUserTrustHubDTO) {
+        await this.fetchSubAccountSID();
         const endUser = await this.client.trusthub.v1.endUsers.create({
             attributes: {
                 company_type: createEndUser.companyType
@@ -288,6 +300,7 @@ export class TwilioA2PService {
     //customerProfileSID
     //object sid = Starter Customer Profile Bundle SID from step 1.3
     async createTrustProductEntityAssignment(createTrustProductEntityAssignmentDTO: CreateTrustProductEntityAssignmentDTO) {
+        await this.fetchSubAccountSID();
         const trustProductsEntityAssignment = await this.client.trusthub.v1
             .trustProducts(createTrustProductEntityAssignmentDTO.customerProfileSID)
             .trustProductsEntityAssignments.create({
@@ -302,6 +315,7 @@ export class TwilioA2PService {
 
     // Sole proprietor 2.5
     async createTrustProductEvaluation(createTrustProductEvaluationDTO: CreateTrustProductEvaluationDTO) {
+        await this.fetchSubAccountSID();
         const policySid = createTrustProductEvaluationDTO.isSoleProprietor === true ? 'RN670d5d2e282a6130ae063b234b6019c8' : 'RNb0d4771c2c98518d916a3d4cd70a8f8b';
         const trustProductsEvaluation = await this.client.trusthub.v1
             .trustProducts(createTrustProductEvaluationDTO.trustProductSID)
@@ -317,6 +331,7 @@ export class TwilioA2PService {
 
     // Sole Proprietor 2.6
     async updateTrustProduct(updateTrustProductDTO: UpdateTrustProductDTO) {
+        await this.fetchSubAccountSID();
         const trustProduct = await this.client.trusthub.v1
             .trustProducts(updateTrustProductDTO.trustProductSID)
             .update({ status: "pending-review" });
@@ -329,6 +344,7 @@ export class TwilioA2PService {
 
     // Sole Proprietor 3
     async createBrandRegistrations(createBrandRegistrationsDTO: CreateBrandRegistrationDTO) {
+        await this.fetchSubAccountSID();
         let brandRegistration;
         if (createBrandRegistrationsDTO.isSoleProprietor === false) {
             const skipAutomaticSecVet = createBrandRegistrationsDTO.isLowVolume === true ? true : false;
@@ -354,6 +370,7 @@ export class TwilioA2PService {
 
     // Sole proprietor 3.1
     async fetchBrandRegistrations(query?: Query) {
+        await this.fetchSubAccountSID();
         const brandRegistration = await this.client.messaging.v1
             .brandRegistrations(String(query.brandRegistrationSID))
             .fetch();
@@ -364,6 +381,7 @@ export class TwilioA2PService {
 
     // Sole proprietor 3.2 [Optional] Retry OTP Verification for the submitted mobile number
     async createBrandRegistrationOtp(createBrandRegistrationOtp: CreateBrandRegistrationsOTP) {
+        await this.fetchSubAccountSID();
         const brandRegistrationOtp = await this.client.messaging.v1
             .brandRegistrations(createBrandRegistrationOtp.brandRegistrationSID)
             .brandRegistrationOtps.create();
@@ -376,6 +394,7 @@ export class TwilioA2PService {
 
     // Sole Proprietor 4
     async createService(createMessagingServiceDTO: CreateMessagingServiceDTO) {
+        await this.fetchSubAccountSID();
         const service = await this.client.messaging.v1.services.create({
             fallbackUrl: createMessagingServiceDTO.fallbackURL,
             friendlyName: createMessagingServiceDTO.friendlyName,
@@ -388,6 +407,7 @@ export class TwilioA2PService {
     // Low and Standard 5.1
 
     async fetchUsAppToPersonUsecase(query?: Query) {
+        await this.fetchSubAccountSID();
         const usAppToPersonUsecase = await this.client.messaging.v1
             .services(String(query.messagingServiceSID))
             .usAppToPersonUsecases.fetch({
@@ -401,6 +421,7 @@ export class TwilioA2PService {
 
     // Sole Proprietor 5
     async createUsAppToPerson(createUsAppToPersonDTO: CreateUsAppToPersonDTO) {
+        await this.fetchSubAccountSID();
 
         const usAppToPerson = await this.client.messaging.v1
             .services(createUsAppToPersonDTO.messagingServiceSID)
@@ -426,6 +447,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 5.1
     async fetchUsAppToPerson(query?: Query) {
+        await this.fetchSubAccountSID();
         const usAppToPerson = await this.client.messaging.v1
             .services(String(query.messagingServiceSID))
             .usAppToPerson(String(query.usAppToPersonSID))
@@ -437,6 +459,7 @@ export class TwilioA2PService {
 
     //Sole proprietor 5.2 DELETE A2P Messaging campaign use case
     async deleteUsAppToPerson(fetchUsAppToPersonDTO: FetchUsAppToPersonDTO) {
+        await this.fetchSubAccountSID();
         await this.client.messaging.v1
             .services(fetchUsAppToPersonDTO.messagingServiceSID)
             .usAppToPerson(fetchUsAppToPersonDTO.usAppToPersonSID)
@@ -446,6 +469,7 @@ export class TwilioA2PService {
 
     // Low and Standard 6
     async addPhoneNumberToMessagingService(addPhoneNumberToMessagingServiceDTO: AddPhoneNumberToMessagingServiceDTO) {
+        await this.fetchSubAccountSID();
         const phoneNumber = await this.client.messaging.v1
             .services(addPhoneNumberToMessagingServiceDTO.messagingServiceSID)
             .phoneNumbers.create({
@@ -456,6 +480,7 @@ export class TwilioA2PService {
     }
 
     async createMockBrandRegistrations(createBrandRegistrations: CreateBrandRegistrationDTO) {
+        await this.fetchSubAccountSID();
         const brandRegistration = await this.client.messaging.v1.brandRegistrations.create(
             {
                 a2PProfileBundleSid: createBrandRegistrations.a2PProfileBundleSID,
