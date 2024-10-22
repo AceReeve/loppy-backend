@@ -339,7 +339,7 @@ export class CronService {
                 opportunity_value: act.content?.opportunity_value,
               };
 
-              const isExisting = this.leadModel.findOne({
+              const isExisting = await this.leadModel.findOne({
                 owner_id: act.content?.owner_id,
                 stage_id: act.content?.stage_id,
                 pipeline_id: act.content?.pipeline_id,
@@ -382,6 +382,15 @@ export class CronService {
                     },
                   );
                 }
+              } else {
+                // update lead
+                await this.leadModel.findByIdAndUpdate(
+                  isExisting._id,
+                  leadData,
+                  {
+                    new: true,
+                  },
+                );
               }
             }
           }
