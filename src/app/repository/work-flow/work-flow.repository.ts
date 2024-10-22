@@ -616,6 +616,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     const user = await this.userRepository.getLoggedInUserDetails();
     const workFlows = await this.workFlowModel.find({
       created_by: user._id,
+      status: { $ne: WorkFlowStatus.DELETED },
     });
     const tagsResponse = await this.serviceTitan.getTagTypes();
   
