@@ -339,36 +339,49 @@ export class CronService {
                 opportunity_value: act.content?.opportunity_value,
               };
 
-              const stage_id = act.content?.stage_id;
+              const isExisting = this.leadModel.findOne({
+                owner_id: act.content?.owner_id,
+                stage_id: act.content?.stage_id,
+                pipeline_id: act.content?.pipeline_id,
+                primary_contact_name_id: act.content?.primary_contact_name_id,
+                opportunity_name: act.content?.opportunity_name,
+                opportunity_source: act.content?.opportunity_source,
+                status: act.content?.status,
+                opportunity_value: act.content?.opportunity_value,
+              });
 
-              if (!act.content?._id) {
-                // Create a new lead
-                const lead = await this.leadModel.create(leadData);
+              if (!isExisting) {
+                const stage_id = act.content?.stage_id;
 
-                if (!lead) {
-                  throw new Error('Opportunity creation failed');
-                }
+                if (!act.content?._id) {
+                  // Create a new lead
+                  const lead = await this.leadModel.create(leadData);
 
-                // Update the opportunity by pushing the new lead's _id into the leads array
-                const updatedOpportunity =
-                  await this.opportunityModel.findByIdAndUpdate(
-                    stage_id,
-                    { $push: { leads: lead._id } },
-                    { new: true }, // Return the updated document
+                  if (!lead) {
+                    throw new Error('Opportunity creation failed');
+                  }
+
+                  // Update the opportunity by pushing the new lead's _id into the leads array
+                  const updatedOpportunity =
+                    await this.opportunityModel.findByIdAndUpdate(
+                      stage_id,
+                      { $push: { leads: lead._id } },
+                      { new: true }, // Return the updated document
+                    );
+
+                  if (!updatedOpportunity) {
+                    throw new Error(`Stage with id ${stage_id} not found`);
+                  }
+                } else {
+                  // update lead
+                  await this.leadModel.findByIdAndUpdate(
+                    act.content?._id,
+                    leadData,
+                    {
+                      new: true,
+                    },
                   );
-
-                if (!updatedOpportunity) {
-                  throw new Error(`Stage with id ${stage_id} not found`);
                 }
-              } else {
-                // update lead
-                await this.leadModel.findByIdAndUpdate(
-                  act.content?._id,
-                  leadData,
-                  {
-                    new: true,
-                  },
-                );
               }
             }
           }
