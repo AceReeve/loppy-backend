@@ -583,6 +583,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
             status: WorkFlowStatus.DELETED,
           },
         },
+        {
+          new: true,
+        },
       );
       if (!result) {
         throw new Error(`workflow folder failed to delete `);
