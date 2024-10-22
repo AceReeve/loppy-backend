@@ -41,7 +41,9 @@ import { SmsService } from 'src/config/sms/sms.service';
 import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
 import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
 import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
-
+import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
+import { HttpService } from '@nestjs/axios';
+import axios, { AxiosInstance } from 'axios';
 @Global()
 @Module({
   imports: [
@@ -69,6 +71,8 @@ import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
     OauthRepository,
     CronService,
     SmsService,
+    ServiceTitanService,
+    HttpService,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,
@@ -76,6 +80,18 @@ import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
     {
       provide: AbstractWorkFlowService,
       useClass: WorkFlowService,
+    },
+    {
+      provide: 'AXIOS_INSTANCE_TOKEN',
+      useFactory: (): AxiosInstance => {
+        return axios.create({
+          baseURL: process.env.BASE_URL,
+          timeout: 1000, 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      },
     },
   ],
   controllers: [WorkFlowController],

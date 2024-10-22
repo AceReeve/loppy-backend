@@ -19,6 +19,7 @@ import { WorkFlowType } from 'src/app/const';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 import { Lead } from 'src/app/models/lead/lead.schema';
+import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -36,6 +37,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     @InjectModel(Lead.name)
     private leadModel: Model<Lead & Document>,
     private cronService: CronService,
+    private serviceTitan: ServiceTitanService,
   ) {}
 
   async generateUniqueName(): Promise<string> {
@@ -292,6 +294,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.PUBLISHED,
+            isPublished: published
           },
         },
         {
@@ -313,6 +316,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.SAVED,
+            isPublished: published
           },
         },
         {
@@ -607,4 +611,33 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       return result;
     }
   }
+
+  async getAllWorkFlowDropDownList(): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const workFlows = await this.workFlowModel.find({
+      created_by: user._id,
+    });
+    const tagsResponse = await this.serviceTitan.getTagTypes();
+  
+    const tags = tagsResponse.data;
+  
+    const formattedWorkFlows = workFlows.map(workFlow => ({
+      name: workFlow.name,
+      id: workFlow._id
+    }));
+  
+    const formattedTags = tags.map(tag => ({
+      name: tag.name,
+      id: tag.id,
+    }));
+  
+    return {
+      workflows: formattedWorkFlows,
+      tags: formattedTags,
+    };
+  }
+  
+  // async getAllTagsDropDownList(): Promise<any> {
+  //    return await this.serviceTitan.getTagTypes()
+  // }
 }

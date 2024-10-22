@@ -13,6 +13,9 @@ export abstract class AbstractWorkFlowRepository {
   abstract getFolderById(id: string): Promise<any>;
   abstract updateFolderById(id: string, name: string): Promise<any>;
   abstract deleteFolderById(id: string): Promise<any>;
+  abstract getAllWorkFlowDropDownList(): Promise<any>;
+  // abstract getAllTagsDropDownList(): Promise<any>;
+
 }
 
 export abstract class AbstractWorkFlowService {
@@ -28,4 +31,7 @@ export abstract class AbstractWorkFlowService {
   abstract getFolderById(id: string): Promise<any>;
   abstract updateFolderById(id: string, name: string): Promise<any>;
   abstract deleteFolderById(id: string): Promise<any>;
+  abstract getAllWorkFlowDropDownList(): Promise<any>;
+  // abstract getAllTagsDropDownList(): Promise<any>;
+  
 }

@@ -24,6 +24,7 @@ import {
   InvitedUserDocument,
 } from '../models/invited-users/invited-users.schema';
 import { ConfigService } from '@nestjs/config';
+import { ServiceTitanService } from '../services/service-titan/service-titan.service';
 
 @Injectable()
 export class CronService {
@@ -40,6 +41,7 @@ export class CronService {
     private smsService: SmsService,
     protected readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
+    private readonly serviceTitan: ServiceTitanService,
   ) {}
 
   async triggerData() {

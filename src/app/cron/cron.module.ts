@@ -18,6 +18,9 @@ import { FileUploadSchemaModule } from '../models/file-upload/file-upload.schema
 import { TeamSchemaModule } from '../models/settings/manage-team/team/team.schema.module';
 import { S3Service } from '../services/s3/s3.service';
 import { OauthRepository } from '../repository/oauth/oauth.repository';
+import { ServiceTitanService } from '../services/service-titan/service-titan.service';
+import { HttpService } from '@nestjs/axios';
+import axios, { AxiosInstance } from 'axios';
 
 @Module({
   imports: [
@@ -51,6 +54,18 @@ import { OauthRepository } from '../repository/oauth/oauth.repository';
       }),
       inject: [ConfigService],
     },
+    {
+      provide: 'AXIOS_INSTANCE_TOKEN',
+      useFactory: (): AxiosInstance => {
+        return axios.create({
+          baseURL: process.env.BASE_URL,
+          timeout: 1000, 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      },
+    },
     CronService,
     MailerService,
     EmailerService,
@@ -59,6 +74,8 @@ import { OauthRepository } from '../repository/oauth/oauth.repository';
     AuthRepository,
     S3Service,
     OauthRepository,
+    ServiceTitanService,
+    HttpService,
   ],
 })
 export class CronModule {}
