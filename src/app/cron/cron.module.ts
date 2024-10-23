@@ -18,6 +18,9 @@ import { FileUploadSchemaModule } from '../models/file-upload/file-upload.schema
 import { TeamSchemaModule } from '../models/settings/manage-team/team/team.schema.module';
 import { S3Service } from '../services/s3/s3.service';
 import { OauthRepository } from '../repository/oauth/oauth.repository';
+import { OpportunitySchemaModule } from '../models/opportunity/opportunity.schema.module';
+import { PipelineSchemaModule } from '../models/pipeline/pipeline.schema.module';
+import { LeadSchemaModule } from '../models/lead/lead.schema.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { OauthRepository } from '../repository/oauth/oauth.repository';
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
     TeamSchemaModule,
+    OpportunitySchemaModule,
+    PipelineSchemaModule,
+    LeadSchemaModule,
   ],
   providers: [
     {
