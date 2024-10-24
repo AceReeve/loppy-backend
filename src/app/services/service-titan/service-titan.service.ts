@@ -115,6 +115,7 @@ async getAllCustomers(
 }
 
 async getCallsV1(customerId: string): Promise<any> {
+  console.log('b3')
   const allCalls = await this.fetchData(`telecom/v2/tenant/${this.tenant}/calls`);
   const customerCalls = allCalls.data.filter(call => call.leadCall?.customer?.id === customerId );
   return customerCalls;
@@ -122,6 +123,7 @@ async getCallsV1(customerId: string): Promise<any> {
 
 // Fetch jobs for the customer to calculate lifetime value
 async getJobsV1(customerId: string): Promise<any> {
+  console.log('a1')
   const jobsData = await this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, { customerId });
   
   // Check if jobsData.data is an array
@@ -130,6 +132,7 @@ async getJobsV1(customerId: string): Promise<any> {
 
 // Fetch campaigns for the customer
 async getCampaignsV1(customerId: string): Promise<any> {
+  console.log('b2')
   return this.fetchData(`marketing/v2/tenant/${this.tenant}/campaigns`, { customerId });
 }
 
@@ -139,73 +142,67 @@ async getInteractions(customerId: string): Promise<any> {
   return this.fetchData(`crm/v2/tenant/${this.tenant}/interactions`, { customerId });
 }
 
-async getAllCustomersOverview(page: number, page_size:number, start_date: string, end_date:string): Promise<any[]> {
+async getAllCustomersOverview(
+  page: number, 
+  page_size: number, 
+  start_date: string, 
+  end_date: string
+): Promise<any[]> {
+
   const customers = await this.getAllCustomers(page, page_size, start_date, end_date);
   const customersOverview = [];
-  let count = 0;
-  for (const customer of customers) {
-    // const [jobs, campaigns, interactions, calls] = await Promise.all([
-      const jobs= await this.getJobsV1(customer.id).catch((error) => {
-        return [];
-      });
-      console.log('a1:')
-      const campaigns= await this.getCampaignsV1(customer.id).catch((error) => {
-        return { data: [] };
-      });
-      console.log('a2:')
+  const batchSize = 5; // Set the number of customers to process concurrently
+  
+  // Helper function to process each batch of customers
+  const processBatch = async (batch) => {
+    const promises = batch.map(async (customer) => {
+      try {
+        const [jobs, campaigns, calls] = await Promise.all([
+          this.getJobsV1(customer.id).catch(() => []),
+          this.getCampaignsV1(customer.id).catch(() => ({ data: [] })),
+          this.getCallsV1(customer.id).catch(() => [])
+        ]);
 
-      // const interactions=  await  this.getInteractions(customer.id).catch((error) => {
-      //   if (error.message === error.message) {
-      //     return []; 
-      //   } else {
-      //     return [];
-      //   }
-      // });
-      console.log('a3:')
+        const lifetimeValue = jobs.length
+          ? jobs.reduce((acc, job) => {
+              if (!job.noCharge) {
+                return acc + (job.totalAmount || 0);
+              }
+              return acc;
+            }, 0)
+          : 0;
 
+        const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
 
-      const calls=  await this.getCallsV1(customer.id).catch((error) => {
-        return []; 
-      });
-      console.log('a4:')
+        const contactPhones = calls.map(call =>
+          call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
+        );
 
-    // ]);
-    const lifetimeValue = jobs.length
-  ? jobs.reduce((acc, job) => {
-      // Check if the job has no charge
-      if (!job.noCharge) {
-        return acc + (job.totalAmount || 0);
+        customersOverview.push({
+          name: customer.name || 'Unknown',
+          phone: contactPhones.filter(Boolean).toString(),
+          source: customer.customFields?.source || 'Unknown',
+          lifetimeValue,
+          lastCampaign,
+          lastInteraction: 'None',
+          created_on: customer.createdOn
+        });
+
+      } catch (error) {
+        console.error(`Error processing customer ${customer.id}:`, error);
       }
-      return acc;
-    }, 0)
-  : 0;
-
-    // Get last campaign and last interaction safely
-    const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
-    // const lastInteraction = interactions?.length ? interactions[0].type : 'None';
-
-    const contactPhones = calls.map(call => 
-      call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
-    );
-    const lastInteraction = 'None';
-    // Aggregate the data for each customer
-    customersOverview.push({
-      name: customer.name || 'Unknown',
-      phone: contactPhones.toString(),
-      source: customer.customFields?.source || 'Unknown',
-      lifetimeValue,
-      lastCampaign,
-      lastInteraction,
-      created_on: customer.createdOn
     });
-    count++;
-    console.log('count:', count)
 
+    await Promise.all(promises); // Wait for the batch to complete
+  };
+
+  // Split customers into batches and process each batch sequentially
+  for (let i = 0; i < customers.length; i += batchSize) {
+    const batch = customers.slice(i, i + batchSize);
+    await processBatch(batch); // Process each batch
   }
-
   return customersOverview;
 }
-
   getInventoryBills(page: number, pageSize: number): Promise<any> {
     return this.fetchData(
       `accounting/v2/tenant/${this.tenant}/inventory-bills`,
