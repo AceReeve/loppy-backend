@@ -142,27 +142,34 @@ async getInteractions(customerId: string): Promise<any> {
 async getAllCustomersOverview(page: number, page_size:number, start_date: string, end_date:string): Promise<any[]> {
   const customers = await this.getAllCustomers(page, page_size, start_date, end_date);
   const customersOverview = [];
+  let count = 0;
   for (const customer of customers) {
-    const [jobs, campaigns, interactions, calls] = await Promise.all([
-      await this.getJobsV1(customer.id).catch((error) => {
+    // const [jobs, campaigns, interactions, calls] = await Promise.all([
+      const jobs= await this.getJobsV1(customer.id).catch((error) => {
         return [];
-      }),
-
-      await this.getCampaignsV1(customer.id).catch((error) => {
+      });
+      console.log('a1:')
+      const campaigns= await this.getCampaignsV1(customer.id).catch((error) => {
         return { data: [] };
-      }),
-      await  this.getInteractions(customer.id).catch((error) => {
-        if (error.message === error.message) {
-          return []; 
-        } else {
-          return [];
-        }
-      }),
+      });
+      console.log('a2:')
 
-      await this.getCallsV1(customer.id).catch((error) => {
+      // const interactions=  await  this.getInteractions(customer.id).catch((error) => {
+      //   if (error.message === error.message) {
+      //     return []; 
+      //   } else {
+      //     return [];
+      //   }
+      // });
+      console.log('a3:')
+
+
+      const calls=  await this.getCallsV1(customer.id).catch((error) => {
         return []; 
-      }),
-    ]);
+      });
+      console.log('a4:')
+
+    // ]);
     const lifetimeValue = jobs.length
   ? jobs.reduce((acc, job) => {
       // Check if the job has no charge
@@ -175,11 +182,12 @@ async getAllCustomersOverview(page: number, page_size:number, start_date: string
 
     // Get last campaign and last interaction safely
     const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
-    const lastInteraction = interactions?.length ? interactions[0].type : 'None';
+    // const lastInteraction = interactions?.length ? interactions[0].type : 'None';
 
     const contactPhones = calls.map(call => 
       call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
     );
+    const lastInteraction = 'None';
     // Aggregate the data for each customer
     customersOverview.push({
       name: customer.name || 'Unknown',
@@ -190,6 +198,9 @@ async getAllCustomersOverview(page: number, page_size:number, start_date: string
       lastInteraction,
       created_on: customer.createdOn
     });
+    count++;
+    console.log('count:', count)
+
   }
 
   return customersOverview;
