@@ -20,6 +20,8 @@ import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 import { Lead } from 'src/app/models/lead/lead.schema';
 import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
+import { Tags } from 'src/app/models/contacts/contacts.schema';
+import { TagsDocument } from 'src/app/models/tags/tags.schema';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -38,6 +40,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     private leadModel: Model<Lead & Document>,
     private cronService: CronService,
     private serviceTitan: ServiceTitanService,
+    @InjectModel(Tags.name)
+    private tagsModel: Model<TagsDocument>,
   ) {}
 
   async generateUniqueName(): Promise<string> {
@@ -634,14 +638,10 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       name: tag.name,
       id: tag.id,
     }));
-  
+    
     return {
       workflows: formattedWorkFlows,
       tags: formattedTags,
     };
   }
-  
-  // async getAllTagsDropDownList(): Promise<any> {
-  //    return await this.serviceTitan.getTagTypes()
-  // }
 }

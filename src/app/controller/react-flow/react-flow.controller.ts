@@ -203,7 +203,7 @@ export class WorkFlowController {
   }
 
   @Get('workflows-dropdown-list')
-  @ApiOperation({ summary: 'WorkFlow DropDown List' })
+  @ApiOperation({ summary: 'WorkFlow And Tags DropDown List' })
   async getAllWorkFlowDropDownList() {
     return this.service.getAllWorkFlowDropDownList();
   }
