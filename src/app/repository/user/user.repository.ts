@@ -1178,4 +1178,9 @@ export class UserRepository implements AbstractUserRepository {
       return { users: [userToInclude] };
     }
   }
+
+  async getAllUsers(): Promise<any> {
+    const users = await this.userModel.find().exec();
+    return users;
+  }
 }

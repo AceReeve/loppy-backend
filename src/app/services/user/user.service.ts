@@ -134,4 +134,7 @@ export class UserService implements AbstractUserService {
   async getMember(): Promise<any> {
     return this.repository.getMember();
   }
+  async getAllUsers(): Promise<any> {
+    return this.repository.getAllUsers();
+  }
 }

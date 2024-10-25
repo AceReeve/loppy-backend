@@ -201,4 +201,23 @@ export class EmailerService {
       throw new InternalServerErrorException(errorMessage);
     }
   }
+
+  async sendEmailWeatherReminder(
+    receiver: string,
+    first_name: string,
+    content: any,
+  ): Promise<any> {
+    try {
+      await this.mailerService.sendMail({
+        to: [receiver, this.serviHeroTestEmail],
+        subject: content.subject,
+        html: content.message,
+      });
+    } catch (error) {
+      const errorMessage = 'Error Weather Message';
+
+      this.logger.error(errorMessage, error);
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
 }

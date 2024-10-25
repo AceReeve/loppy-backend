@@ -214,6 +214,15 @@ export class ContactsController {
       tags,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('get-all-contacts')
+  @ApiOperation({ summary: 'All Contact List' })
+  @ApiBearerAuth('Bearer')
+  async getAllContact(): Promise<any> {
+    return await this.abstractContactsService.getAllContact();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('list')
   @ApiOperation({ summary: 'Contact List' })

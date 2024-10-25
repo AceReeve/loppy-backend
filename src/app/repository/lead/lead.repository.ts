@@ -34,6 +34,11 @@ export class LeadRepository implements AbstractLeadRepository {
       throw new Error('Opportunity creation failed');
     }
 
+    // Populate the owner_id field after creation
+    const populatedLead = await this.leadModel.findById(lead._id).populate({
+      path: 'owner_id',
+    });
+
     // Update the opportunity by pushing the new lead's _id into the leads array
     const updatedOpportunity = await this.opportunityModel.findByIdAndUpdate(
       stage_id,
@@ -45,16 +50,23 @@ export class LeadRepository implements AbstractLeadRepository {
       throw new Error(`Stage with id ${stage_id} not found`);
     }
 
-    return lead;
+    return populatedLead;
   }
 
   async updateLead(
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null> {
-    return await this.leadModel.findByIdAndUpdate(id, updateLeadDto, {
+    const lead = await this.leadModel.findByIdAndUpdate(id, updateLeadDto, {
       new: true,
     });
+
+    // Populate the owner_id field after creation
+    const populatedLead = await this.leadModel.findById(lead._id).populate({
+      path: 'owner_id',
+    });
+
+    return populatedLead;
   }
 
   async deleteLead(id: string): Promise<any> {
