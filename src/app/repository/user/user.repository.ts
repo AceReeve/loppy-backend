@@ -1178,7 +1178,9 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async getAllUsers(): Promise<any> {
-    const users = await this.userModel.find().exec();
+    const members = await this.getMember()
+    const emails = members.users.map(user => user.email);
+    const users = await this.userModel.find({email: {$in: emails}}).exec();
     return users;
   }
 }
