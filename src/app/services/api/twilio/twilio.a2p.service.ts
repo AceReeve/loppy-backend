@@ -39,7 +39,6 @@ export class TwilioA2PService {
 
     async fetchSubAccountSID(): Promise<any> {
         const twilioAccount = await this.messagingTwilioRepository.getTwilioClient();
-        console.log("1312312312", twilioAccount)
         this.client = Twilio(
             // process.env.TWILIO_ACCOUNT_SID,
             // process.env.TWILIO_AUTH_TOKEN,
@@ -560,6 +559,12 @@ export class TwilioA2PService {
 
         console.log(brandRegistration.sid);
         return brandRegistration.sid;
+    }
+
+    async fetchComplianceDetails() {
+        const twilioAccount = await this.messagingTwilioRepository.getTwilioClient();
+        const twilioComplianceDetails = this.repository.findByAccountSID(twilioAccount.sid);
+        return twilioComplianceDetails;
     }
 
     // async createSink() {

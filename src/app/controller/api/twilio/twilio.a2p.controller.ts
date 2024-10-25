@@ -168,6 +168,12 @@ export class TwilioA2PController {
         return this.twilioA2PService.fetchUsAppToPerson(request);
     }
 
+    @Get('fetch-compliance-details')
+    @ApiOperation({ summary: 'fetch compliance details' })
+    async fetchComplianceDetails() {
+        return this.twilioA2PService.fetchComplianceDetails();
+    }
+
     @Post('delete-us-app-to-person')
     async deleteUsAppToPerson(@Body() deleteUsAppToPerson: FetchUsAppToPersonDTO
     ) {
