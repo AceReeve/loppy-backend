@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AddPhoneNumberToMessagingServiceDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
+import { AddPhoneNumberToMessagingServiceDTO, CreateA2PTwilioEntryDTO, CreateAddressDTO, CreateBrandRegistrationDTO, CreateBrandRegistrationsOTP, CreateCustomerProfileDTO, CreateCustomerProfileEntityAssignmentDTO, CreateCustomerProfileEvaluationDTO, CreateLowAndStandardEndUserBusninessProfileDTO, CreateLowAndStandardEndUserRepresentativeDTO, CreateLowAndStandardEndUserTrustHubDTO, CreateMessagingServiceDTO, CreateSoleProprietorEndUserDTO, CreateSoleProprietorEndUserTrustHubDTO, CreateSupportingDocumentDTO, CreateTrustProductDTO, CreateTrustProductEntityAssignmentDTO, CreateTrustProductEvaluationDTO, CreateUsAppToPersonDTO, FetchUsAppToPersonDTO, UpdateCustomerProfileDTO, UpdateTrustProductDTO } from 'src/app/dto/api/stripe';
 import { TwilioA2PRepository } from 'src/app/repository/twilio-a2p/twilio.a2p.repository';
 import * as Twilio from 'twilio';
 import { Query } from 'express-serve-static-core'
@@ -73,8 +73,10 @@ export class TwilioA2PService {
             policySid: policySid,
             statusCallback: "https://www.example.com/status-callback-endpoint",
         });
-        this.repository.createTwilioA2PEntry(customerProfile.sid);
+        this.repository.createTwilioA2PEntry(customerProfile.sid, customerProfile.accountSid);
         console.log(customerProfile.sid);
+
+
         return customerProfile.sid;
     }
 
@@ -91,7 +93,11 @@ export class TwilioA2PService {
             friendlyName: createEndUserDTO.friendlyName,
             type: "starter_customer_profile_information",
         });
-
+        const twilioDBEntry = await this.repository.findByAccountSID(endUser.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.accountSID = twilioDBEntry.account_sid;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
         console.log(endUser.sid);
         return endUser.sid;
     }
@@ -115,7 +121,13 @@ export class TwilioA2PService {
             friendlyName: createEndUserDTO.friendlyName,
             type: "starter_customer_profile_information",
         });
-
+        const twilioDBEntry = await this.repository.findByAccountSID(endUser.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.endUserCustomerProfileSID = endUser.sid;
+        createA2PEntryDTO.fullName = endUser.attributes.first_name + endUser.attributes.last_name;
+        createA2PEntryDTO.email = endUser.attributes.email;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
         console.log(endUser.sid);
         return endUser.sid;
     }
@@ -135,6 +147,12 @@ export class TwilioA2PService {
             friendlyName: createEndUser.friendlyName,
             type: "authorized_representative_1",
         });
+
+        const twilioDBEntry = await this.repository.findByAccountSID(endUser.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.endUserAuthorizedRepresentativeSID = endUser.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
 
         console.log(endUser.sid);
         return endUser.sid;
@@ -172,6 +190,11 @@ export class TwilioA2PService {
                 friendlyName: createSupportingDocumentDTO.friendlyName,
                 type: "customer_profile_address",
             });
+        const twilioDBEntry = await this.repository.findByAccountSID(supportingDocument.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.supportinDocumentSID = supportingDocument.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
 
         console.log(supportingDocument.sid);
         return supportingDocument.sid;
@@ -234,6 +257,12 @@ export class TwilioA2PService {
             .update({ status: "pending-review" });
 
         console.log(customerProfile.sid);
+        const twilioDBEntry = await this.repository.findByAccountSID(customerProfile.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.secondaryCustomerProfileStatus = customerProfile.status;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
+
         return customerProfile.sid;
     }
 
@@ -248,6 +277,11 @@ export class TwilioA2PService {
             friendlyName: createTrustProductDTO.friendlyName,
             policySid: policySid,
         });
+        const twilioDBEntry = await this.repository.findByAccountSID(trustProduct.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.trustProductSID = trustProduct.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
 
         console.log(trustProduct.sid);
         return trustProduct.sid;
@@ -265,6 +299,11 @@ export class TwilioA2PService {
             friendlyName: createEndUser.friendlyName,
             type: "sole_proprietor_information",
         });
+        const twilioDBEntry = await this.repository.findByAccountSID(endUser.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.trustProductEndUserSID = endUser.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
 
         console.log(endUser.sid);
         return endUser.sid;
@@ -280,6 +319,11 @@ export class TwilioA2PService {
             friendlyName: createEndUser.friendlyName,
             type: "us_a2p_messaging_profile_information",
         });
+        const twilioDBEntry = await this.repository.findByAccountSID(endUser.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.trustProductEndUserSID = endUser.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
 
         console.log(endUser.sid);
         return endUser.sid;
@@ -337,6 +381,12 @@ export class TwilioA2PService {
             .update({ status: "pending-review" });
 
         console.log(trustProduct.sid);
+        const twilioDBEntry = await this.repository.findByAccountSID(trustProduct.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.trustProductStatus = trustProduct.status;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
+
         return trustProduct.sid;
     }
 
@@ -364,7 +414,14 @@ export class TwilioA2PService {
                 }
             );
         }
+
         console.log(brandRegistration.sid);
+        const twilioDBEntry = await this.repository.findByAccountSID(brandRegistration.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.brandSID = brandRegistration.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
+
         return brandRegistration.sid;
     }
 
@@ -401,7 +458,14 @@ export class TwilioA2PService {
             inboundRequestUrl: createMessagingServiceDTO.inboundRequestURL,
         });
 
+        const twilioDBEntry = await this.repository.findByAccountSID(service.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.messagingServiceSID = service.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
+
         console.log(service.sid);
+        return service.sid;
     }
 
     // Low and Standard 5.1
@@ -415,6 +479,7 @@ export class TwilioA2PService {
             });
 
         console.log(usAppToPersonUsecase.usAppToPersonUsecases);
+        return usAppToPersonUsecase;
     }
 
     // Low and Standard 5.2
@@ -437,12 +502,14 @@ export class TwilioA2PService {
             });
 
 
-        // if (usAppToPerson.sid !== null && usAppToPerson.sid !== "") {
-        //     usAppToPerson.brandRegistrationSid
-        //     this.repository.createTwilioA2PEntry()
-        // }
-
+        const twilioDBEntry = await this.repository.findByAccountSID(usAppToPerson.accountSid);
+        const createA2PEntryDTO = new CreateA2PTwilioEntryDTO;
+        createA2PEntryDTO.secondaryCustomerProfileSID = twilioDBEntry.secondary_customer_profile_sid;
+        createA2PEntryDTO.campaignSID = usAppToPerson.sid;
+        this.repository.updateTwilioA2PEntry(createA2PEntryDTO);
         console.log(usAppToPerson.sid);
+
+        return usAppToPerson;
     }
 
     //Sole proprietor 5.1
@@ -477,6 +544,7 @@ export class TwilioA2PService {
             });
 
         console.log(phoneNumber.sid);
+        return phoneNumber.sid;
     }
 
     async createMockBrandRegistrations(createBrandRegistrations: CreateBrandRegistrationDTO) {

@@ -569,3 +569,66 @@ export class FetchUsAppToPersonDTO {
   @IsNotEmpty()
   usAppToPersonSID: string;
 }
+
+
+export class CreateA2PTwilioEntryDTO {
+  @ApiProperty({ example: '' })
+  @IsString()
+  accountSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  secondaryCustomerProfileSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  endUserCustomerProfileSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  endUserAuthorizedRepresentativeSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  supportinDocumentSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  secondaryCustomerProfileStatus: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  trustProductSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  trustProductEndUserSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  trustProductStatus: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  messagingServiceSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  brandSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  campaignSID: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  fullName: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  email: string;
+
+  @ApiProperty({ example: '' })
+  @IsString()
+  overAllStatus: string;
+}

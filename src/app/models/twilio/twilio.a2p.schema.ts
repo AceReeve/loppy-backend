@@ -12,7 +12,34 @@ export class TwilioA2P implements GenericSchema {
     _id: string;
 
     @Prop()
-    customer_profile_sid?: string;
+    account_sid?: string;
+
+    @Prop()
+    secondary_customer_profile_sid?: string;
+
+    @Prop()
+    end_user_customer_profile_sid?: string;
+
+    @Prop()
+    end_user_authorized_representative_sid?: string;
+
+    @Prop()
+    supporting_document_sid?: string;
+
+    @Prop()
+    secondary_customer_profile_status?: string;
+
+    @Prop()
+    trust_product_sid?: string;
+
+    @Prop()
+    trust_product_end_user_sid?: string;
+
+    @Prop()
+    trust_product_status?: string;
+
+    @Prop()
+    messaging_service_sid?: string;
 
     @Prop()
     brand_sid?: string;
@@ -21,22 +48,17 @@ export class TwilioA2P implements GenericSchema {
     campaign_sid?: string;
 
     @Prop()
-    account_sid?: string;
-
-    @Prop()
-    end_user_sid?: string;
-
-    @Prop()
-    end_user_type?: string;
-
-    @Prop()
     full_name?: string;
 
     @Prop()
     email?: string;
 
     @Prop()
-    status?: string;
+    twilioPhoneNumber?: string;
+
+    @Prop()
+    overall_status?: string;
+
 
 }
 
