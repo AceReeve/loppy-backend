@@ -112,6 +112,22 @@ export class CronService {
 
     return false;
   }
+  private applyFiltersOpportunityStatusChange(filters: any[]): boolean {
+    for (const filter of filters) {
+      const { filter: filterName, value } = filter;
+      if (filterName === 'In Pipeline') {
+      }
+      if (filterName === 'Has a Tag') {
+      }
+      if (filterName === 'Lead Value') {
+      }
+      if (filterName === 'Moved from status') {
+      }
+      if (filterName === 'Moved to status') {
+      }
+    }
+    return false;
+  }
   private applyWeatherFilters(city: string, filters: any[]): boolean {
     // get user's location
     try {
@@ -394,7 +410,9 @@ export class CronService {
               }
             }
             if(WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED){
-              
+              if(this.applyFiltersOpportunityStatusChange(trig.content.filters)){
+                
+              }
             }
           }
         }
