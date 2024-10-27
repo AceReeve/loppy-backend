@@ -76,6 +76,10 @@ export class AuthController {
     description: 'An internal error occured',
   })
   async googleSave(@Body() googleSaveDTO: GoogleSaveDTO): Promise<any> {
+    console.log(
+      'this is inside the controller and this is the payload:',
+      googleSaveDTO,
+    );
     return this.authService.googleSave(googleSaveDTO);
   }
 }

@@ -40,4 +40,16 @@ export enum UserRole {
 
 export enum OrganizationStatus {
   ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+}
+
+export enum WorkFlowType {
+  FOLDER = 'Folder',
+  WORKFLOW = 'Workflow',
+}
+
+export enum LeadStatus {
+  IN_PROGRESS = 'In Progress',
+  GOOD = 'Good',
+  STALLED = 'Stalled',
 }

@@ -13,6 +13,8 @@ import {
   InviteUserDTO,
   InvitedUserRegistrationDTO,
   ResetPasswordDto,
+  ChangePasswordDto,
+  CreatePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
@@ -36,6 +38,12 @@ export class UserService implements AbstractUserService {
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     return await this.repository.createUser(userRegisterDto);
   }
+  async changePassword(changePasswordDto: ChangePasswordDto): Promise<any> {
+    return await this.repository.changePassword(changePasswordDto);
+  }
+  async createPassword(createPasswordDto: CreatePasswordDto): Promise<any> {
+    return await this.repository.createPassword(createPasswordDto);
+  }
   async createUserInfo(userInfoDTO: UserInfoDTO): Promise<any> {
     return await this.repository.createUserInfo(userInfoDTO);
   }
@@ -47,10 +55,16 @@ export class UserService implements AbstractUserService {
   async getUser(id: string): Promise<any> {
     return await this.repository.getUser(id);
   }
+
+  async getUserByEmail(email: string): Promise<any> {
+    return await this.repository.getUserByEmail(email);
+  }
   async getInvitedUser(): Promise<any> {
     return await this.repository.getInvitedUser();
   }
-
+  async getAcceptedInvitedUser(): Promise<any> {
+    return await this.repository.getAcceptedInvitedUser();
+  }
   async findByUserId(userId: string) {
     const userInfo = await this.userInfoModel.findOne({ user_id: userId });
     return userInfo;
@@ -68,7 +82,7 @@ export class UserService implements AbstractUserService {
   }
 
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {
-    return this.repository.updateUserStripeId(stripeId, userId);
+    return await this.repository.updateUserStripeId(stripeId, userId);
   }
 
   async updateWeatherInfoId(
@@ -97,7 +111,9 @@ export class UserService implements AbstractUserService {
   async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
     return this.repository.uploadProfile(files, userInfoId);
   }
-
+  async userData(id: string): Promise<any> {
+    return this.repository.userData(id);
+  }
   async getProfile(
     id: string,
     path: string,
@@ -117,5 +133,8 @@ export class UserService implements AbstractUserService {
   }
   async getMember(): Promise<any> {
     return this.repository.getMember();
+  }
+  async getAllUsers(): Promise<any> {
+    return this.repository.getAllUsers();
   }
 }

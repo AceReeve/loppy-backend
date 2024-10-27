@@ -19,6 +19,13 @@ import { WeatherForecastModule } from './app/models/weatherforecast/weatherforec
 import { ManageTeamModule } from './app/modules/settings/manage-team/manage-team.module';
 import { MessagingTwilioModule } from './app/modules/messaging-twilio/messaging-twilio.module';
 import { ServiceTitanModule } from './app/modules/service-titan/service-titan.module';
+import { WorkFlowModule } from './app/modules/work-flow/work-flow.module';
+import { CronModule } from './app/cron/cron.module';
+import { OpportunityModule } from './app/modules/opportunity/opportunity.module';
+import { LeadModule } from './app/modules/lead/lead.module';
+import { SmsModule } from './config/sms/sms.module';
+import { PipelineModule } from './app/modules/pipeline/pipeline.module';
+import { LeadTriggerModule } from './app/modules/lead-trigger/lead-trigger.module';
 
 @Module({
   imports: [
@@ -33,6 +40,10 @@ import { ServiceTitanModule } from './app/modules/service-titan/service-titan.mo
     }),
     StripeModule,
     RoleModule,
+    PipelineModule,
+    OpportunityModule,
+    LeadModule,
+    LeadTriggerModule,
     TwilioModule,
     DashboardModule,
     EmailNotificationModule,
@@ -40,7 +51,10 @@ import { ServiceTitanModule } from './app/modules/service-titan/service-titan.mo
     WeatherForecastModule,
     ManageTeamModule,
     MessagingTwilioModule,
-    ServiceTitanModule
+    ServiceTitanModule,
+    WorkFlowModule,
+    CronModule,
+    SmsModule,
   ],
 
   providers: [

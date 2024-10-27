@@ -1,22 +1,20 @@
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, RawBodyRequest, Res, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, Res, Get } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import {
-  StripeDTO,
+  cancelSubscriptionDTO,
   StripePaymentIntentDTO,
   SummarizePaymentDTO,
+  UpdateSubscriptionDTO,
 } from 'src/app/dto/api/stripe';
 import RequestWithRawBody from 'src/app/interface/stripe/requestWithRawBody.interface';
 import Stripe from 'stripe';
 import { StripeWebhookService } from 'src/app/services/api/stripe/stripe.webhook.service';
-import { JwtAuthGuard } from 'src/app/guard/auth';
-import { Response, response } from 'express';
+import { Response } from 'express';
 import { Public } from 'src/app/decorators/public.decorator';
 
 @ApiTags('Payment')
@@ -32,32 +30,6 @@ export class StripeController {
   constructor(private readonly stripeService: StripeService,
     private stripeWebhookService: StripeWebhookService) { }
 
-  @ApiBearerAuth('Bearer')
-  @Post('create-charge')
-  @ApiOperation({ summary: 'create charge' })
-  async createCharge(
-    @Req() request,
-    @Body() stripeDTO: StripeDTO
-  ) {
-    try {
-      const userId = request.user.sub;
-      console.log('userId from controller', userId);
-      const charge = await this.stripeService.createCharge({
-        ...stripeDTO,
-        metadata: { userId: userId.toString() },
-      });
-      console.log('charge1231', charge)
-      return {
-        success: true,
-        charge,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
-  }
 
   @ApiBearerAuth('Bearer')
   @Post('create-payment-intent')
@@ -84,6 +56,32 @@ export class StripeController {
     }
   }
 
+
+  @ApiBearerAuth('Bearer')
+  @Post('create-subscription')
+  @ApiOperation({ summary: 'create subscription' })
+  async createSubscription(
+    @Req() request,
+    @Body() stripeDTO: StripePaymentIntentDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.createSubscription(
+        stripeDTO,
+        userId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
   @Public()
   @Post('summarize-payment')
   @ApiOperation({ summary: 'summarize payment using confirmation token' })
@@ -97,6 +95,68 @@ export class StripeController {
   async getPaymentStatus(@Req() request) {
     const userId = request.user.sub;
     return await this.stripeWebhookService.getUserStripeData(userId);
+  }
+
+  @ApiBearerAuth('Bearer')
+  @Get('subscription-status')
+  @ApiOperation({ summary: 'subscription status' })
+  async getCustomerSubscription(
+    @Req() request
+  ) {
+    const userId = request.user.sub;
+    return await this.stripeService.customerSubscriptions(userId);
+  }
+
+
+  @ApiBearerAuth('Bearer')
+  @Post('update-subscription')
+  @ApiOperation({ summary: 'update subscription' })
+  async updateSubscription(
+    @Req() request,
+    @Body() stripeDTO: UpdateSubscriptionDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.updateSubscription(
+        stripeDTO,
+        userId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+
+  @ApiBearerAuth('Bearer')
+  @Post('cancel-subscription')
+  @ApiOperation({ summary: 'cancel subscription' })
+  async cancelSubscription(
+    @Req() request,
+    @Body() stripeDTO: cancelSubscriptionDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.cancelSubscription(
+        stripeDTO,
+        userId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
   }
 
 
@@ -113,13 +173,12 @@ export class StripeController {
       }
       const stripeEvent = this.stripeService.constructEventFromPayload(signature, request.rawBody);
 
-      if (this.stripeEventTypes.includes(stripeEvent.type)) {
-        const stripePayment = stripeEvent.data.object as Stripe.PaymentIntent;
-        const userId = stripePayment.metadata.userId;
-        await this.stripeWebhookService.processSubscriptionUpdate(stripeEvent, userId);
-      }
+      await this.stripeWebhookService.processSubscriptionUpdate(stripeEvent);
 
-      return response.status(201).json({ received: true }).end();
+      return {
+        success: true,
+        response: response.status(201).json({ received: true }).end()
+      };
     } catch (error) {
       console.log("Error", error)
     }

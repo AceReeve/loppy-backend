@@ -1,15 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AddMemberDTO, InboxesDTO, OrganizationDTO } from 'src/app/dto/messaging-twilio';
 import {
   AbstractMessagingTwilioRepository,
   AbstractMessagingTwilioService,
 } from 'src/app/interface/messaging-twilio';
 
+import {
+  AddMemberDTO,
+  InboxesDTO,
+  OrganizationDTO,
+} from 'src/app/dto/messaging-twilio';
+
 @Injectable()
 export class MessagingTwilioService implements AbstractMessagingTwilioService {
   constructor(private readonly repository: AbstractMessagingTwilioRepository) {}
 
-  async organization(organizationDTO: OrganizationDTO, friendlyName: string): Promise<any> {
+  async organization(
+    organizationDTO: OrganizationDTO,
+    friendlyName: string,
+  ): Promise<any> {
     return await this.repository.organization(organizationDTO, friendlyName);
   }
 
@@ -27,8 +35,8 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     );
   }
 
-  async buyNumber(phoneNumber: string, organization_id): Promise<any> {
-    return await this.repository.buyNumber(phoneNumber, organization_id);
+  async buyNumber(phoneNumber: string): Promise<any> {
+    return await this.repository.buyNumber(phoneNumber);
   }
 
   async inbox(inbox: InboxesDTO): Promise<any> {
@@ -37,8 +45,8 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
   async getAllOrganization(): Promise<any> {
     return await this.repository.getAllOrganization();
   }
-  async getAllInbox(organization_id: string): Promise<any> {
-    return await this.repository.getAllInbox(organization_id);
+  async getAllInbox(): Promise<any> {
+    return await this.repository.getAllInbox();
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
@@ -49,7 +57,29 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     return await this.repository.getOrganizationById(organization_id);
   }
 
-  async addMemberToAnOrganization(organization_id: string, addMemberDTO: AddMemberDTO): Promise<any> {
-    return await this.repository.addMemberToAnOrganization(organization_id, addMemberDTO);
+  async addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any> {
+    return await this.repository.addMemberToAnOrganization(addMemberDTO);
+  }
+
+  async getCred(password: string): Promise<any> {
+    return await this.repository.getCred(password);
+  }
+  async getTwilioAccessToken(): Promise<any> {
+    return await this.repository.getTwilioAccessToken();
+  }
+  async getPurchasedNumber(): Promise<any> {
+    return await this.repository.getPurchasedNumber();
+  }
+  async activateWorkSpace(id: string): Promise<any> {
+    return await this.repository.activateWorkSpace(id);
+  }
+  async activateInbox(id: string): Promise<any> {
+    return await this.repository.activateInbox(id);
+  }
+  async getActivatedInbox(): Promise<any> {
+    return await this.repository.getActivatedInbox();
+  }
+  async getActivatedWorkSpace(): Promise<any> {
+    return await this.repository.getActivatedWorkSpace();
   }
 }

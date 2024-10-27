@@ -9,6 +9,7 @@ import { InvitedUserSchemaModule } from './invited-users/invited-users.schema.mo
 import { ContactsSchemaModule } from './contacts/contacts.schema.module';
 import { OtpSchemaModule } from './otp/otp.schema.module';
 import { MessagingTwilioSchemaModule } from './messaging-twilio/messaging-twilio.schema.module';
+import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { MessagingTwilioSchemaModule } from './messaging-twilio/messaging-twilio
     InvitedUserSchemaModule,
     ContactsSchemaModule,
     OtpSchemaModule,
-    MessagingTwilioSchemaModule
+    MessagingTwilioSchemaModule,
+    WorkFlowSchemaModule
   ],
   providers: [],
   exports: [
@@ -34,7 +36,8 @@ import { MessagingTwilioSchemaModule } from './messaging-twilio/messaging-twilio
     InvitedUserSchemaModule,
     ContactsSchemaModule,
     OtpSchemaModule,
-    MessagingTwilioSchemaModule
+    MessagingTwilioSchemaModule,
+    WorkFlowSchemaModule
   ],
 })
 export class ModelModule {}

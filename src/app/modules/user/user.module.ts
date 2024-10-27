@@ -18,6 +18,7 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
 import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
 import { S3Service } from 'src/app/services/s3/s3.service';
+import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { S3Service } from 'src/app/services/s3/s3.service';
     InvitedUserSchemaModule,
     OtpSchemaModule,
     FileUploadSchemaModule,
+    TeamSchemaModule,
   ],
   controllers: [UserController],
   providers: [

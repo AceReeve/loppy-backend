@@ -7,10 +7,11 @@ import { firstValueFrom } from 'rxjs';
 export class ServiceTitanService {
   private readonly tokenUrl = 'https://auth.servicetitan.io/connect/token';
   private readonly clientId = 'cid.1fw0fulndbc2wdvdy2o7zueof';
-  private readonly clientSecret = 'cs1.kplsyupeyqdmhp05f2la86aw82h5xo9jpn4bne7z6s686527kr';
+  private readonly clientSecret =
+    'cs1.kplsyupeyqdmhp05f2la86aw82h5xo9jpn4bne7z6s686527kr';
   private token: string;
   private readonly apiUrl = 'https://api.servicetitan.io/';
-  private readonly appKey = 'ak1.5y547w55zqerjtwixu6od03et'; 
+  private readonly appKey = 'ak1.5y547w55zqerjtwixu6od03et';
   private readonly tenant = '1885706780';
   constructor(private readonly httpService: HttpService) {}
 
@@ -21,15 +22,19 @@ export class ServiceTitanService {
 
     try {
       const response: AxiosResponse<any> = await firstValueFrom(
-        this.httpService.post(this.tokenUrl, new URLSearchParams({
-          grant_type: 'client_credentials',
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+        this.httpService.post(
+          this.tokenUrl,
+          new URLSearchParams({
+            grant_type: 'client_credentials',
+            client_id: this.clientId,
+            client_secret: this.clientSecret,
+          }).toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
           },
-        }),
+        ),
       );
 
       this.token = response.data.access_token;
@@ -39,7 +44,11 @@ export class ServiceTitanService {
     }
   }
 
-  private async fetchData(endpoint: string, params?: any): Promise<any> {
+  private async fetchData(
+    endpoint: string,
+    params?: any,
+    retries: number = 3,
+  ): Promise<any> {
     const token = await this.getToken();
     try {
       const response: AxiosResponse<any> = await firstValueFrom(
@@ -48,176 +57,363 @@ export class ServiceTitanService {
             Authorization: `Bearer ${token}`,
             'ST-App-Key': this.appKey,
           },
-          params,
+          params: {
+            ...params,
+            sort: 'modifiedOn',
+            order: 'desc',
+          },
+          // Add a timeout to handle cases where requests are hanging
+          timeout: 10000, // Adjust the timeout as needed
         }),
       );
       return response.data;
     } catch (error) {
-      throw new Error('Could not retrieve data');
+      if (retries > 0) {
+        await new Promise((res) =>
+          setTimeout(res, Math.pow(2, 3 - retries) * 1000),
+        );
+        return this.fetchData(endpoint, params, retries - 1);
+      }
+      throw new Error('Could not retrieve data: ' + error.message);
     }
   }
 
+//////////
+async getAllCustomers(  
+  page: number = 1, 
+  pageSize: number = 50, 
+  startDate: string = `${new Date().getFullYear()}-01-01`, 
+  endDate: string = `${new Date().getFullYear()}-12-31`): Promise<any[]> {
+
+  const customers = [];
+  let currentPage = page;
+  let hasMore = true;
+
+  // while (hasMore) {
+    // Fetch customers with date filtering applied at the API level
+    const customerPage = await this.fetchData(
+      `crm/v2/tenant/${this.tenant}/customers`,
+      { 
+        page: currentPage, 
+        pageSize,
+        createdOnOrAfter: startDate,
+        createdBefore: endDate
+      }
+    );
+
+    if (customerPage.data) {
+      console.log(customerPage.data)
+      customers.push(...customerPage.data);
+    } else {
+      throw new Error('Unexpected response structure: data field not found');
+    }
+
+    // hasMore = customerPage.hasMore;
+    // currentPage++;
+  // }
+  return customers;
+}
+
+async getCallsV1(customerId: string): Promise<any> {
+  console.log('b3')
+  const allCalls = await this.fetchData(`telecom/v2/tenant/${this.tenant}/calls`);
+  const customerCalls = allCalls.data.filter(call => call.leadCall?.customer?.id === customerId );
+  return customerCalls;
+}
+
+// Fetch jobs for the customer to calculate lifetime value
+async getJobsV1(customerId: string): Promise<any> {
+  console.log('a1')
+  const jobsData = await this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, { customerId });
+  
+  // Check if jobsData.data is an array
+  return Array.isArray(jobsData.data) ? jobsData.data : [];
+}
+
+// Fetch campaigns for the customer
+async getCampaignsV1(customerId: string): Promise<any> {
+  console.log('b2')
+  return this.fetchData(`marketing/v2/tenant/${this.tenant}/campaigns`, { customerId });
+}
+
+// Fetch the last interaction for the customer
+// this api " INTERACTIONS" is having error 404 for enhancement
+async getInteractions(customerId: string): Promise<any> {
+  return this.fetchData(`crm/v2/tenant/${this.tenant}/interactions`, { customerId });
+}
+
+async getAllCustomersOverview(
+  page: number, 
+  page_size: number, 
+  start_date: string, 
+  end_date: string
+): Promise<any[]> {
+
+  const customers = await this.getAllCustomers(page, page_size, start_date, end_date);
+  const customersOverview = [];
+  const batchSize = 5; // Set the number of customers to process concurrently
+  
+  // Helper function to process each batch of customers
+  const processBatch = async (batch) => {
+    const promises = batch.map(async (customer) => {
+      try {
+        const [jobs, campaigns, calls] = await Promise.all([
+          this.getJobsV1(customer.id).catch(() => []),
+          this.getCampaignsV1(customer.id).catch(() => ({ data: [] })),
+          this.getCallsV1(customer.id).catch(() => [])
+        ]);
+
+        const lifetimeValue = jobs.length
+          ? jobs.reduce((acc, job) => {
+              if (!job.noCharge) {
+                return acc + (job.totalAmount || 0);
+              }
+              return acc;
+            }, 0)
+          : 0;
+
+        const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
+
+        const contactPhones = calls.map(call =>
+          call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
+        );
+
+        customersOverview.push({
+          name: customer.name || 'Unknown',
+          phone: contactPhones.filter(Boolean).toString(),
+          source: customer.customFields?.source || 'Unknown',
+          lifetimeValue,
+          lastCampaign,
+          lastInteraction: 'None',
+          created_on: customer.createdOn
+        });
+
+      } catch (error) {
+        console.error(`Error processing customer ${customer.id}:`, error);
+      }
+    });
+
+    await Promise.all(promises); // Wait for the batch to complete
+  };
+
+  // Split customers into batches and process each batch sequentially
+  for (let i = 0; i < customers.length; i += batchSize) {
+    const batch = customers.slice(i, i + batchSize);
+    await processBatch(batch); // Process each batch
+  }
+  return customersOverview;
+}
   getInventoryBills(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`accounting/v2/tenant/${this.tenant}/inventory-bills`, { page, pageSize });
+    return this.fetchData(
+      `accounting/v2/tenant/${this.tenant}/inventory-bills`,
+      { page, pageSize },
+    );
   }
 
-  getInvoicesPayments(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`accounting/v2/tenant/${this.tenant}/invoices`, { page, pageSize });
+  async getInvoicesPayments(page: number, pageSize: number): Promise<any> {
+    return this.fetchData(`accounting/v2/tenant/${this.tenant}/invoices`, {
+      page,
+      pageSize,
+    });
   }
 
-  getPayments(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`accounting/v2/tenant/${this.tenant}/payments`, { page, pageSize });
+  async getPayments(page: number, pageSize: number): Promise<any> {
+    return this.fetchData(`accounting/v2/tenant/${this.tenant}/payments`, {
+      page,
+      pageSize,
+    });
   }
 
-  getPaymentTerms(): Promise<any> {
+  async getPaymentTerms(): Promise<any> {
     return this.fetchData(`accounting/v2/tenant/${this.tenant}/payment-terms`);
   }
 
-  getPaymentTypes(): Promise<any> {
+  async getPaymentTypes(): Promise<any> {
     return this.fetchData(`accounting/v2/tenant/${this.tenant}/payment-types`);
   }
 
-  getCustomers(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, { page, pageSize });
+  async getCustomers(page: number, pageSize: number): Promise<any> {
+    const startYear = new Date().getFullYear() - 1;
+    const endYear = new Date().getFullYear();
+
+    const response = await this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, {
+      page,
+      pageSize,
+    });
+
+    const customers = response.data || [];
+    
+    const filteredCustomers = customers.filter((customer: any) => {
+      const createdOnDate = new Date(customer.createdOn);
+      return createdOnDate.getFullYear() === startYear;
+    });
+    console.log('data count',response.data.length)
+    console.log('startYear',startYear)
+    // return filteredCustomers;
   }
 
-  getAppointmentAssignments(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`dispatch/v2/tenant/${this.tenant}/appointment-assignments`, { page, pageSize });
+  async getAppointmentAssignments(
+    page: number,
+    pageSize: number,
+  ): Promise<any> {
+    return this.fetchData(
+      `dispatch/v2/tenant/${this.tenant}/appointment-assignments`,
+      { page, pageSize },
+    );
   }
 
-  getTechnicianShifts(): Promise<any> {
-    return this.fetchData(`dispatch/v2/tenant/${this.tenant}/technician-shifts`);
+  async getTechnicianShifts(): Promise<any> {
+    return this.fetchData(
+      `dispatch/v2/tenant/${this.tenant}/technician-shifts`,
+    );
   }
 
-  getInstalledEquipment(): Promise<any> {
-    return this.fetchData(`equipmentsystems/v2/tenant/${this.tenant}/installed-equipment`);
+  async getInstalledEquipment(): Promise<any> {
+    return this.fetchData(
+      `equipmentsystems/v2/tenant/${this.tenant}/installed-equipment`,
+    );
   }
 
-  getForms(): Promise<any> {
+  async getForms(): Promise<any> {
     return this.fetchData(`forms/v2/tenant/${this.tenant}/forms`);
   }
 
-  getFormSubmissions(): Promise<any> {
+  async getFormSubmissions(): Promise<any> {
     return this.fetchData(`forms/v2/tenant/${this.tenant}/submissions`);
   }
 
-  getCallReasons(): Promise<any> {
+  async getCallReasons(): Promise<any> {
     return this.fetchData(`jbce/v2/tenant/${this.tenant}/call-reasons`);
   }
 
-  getAppointmentsJPM(): Promise<any> {
+  async getAppointmentsJPM(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/appointments`);
   }
 
-  getJobCancelReasons(): Promise<any> {
+  async getJobCancelReasons(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/job-cancel-reasons`);
   }
 
-  getJobHoldReasons(): Promise<any> {
+  async getJobHoldReasons(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/job-hold-reasons`);
   }
 
-  getJobs(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, { page, pageSize });
+  async getJobs(page: number, pageSize: number): Promise<any> {
+    return this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, {
+      page,
+      pageSize,
+    });
   }
 
-  getJobTypes(): Promise<any> {
+  async getJobTypes(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/job-types`);
   }
 
-  getProjects(): Promise<any> {
+  async getProjects(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/projects`);
   }
 
-  getProjectStatuses(): Promise<any> {
+  async getProjectStatuses(): Promise<any> {
     return this.fetchData(`jpm/v2/tenant/${this.tenant}/project-statuses`);
   }
 
-  getMemberships(): Promise<any> {
+  async getMemberships(): Promise<any> {
     return this.fetchData(`memberships/v2/tenant/${this.tenant}/memberships`);
   }
 
-  getMembershipTypes(): Promise<any> {
-    return this.fetchData(`memberships/v2/tenant/${this.tenant}/membership-types`);
+  async getMembershipTypes(): Promise<any> {
+    return this.fetchData(
+      `memberships/v2/tenant/${this.tenant}/membership-types`,
+    );
   }
 
-  getRecurringServices(): Promise<any> {
-    return this.fetchData(`memberships/v2/tenant/${this.tenant}/recurring-services`);
+  async getRecurringServices(): Promise<any> {
+    return this.fetchData(
+      `memberships/v2/tenant/${this.tenant}/recurring-services`,
+    );
   }
 
-  getRecurringServiceEvents(): Promise<any> {
-    return this.fetchData(`memberships/v2/tenant/${this.tenant}/recurring-service-events`);
+  async getRecurringServiceEvents(): Promise<any> {
+    return this.fetchData(
+      `memberships/v2/tenant/${this.tenant}/recurring-service-events`,
+    );
   }
 
-  getRecurringServiceTypes(): Promise<any> {
-    return this.fetchData(`memberships/v2/tenant/${this.tenant}/recurring-service-types`);
+  async getRecurringServiceTypes(): Promise<any> {
+    return this.fetchData(
+      `memberships/v2/tenant/${this.tenant}/recurring-service-types`,
+    );
   }
 
-  getCampaigns(): Promise<any> {
+  async getCampaigns(): Promise<any> {
     return this.fetchData(`marketing/v2/tenant/${this.tenant}/campaigns`);
   }
 
-  getCategories(): Promise<any> {
+  async getCategories(): Promise<any> {
     return this.fetchData(`marketing/v2/tenant/${this.tenant}/categories`);
   }
 
-  getPricebookCategories(): Promise<any> {
+  async getPricebookCategories(): Promise<any> {
     return this.fetchData(`pricebook/v2/tenant/${this.tenant}/categories`);
   }
 
-  getDiscountsAndFees(): Promise<any> {
-    return this.fetchData(`pricebook/v2/tenant/${this.tenant}/discounts-and-fees`);
+  async getDiscountsAndFees(): Promise<any> {
+    return this.fetchData(
+      `pricebook/v2/tenant/${this.tenant}/discounts-and-fees`,
+    );
   }
 
-  getEquipment(): Promise<any> {
+  async getEquipment(): Promise<any> {
     return this.fetchData(`pricebook/v2/tenant/${this.tenant}/equipment`);
   }
 
-  getMaterials(): Promise<any> {
+  async getMaterials(): Promise<any> {
     return this.fetchData(`pricebook/v2/tenant/${this.tenant}/materials`);
   }
 
-  getServices(): Promise<any> {
+  async getServices(): Promise<any> {
     return this.fetchData(`pricebook/v2/tenant/${this.tenant}/services`);
   }
 
-  getReportCategories(): Promise<any> {
-    return this.fetchData(`reporting/v2/tenant/${this.tenant}/report-categories`);
+  async getReportCategories(): Promise<any> {
+    return this.fetchData(
+      `reporting/v2/tenant/${this.tenant}/report-categories`,
+    );
   }
 
-  getEstimates(): Promise<any> {
+  async getEstimates(): Promise<any> {
     return this.fetchData(`sales/v2/tenant/${this.tenant}/estimates`);
   }
 
-  getBusinessUnits(): Promise<any> {
+  async getBusinessUnits(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/business-units`);
   }
 
-  getEmployees(): Promise<any> {
+  async getEmployees(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/employees`);
   }
 
-  getTagTypes(): Promise<any> {
+  async getTagTypes(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/tag-types`);
   }
 
-  getTechnicians(): Promise<any> {
+  async getTechnicians(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/technicians`);
   }
 
-  getUserRoles(): Promise<any> {
+  async getUserRoles(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/user-roles`);
   }
 
-  getCalls(): Promise<any> {
+  async getCalls(): Promise<any> {
     return this.fetchData(`telecom/v2/tenant/${this.tenant}/calls`);
   }
 
-  getTaskData(): Promise<any> {
+  async getTaskData(): Promise<any> {
     return this.fetchData(`taskmanagement/v2/tenant/${this.tenant}/data`);
   }
 
-  getTasks(): Promise<any> {
+  async getTasks(): Promise<any> {
     return this.fetchData(`taskmanagement/v2/tenant/${this.tenant}/tasks`);
   }
 }

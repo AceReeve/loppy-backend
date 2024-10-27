@@ -29,6 +29,8 @@ import {
   InvitedUserRegistrationDTO,
   ProfileImageType,
   ResetPasswordDto,
+  ChangePasswordDto,
+  CreatePasswordDto,
 } from 'src/app/dto/user';
 import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
@@ -76,6 +78,26 @@ export class UserController {
     @Body() resetPasswordDTO: ResetPasswordDto,
   ): Promise<any> {
     return this.userService.resetPassword(token, resetPasswordDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Change Password' })
+  async changePassword(
+    @Body() changePasswordDTO: ChangePasswordDto,
+  ): Promise<any> {
+    return this.userService.changePassword(changePasswordDTO);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('create-password')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Create Password' })
+  async createPassword(
+    @Body() createPasswordDTO: CreatePasswordDto,
+  ): Promise<any> {
+    return this.userService.createPassword(createPasswordDTO);
   }
 
   @Public()
@@ -158,6 +180,13 @@ export class UserController {
   async getInviteUser(): Promise<any> {
     return this.userService.getInvitedUser();
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('get-accepted-invited-user')
+  @ApiBearerAuth('Bearer')
+  @ApiOperation({ summary: 'Get Invite User' })
+  async getAcceptedInviteUser(): Promise<any> {
+    return this.userService.getAcceptedInvitedUser();
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('validate-invite-user')
@@ -188,7 +217,7 @@ export class UserController {
   @Post('upload-profile')
   @ApiBearerAuth('Bearer')
   @ApiOperation({
-    summary: 'Update service document upload in vendor accreditation request',
+    summary: 'Update Profile Picture',
   })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
   @ApiConsumes('multipart/form-data')
@@ -216,9 +245,16 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('Bearer')
   @Get('members')
-  @ApiOperation({ summary: 'Get all accepted members' })
+  @ApiOperation({ summary: 'Get all members' })
   async getMember(): Promise<any> {
     return await this.userService.getMember();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Bearer')
+  @Get('get-all-users')
+  @ApiOperation({ summary: 'Get member by id' })
+  async getAllUsers(): Promise<any> {
+    return await this.userService.getAllUsers();
+  }
 }

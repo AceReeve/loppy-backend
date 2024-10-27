@@ -22,5 +22,14 @@ export class Team implements GenericSchema {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   created_by: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: Date })
+  created_at: Date;
+
+  @Prop({ type: Date })
+  updated_at: Date;
+
+  @Prop({ type: Object })
+  profile?: any;
 }
 export const TeamSchema = SchemaFactory.createForClass(Team);

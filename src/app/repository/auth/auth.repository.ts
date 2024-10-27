@@ -17,8 +17,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { GoogleLoginUserDto } from '../../dto/auth/google-login.dto';
 import { OauthRepository } from '../oauth/oauth.repository';
-import { SignInBy } from '../../const';
+import { DefaultUserRole, SignInBy, UserRole } from '../../const';
 import * as jwt from 'jsonwebtoken';
+import { Role, RoleDocument } from 'src/app/models/role/role.schema';
 @Injectable()
 export class AuthRepository {
   constructor(
@@ -26,6 +27,7 @@ export class AuthRepository {
     private configService: ConfigService,
     protected readonly oauthRepository: OauthRepository,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Role.name) private roleModel: Model<RoleDocument>,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
   ) {}
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -68,7 +70,7 @@ export class AuthRepository {
       { email: email },
       { $inc: { login_count: 1 } },
     );
-    return { _id, first_name, last_name, email, status, access_token };
+    return { _id, first_name, last_name, email, status, access_token, role };
   }
 
   async googleLogin(user: GoogleLoginUserDto) {
@@ -81,41 +83,54 @@ export class AuthRepository {
       user,
       SignInBy.SIGN_IN_BY_GOOGLE,
     );
+    const userRole = await this.userModel.findOne({ email: user.email });
     const access_token = await this.signJwt(
       userData.id,
       id_token,
       accessToken,
       expires_in,
+      userRole.role,
+      user.email,
     );
-    return { access_token };
+    return { access_token, role: userRole.role };
   }
 
   async googleSave(googleSaveDTO: GoogleSaveDTO) {
     const data = await this.userModel.findOne({ email: googleSaveDTO.email });
-    await this.verifyToken(
+    const verifyToken = await this.verifyToken(
       googleSaveDTO.email,
       googleSaveDTO.first_name,
       googleSaveDTO.last_name,
       googleSaveDTO.token,
     );
+    const role = await this.roleModel.findOne({
+      role_name: DefaultUserRole.OWNER,
+    });
+
     if (data) {
+      // if (data.login_by !== SignInBy.SIGN_IN_BY_GOOGLE) {
+      //   throw new Error(
+      //     `this email : '${googleSaveDTO.email}' is already registered, Please use another email!`,
+      //   );
+      // }
       const userData = await this.userModel.findOneAndUpdate(
         { email: data.email },
         { $inc: { login_count: 1 } },
       );
-      const payload = { email: userData.email, sub: userData._id };
+      const payload = { email: userData.email, sub: userData._id, role };
       const access_token = this.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-
-      return { userData, access_token };
+      return { userData, access_token, role };
     } else {
       const userData = await this.userModel.create({
         email: googleSaveDTO.email,
         login_by: SignInBy.SIGN_IN_BY_GOOGLE,
+        role: role,
         login_count: 1,
       });
+
       const userInfo = await this.userInfoModel.create({
         user_id: userData._id,
         first_name: googleSaveDTO.first_name,
@@ -123,12 +138,12 @@ export class AuthRepository {
         picture: googleSaveDTO.picture,
       });
 
-      const payload = { email: userData.email, sub: userData._id };
+      const payload = { email: userData.email, sub: userData._id, role };
       const access_token = this.generateJWT(
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      return { userData, userInfo, access_token };
+      return { userData, userInfo, access_token, role };
     }
   }
 
@@ -149,19 +164,19 @@ export class AuthRepository {
         if (userDetails.email !== email) {
           throw new UnauthorizedException('Invalid email');
         }
-        const userInfoDetails = await this.userInfoModel.findOne({
-          user_id: userDetails._id,
-        });
-        if (userInfoDetails) {
-          // Validate first name
-          if (userInfoDetails.first_name !== first_name) {
-            throw new UnauthorizedException('Invalid first name');
-          }
-          // Validate last name
-          if (userInfoDetails.last_name !== last_name) {
-            throw new UnauthorizedException('Invalid last name');
-          }
-        }
+        // const userInfoDetails = await this.userInfoModel.findOne({
+        //   user_id: userDetails._id,
+        // });
+        // if (userInfoDetails) {
+        //   // Validate first name
+        //   if (userInfoDetails.first_name !== first_name) {
+        //     throw new UnauthorizedException('Invalid first name');
+        //   }
+        //   // Validate last name
+        //   if (userInfoDetails.last_name !== last_name) {
+        //     throw new UnauthorizedException('Invalid last name');
+        //   }
+        // }
       }
 
       return decoded;
@@ -175,6 +190,8 @@ export class AuthRepository {
     id_token: string,
     access_token: string,
     expires_at: number,
+    role: any,
+    email: string,
     expiresIn = '1d',
   ): Promise<any> {
     const payload = {
@@ -182,6 +199,8 @@ export class AuthRepository {
       id_token,
       access_token,
       expires_at,
+      role,
+      email,
     };
     return this.jwtService.signAsync(payload, {
       expiresIn,
