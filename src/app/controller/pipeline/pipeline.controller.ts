@@ -50,6 +50,12 @@ export class PipelineController {
     return await this.pipelineService.getAllPipelines();
   }
 
+  @Get('all-pipelines-list')
+  @ApiOperation({ summary: 'Get pipelines' })
+  async getAllPipelinesList(): Promise<Pipeline[] | null> {
+    return await this.pipelineService.getAllPipelinesList();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get pipeline' })
   async getPipeline(@Param('id') id: string): Promise<Pipeline | null> {

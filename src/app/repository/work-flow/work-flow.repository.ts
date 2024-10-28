@@ -219,8 +219,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       );
 
       // run cron
-      await this.cronService.handleCron();
-
+      // await this.cronService.handleCron();
       // }
       return createWorkFlow;
     } catch (error) {
