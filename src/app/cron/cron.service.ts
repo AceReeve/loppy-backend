@@ -133,7 +133,7 @@ export class CronService {
       }
   
       if (filterName === 'Lead Value') {
-        matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= value);
+        matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
       }
   
       if (filterName === 'Moved from status') {
