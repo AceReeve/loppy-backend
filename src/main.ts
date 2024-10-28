@@ -25,6 +25,8 @@ async function bootstrap(): Promise<void> {
   const PORT = configService.get<string>('PORT') || 3000;
   const HTTPS_PATH_SSL_KEY = configService.get<string>('HTTPS_PATH_SSL_KEY');
   const HTTPS_PATH_SSL_CERT = configService.get<string>('HTTPS_PATH_SSL_CERT');
+  const isProd = process.env.NODE_ENV === 'prod';
+  const isDev = process.env.NODE_ENV === 'dev';
 
   app.use(ruid({ setInContext: true }));
   app.use(rawBodyMiddleware());
@@ -45,7 +47,7 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig());
   SwaggerModule.setup('docs', app, document);
 
-  if (process.env.NODE_ENV === 'prod') {
+  if (isProd) {
     // Production setup with HTTPS
     const httpsOptions = {
       key: fs.readFileSync('/etc/nginx/ssl/servihero.com.key'),
@@ -57,7 +59,20 @@ async function bootstrap(): Promise<void> {
       .listen(PORT, () => {
         console.log(`HTTPS server listening on port ${PORT}`);
       });
-  } else {
+  } 
+  else if(isDev){
+    const httpsOptions = {
+      key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
+      cert: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.crt'),
+    };
+
+    https
+      .createServer(httpsOptions, app.getHttpAdapter().getInstance())
+      .listen(PORT, () => {
+        console.log(`HTTPS server listening on port ${PORT}`);
+      });
+  }
+  else {
     // Local setup without HTTPS
     await app.listen(PORT);
     console.log(`Server listening on port ${PORT}`);
