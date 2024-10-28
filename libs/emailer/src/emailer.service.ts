@@ -108,7 +108,7 @@ export class EmailerService {
     }
   }
 
-  async sendEmailBirthdayReminder(
+  async sendEmailNotification(
     receiver: string,
     first_name: string,
     content: any,
@@ -120,7 +120,7 @@ export class EmailerService {
         html: content.message,
       });
     } catch (error) {
-      const errorMessage = 'Error BirthDay Mesage';
+      const errorMessage = 'Error Sending Email Notification';
 
       this.logger.error(errorMessage, error);
       throw new InternalServerErrorException(errorMessage);

@@ -112,18 +112,49 @@ export class CronService {
 
     return false;
   }
-  private applyFiltersOpportunityStatusChange(filters: any[]): boolean {
+  private async applyFiltersOpportunityStatusChange(filters: any[]): Promise<any> {
+    let matchedLeads = [];
+  
     for (const filter of filters) {
       const { filter: filterName, value } = filter;
+  
       if (filterName === 'In Pipeline') {
+
+        const pipeline = await this.pi
+
+        // const pipeline = await this.opportunityModel.find({ pipeline_id: value });
+  
+        if (pipeline && pipeline.opportunities) {
+          for (const opportunity of pipeline.opportunities) {
+            matchedLeads = matchedLeads.concat(opportunity.leads);
+          }
+        }
       }
+  
       if (filterName === 'Has a Tag') {
+        matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
       }
+  
       if (filterName === 'Lead Value') {
+        matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= value);
       }
+  
       if (filterName === 'Moved from status') {
+        matchedLeads = matchedLeads.filter(lead => lead.status && lead.tags.includes(value));
       }
+  
       if (filterName === 'Moved to status') {
+        matchedLeads = matchedLeads.filter(lead => lead.status && lead.tags.includes(value));
+      }
+    }
+    console.log('matchedLeads:',matchedLeads)
+    return matchedLeads.length > 0 ? matchedLeads : false;
+  }
+  
+  private applyFiltersContactCreated(filters: any[]): boolean {
+    for (const filter of filters) {
+      const { filter: filterName, value } = filter;
+      if (filterName === 'Has a Tag') {
       }
     }
     return false;
@@ -236,7 +267,7 @@ export class CronService {
                       _id: user.user_id,
                     });
                     if (receiverUser) {
-                      await this.emailerService.sendEmailBirthdayReminder(
+                      await this.emailerService.sendEmailNotification(
                         receiverUser.email,
                         user.first_name,
                         act.content,
@@ -248,7 +279,7 @@ export class CronService {
                     const receiverUserInfo = await this.userInfoModel.findOne({
                       user_id: user.user_id,
                     });
-                    await this.smsService.sendSmsBirthdayReminder(
+                    await this.smsService.sendSms(
                       receiverUserInfo.contact_no,
                       user.first_name,
                       act.content,
@@ -281,11 +312,13 @@ export class CronService {
                     email: { $in: allFilteredEmail },
                   });
 
-                  if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                 
                     for (const user of users) {
                       const userInfo = await this.userInfoModel.findOne({
                         user_id: user._id,
                       });
+                      if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                      
                       const ownerUserInfo = await this.userInfoModel.findOne({
                         user_id: workflow.created_by,
                       });
@@ -294,6 +327,14 @@ export class CronService {
                         act.content,
                         userInfo.first_name,
                         ownerUserInfo.first_name,
+                      );
+                    }else if (
+                      act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                    ) {
+                      await this.smsService.sendSms(
+                        userInfo.contact_no,
+                        userInfo.first_name,
+                        act.content,
                       );
                     }
                   }
@@ -328,7 +369,7 @@ export class CronService {
                     const receiverUserInfo = await this.userInfoModel.findOne({
                       user_id: user.user_id,
                     });
-                    await this.smsService.sendSmsWeatherReminder(
+                    await this.smsService.sendSms(
                       receiverUserInfo.contact_no,
                       user.first_name,
                       act.content.message,
@@ -410,7 +451,13 @@ export class CronService {
               }
             }
             if(WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED){
-              if(this.applyFiltersOpportunityStatusChange(trig.content.filters)){
+              const data = await this.applyFiltersOpportunityStatusChange(trig.content.filters)
+              if(data?.length){
+                console.log('opportunity data:',data)
+              }
+            }
+            if(WorkFlowTrigger.WORKFLOW_TRIGGER_CONTACT_CREATED){
+              if(this.applyFiltersContactCreated(trig.content.filters)){
                 
               }
             }

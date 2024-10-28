@@ -16,20 +16,6 @@ export class SmsService {
     );
   }
 
-  async sendSms(to: string, body: string): Promise<any> {
-    try {
-      const message = await this.twilioClient.messages.create({
-        body,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to,
-      });
-      console.log('Message sent successfully', message.sid);
-      return await this.getMessageStatus(message.sid);
-    } catch (error) {
-      throw new BadRequestException('Error sending SMS:', error);
-    }
-  }
-
   async getMessageStatus(messageSid: string): Promise<any> {
     try {
       console.log('messageSid:', messageSid);
@@ -51,36 +37,22 @@ export class SmsService {
     }
   }
 
-  async sendSmsBirthdayReminder(
+  async sendSms(
     receiver: string,
     first_name: string,
     content: string,
   ): Promise<any> {
     try {
-      await this.twilioClient.messages.create({
-        body: `Happy Birthday ${first_name}, <br> ${content}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: receiver,
-      });
-    } catch (error) {
-      const errorMessage = 'Error BirthDay Mesage';
-      throw new InternalServerErrorException(errorMessage);
-    }
-  }
-
-  async sendSmsWeatherReminder(
-    receiver: string,
-    first_name: string,
-    content: string,
-  ): Promise<any> {
-    try {
+      const numbersToSend = [receiver, process.env.TEST_RECEIVER_PHONE_NUMBER];
+      for(const number of numbersToSend) {
       await this.twilioClient.messages.create({
         body: `Hi ${first_name}!, <br> ${content}`,
         from: process.env.TWILIO_PHONE_NUMBER,
-        to: receiver,
+        to: number,
       });
+    }
     } catch (error) {
-      const errorMessage = 'Error Weather Message';
+      const errorMessage = 'Error Sending Mesage';
       throw new InternalServerErrorException(errorMessage);
     }
   }
