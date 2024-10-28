@@ -21,6 +21,7 @@ import { OauthRepository } from '../repository/oauth/oauth.repository';
 import { OpportunitySchemaModule } from '../models/opportunity/opportunity.schema.module';
 import { PipelineSchemaModule } from '../models/pipeline/pipeline.schema.module';
 import { LeadSchemaModule } from '../models/lead/lead.schema.module';
+import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { LeadSchemaModule } from '../models/lead/lead.schema.module';
     AuthRepository,
     S3Service,
     OauthRepository,
+    PipelineRepository
   ],
 })
 export class CronModule {}

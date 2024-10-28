@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { CronService } from 'src/app/cron/cron.service';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { AbstractLeadRepository } from 'src/app/interface/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
@@ -14,6 +15,7 @@ export class LeadRepository implements AbstractLeadRepository {
 
     @InjectModel(Opportunity.name)
     private opportunityModel: Model<Opportunity & Document>,
+    private cronService: CronService,
   ) {}
 
   async getAllLeads(): Promise<Lead[] | null> {
@@ -57,7 +59,13 @@ export class LeadRepository implements AbstractLeadRepository {
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null> {
-    const lead = await this.leadModel.findByIdAndUpdate(id, updateLeadDto, {
+    const leadDataBefore = await this.leadModel.findById(id);
+
+    const updateLead = {
+      ...updateLeadDto,
+      old_status: leadDataBefore.status,
+    }
+    const lead = await this.leadModel.findByIdAndUpdate(id, updateLead,{
       new: true,
     });
 
@@ -65,7 +73,9 @@ export class LeadRepository implements AbstractLeadRepository {
     const populatedLead = await this.leadModel.findById(lead._id).populate({
       path: 'owner_id',
     });
-
+    if(lead){
+       await this.cronService.oppportunityStatusChange() 
+    }
     return populatedLead;
   }
 

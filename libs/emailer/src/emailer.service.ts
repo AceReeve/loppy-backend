@@ -110,8 +110,9 @@ export class EmailerService {
 
   async sendEmailNotification(
     receiver: string,
-    first_name: string,
     content: any,
+    first_name?: string,
+
   ): Promise<any> {
     try {
       await this.mailerService.sendMail({

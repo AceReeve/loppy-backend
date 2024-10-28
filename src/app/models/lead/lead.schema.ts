@@ -32,6 +32,9 @@ export class Lead implements GenericSchema {
 
   @Prop({ required: [false, 'Missing required field'] })
   status: LeadStatus;
+ 
+  @Prop({ required: [false, 'Missing required field'] })
+  old_status: LeadStatus;
 
   @Prop({ required: [false, 'Missing required field'] })
   opportunity_value: number;

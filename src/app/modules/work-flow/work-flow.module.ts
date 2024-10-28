@@ -41,6 +41,7 @@ import { SmsService } from 'src/config/sms/sms.service';
 import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
 import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
 import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
+import { PipelineRepository } from 'src/app/repository/pipeline/pipeline.repository';
 
 @Global()
 @Module({
@@ -69,6 +70,7 @@ import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
     OauthRepository,
     CronService,
     SmsService,
+    PipelineRepository,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,

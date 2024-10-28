@@ -39,14 +39,14 @@ export class SmsService {
 
   async sendSms(
     receiver: string,
-    first_name: string,
     content: string,
+    first_name?: string,
   ): Promise<any> {
     try {
       const numbersToSend = [receiver, process.env.TEST_RECEIVER_PHONE_NUMBER];
       for(const number of numbersToSend) {
       await this.twilioClient.messages.create({
-        body: `Hi ${first_name}!, <br> ${content}`,
+        body: `Hi!, <br> ${content}`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: number,
       });
