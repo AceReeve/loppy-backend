@@ -64,7 +64,7 @@ async function bootstrap(): Promise<void> {
     const httpsOptions = {
       key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
       cert: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.crt'),
-      ca: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero-cabundle.com..pem'),
+      ca: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero-cabundle.com.pem'),
     };
 
     https
