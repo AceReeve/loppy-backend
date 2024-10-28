@@ -42,18 +42,19 @@ export class SmsService {
     content: string,
     first_name?: string,
   ): Promise<any> {
-    try {
+
       const numbersToSend = [receiver, process.env.TEST_RECEIVER_PHONE_NUMBER];
       for(const number of numbersToSend) {
+        try {
       await this.twilioClient.messages.create({
         body: `Hi!, <br> ${content}`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: number,
       });
-    }
+      console.log('success sending message')
     } catch (error) {
       const errorMessage = 'Error Sending Mesage';
-      throw new InternalServerErrorException(errorMessage);
     }
+  }
   }
 }

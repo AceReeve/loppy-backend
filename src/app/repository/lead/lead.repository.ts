@@ -61,10 +61,13 @@ export class LeadRepository implements AbstractLeadRepository {
   ): Promise<Lead | null> {
     const leadDataBefore = await this.leadModel.findById(id);
 
-    const updateLead = {
-      ...updateLeadDto,
-      old_status: leadDataBefore.status,
+    const updateLead: any = { ...updateLeadDto };
+
+    // Update old_status only if the status has changed
+    if (updateLeadDto.status && updateLeadDto.status !== leadDataBefore.status) {
+      updateLead.old_status = leadDataBefore.status;
     }
+    
     const lead = await this.leadModel.findByIdAndUpdate(id, updateLead,{
       new: true,
     });

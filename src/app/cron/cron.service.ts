@@ -468,9 +468,10 @@ export class CronService {
         for (const trig of trigger) {
           for (const act of action) {
             if(trig.node_name === WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED){
-              const data = await this.applyFiltersOpportunityStatusChange(trig.content.filters)
-              console.log('opportunity data:',data.primary_email)
-              if(data?.length){
+              const datas = await this.applyFiltersOpportunityStatusChange(trig.content.filters)
+
+              if(datas?.length){
+                for(const data of datas){
                 if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
                     await this.emailerService.sendEmailNotification(
                       data.primary_email,
@@ -484,6 +485,7 @@ export class CronService {
                     act.content.message,
                   );
                 }
+              }
               }
             }
           }
