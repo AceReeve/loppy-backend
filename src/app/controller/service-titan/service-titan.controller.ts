@@ -7,7 +7,7 @@ import { ServiceTitanService } from 'src/app/services/service-titan/service-tita
 @Controller('service-titan')
 @Public()
 export class serviceTitanController {
-  constructor(private readonly serviceTitanService: ServiceTitanService) {}
+  constructor(private readonly serviceTitanService: ServiceTitanService) { }
 
   @Get('getAllCustomersOverview')
   @ApiQuery({
@@ -40,7 +40,7 @@ export class serviceTitanController {
     @Query('start_date') start_date: string = `${new Date().getFullYear()}-01-01`,
     @Query('end_date') end_date: string = `${new Date().getFullYear()}-12-31`
   ): Promise<any[]> {
-    return this.serviceTitanService.getAllCustomersOverview(page,page_size,start_date,end_date);
+    return this.serviceTitanService.getAllCustomersOverview(page, page_size, start_date, end_date);
   }
 
   @Get('inventory-bills')
@@ -265,4 +265,10 @@ export class serviceTitanController {
   async getTasks(): Promise<any> {
     return this.serviceTitanService.getTasks();
   }
+
+  @Get('token')
+  async getToken(): Promise<String> {
+    return this.serviceTitanService.getToken();
+  }
+
 }
