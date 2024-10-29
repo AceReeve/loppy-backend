@@ -12,7 +12,7 @@
     "start:local": "NODE_ENV=local nest start --watch",
     "start:dev": "NODE_ENV=dev node dist/src/main",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "NODE_ENV=prod dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
