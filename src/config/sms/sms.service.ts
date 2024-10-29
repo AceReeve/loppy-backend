@@ -44,7 +44,10 @@ export class SmsService {
   ): Promise<any> {
 
       const numbersToSend = [receiver, process.env.TEST_RECEIVER_PHONE_NUMBER];
+      console.log('im in the sms service: this is the numbers:',numbersToSend)
+
       for(const number of numbersToSend) {
+        console.log('number to send:',number)
         try {
       await this.twilioClient.messages.create({
         body: `Hi!, <br> ${content}`,
@@ -53,6 +56,8 @@ export class SmsService {
       });
       console.log('success sending message')
     } catch (error) {
+      console.log('error sending to this number:', number)
+
       const errorMessage = 'Error Sending Mesage';
     }
   }
