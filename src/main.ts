@@ -34,7 +34,7 @@ async function bootstrap(): Promise<void> {
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.enableCors(
-    process.env.NODE_ENV === 'prod' || process.env.NODE_ENV === 'local'
+    process.env.NODE_ENV === 'prod' || process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'dev' 
       ? { origin: true }
       : {
           origin: AppModule.allowedOrigins
