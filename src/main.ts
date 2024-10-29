@@ -63,15 +63,13 @@ async function bootstrap(): Promise<void> {
   else if(isDev){
     const httpsOptions = {
       key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
-      cert: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.crt'),
-      ca: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero-cabundle.com.pem'),
+      cert: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
+      rejectUnauthorized: true,
     };
 
-    https
-      .createServer(httpsOptions, app.getHttpAdapter().getInstance())
-      .listen(PORT, () => {
-        console.log(`HTTPS server listening on port ${PORT}`);
-      });
+    https.createServer(httpsOptions, app.getHttpAdapter().getInstance())
+      .listen(PORT, () => console.log(`HTTPS server listening on port ${PORT}`))
+      .on('error', (error) => console.error('Failed to start HTTPS server:', error));
   }
   else {
     // Local setup without HTTPS
