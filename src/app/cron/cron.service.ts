@@ -124,26 +124,36 @@ export class CronService {
           const pipeline = await this.pipelineRepository.getPipeline(value);
           if (pipeline && pipeline.opportunities) {
             for (const opportunity of pipeline.opportunities) {
+              console.log('Im inside of loop')
               matchedLeads = matchedLeads.concat(opportunity.leads);
             }
           }
       }
       if (filterName === 'Has a Tag') {
+        console.log('Im inside of Has a Tag')
+
         matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
       }
   
       if (filterName === 'Lead Value') {
+        console.log('Im inside of Lead Value')
+
         matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
       }
   
       if (filterName === 'Moved from status') {
+        console.log('Im inside of Moved from status')
+
         matchedLeads = matchedLeads.filter(lead => lead.old_status === value);
       }
   
       if (filterName === 'Moved to status') {
+        console.log('Im inside of Moved to status')
+
         matchedLeads = matchedLeads.filter(lead => lead.status === value);
       }
     }
+    console.log('this is the matchedLeads:',matchedLeads)
     return matchedLeads.length > 0 ? matchedLeads : false;
   }
   
@@ -468,8 +478,8 @@ export class CronService {
         for (const trig of trigger) {
           for (const act of action) {
             if(trig.node_name === WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED){
+              console.log('Im inside of opportunity status changed')
               const datas = await this.applyFiltersOpportunityStatusChange(trig.content.filters)
-
               if(datas?.length){
                 for(const data of datas){
                 if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
@@ -480,6 +490,7 @@ export class CronService {
                 } else if (
                   act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
                 ) {
+                console.log('Im inside of ACTION SMS')
                   await this.smsService.sendSms(
                     data.primary_phone,
                     act.content.message,
