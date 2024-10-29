@@ -63,7 +63,7 @@ async function bootstrap(): Promise<void> {
   else if(isDev){
     const httpsOptions = {
       key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
-      cert: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero. fullchain.pem'),
+      cert: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
       rejectUnauthorized: true,
     };
 
