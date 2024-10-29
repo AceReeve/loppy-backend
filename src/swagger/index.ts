@@ -19,5 +19,4 @@ const swaggerConfig = (): Omit<OpenAPIObject, 'paths'> =>
     )
     .build();
     
-
 export default swaggerConfig;
