@@ -8,11 +8,11 @@ import { SmsService } from 'src/config/sms/sms.service';
 export class SmsController {
   constructor(private readonly smsService: SmsService) {}
 
-  @Post('send')
-  async sendSms(@Body() dto: SmsDto): Promise<any> {
-    const { to, message } = dto;
-    return await this.smsService.sendSms(to, message);
-  }
+  // @Post('send')
+  // async sendSms(@Body() dto: SmsDto): Promise<any> {
+  //   const { to, message } = dto;
+  //   return await this.smsService.sendSms(to, message);
+  // }
 
   @Get('status/:sid')
   @ApiQuery({

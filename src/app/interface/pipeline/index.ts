@@ -11,6 +11,7 @@ export abstract class AbstractPipelineRepository {
   ): Promise<Pipeline | null>;
   abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
+  abstract getAllPipelinesList(): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],
   ): Promise<Pipeline[] | null>;
@@ -33,6 +34,7 @@ export abstract class AbstractPipelineService {
   ): Promise<Pipeline | null>;
   abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
+  abstract getAllPipelinesList(): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],
   ): Promise<Pipeline[] | null>;

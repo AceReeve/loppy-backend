@@ -28,6 +28,7 @@ import { AxiosInstance } from 'axios';
 import { Opportunity } from '../models/opportunity/opportunity.schema';
 import { Pipeline } from '../models/pipeline/pipeline.schema';
 import { Lead } from '../models/lead/lead.schema';
+import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
 
 @Injectable()
 export class CronService {
@@ -52,6 +53,7 @@ export class CronService {
     private smsService: SmsService,
     protected readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
+    private readonly pipelineRepository: PipelineRepository,
   ) {}
 
   async triggerData() {
@@ -110,6 +112,47 @@ export class CronService {
       }
     }
 
+    return false;
+  }
+  private async applyFiltersOpportunityStatusChange(filters: any[]): Promise<any> {
+    let matchedLeads = [];
+  
+    for (const filter of filters) {
+      const { filter: filterName, value } = filter;
+  
+      if (filterName === 'In Pipeline') {
+          const pipeline = await this.pipelineRepository.getPipeline(value);
+          if (pipeline && pipeline.opportunities) {
+            for (const opportunity of pipeline.opportunities) {
+              matchedLeads = matchedLeads.concat(opportunity.leads);
+            }
+          }
+      }
+      if (filterName === 'Has a Tag') {
+        matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
+      }
+  
+      if (filterName === 'Lead Value') {
+        matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
+      }
+  
+      if (filterName === 'Moved from status') {
+        matchedLeads = matchedLeads.filter(lead => lead.old_status === value);
+      }
+  
+      if (filterName === 'Moved to status') {
+        matchedLeads = matchedLeads.filter(lead => lead.status === value);
+      }
+    }
+    return matchedLeads.length > 0 ? matchedLeads : false;
+  }
+  
+  private applyFiltersContactCreated(filters: any[]): boolean {
+    for (const filter of filters) {
+      const { filter: filterName, value } = filter;
+      if (filterName === 'Has a Tag') {
+      }
+    }
     return false;
   }
   private applyWeatherFilters(city: string, filters: any[]): boolean {
@@ -220,10 +263,10 @@ export class CronService {
                       _id: user.user_id,
                     });
                     if (receiverUser) {
-                      await this.emailerService.sendEmailBirthdayReminder(
+                      await this.emailerService.sendEmailNotification(
                         receiverUser.email,
-                        user.first_name,
                         act.content,
+                        user.first_name,
                       );
                     }
                   } else if (
@@ -232,10 +275,10 @@ export class CronService {
                     const receiverUserInfo = await this.userInfoModel.findOne({
                       user_id: user.user_id,
                     });
-                    await this.smsService.sendSmsBirthdayReminder(
+                    await this.smsService.sendSms(
                       receiverUserInfo.contact_no,
+                      act.content.message,
                       user.first_name,
-                      act.content,
                     );
                   }
                 }
@@ -265,11 +308,13 @@ export class CronService {
                     email: { $in: allFilteredEmail },
                   });
 
-                  if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                 
                     for (const user of users) {
                       const userInfo = await this.userInfoModel.findOne({
                         user_id: user._id,
                       });
+                      if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                      
                       const ownerUserInfo = await this.userInfoModel.findOne({
                         user_id: workflow.created_by,
                       });
@@ -278,6 +323,14 @@ export class CronService {
                         act.content,
                         userInfo.first_name,
                         ownerUserInfo.first_name,
+                      );
+                    }else if (
+                      act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                    ) {
+                      await this.smsService.sendSms(
+                        userInfo.contact_no,
+                        act.content.message,
+                        userInfo.first_name,
                       );
                     }
                   }
@@ -312,10 +365,11 @@ export class CronService {
                     const receiverUserInfo = await this.userInfoModel.findOne({
                       user_id: user.user_id,
                     });
-                    await this.smsService.sendSmsWeatherReminder(
+                    await this.smsService.sendSms(
                       receiverUserInfo.contact_no,
-                      user.first_name,
                       act.content.message,
+                      user.first_name,
+
                     );
                   }
                 }
@@ -391,6 +445,47 @@ export class CronService {
                     new: true,
                   },
                 );
+              }
+            }
+            if(WorkFlowTrigger.WORKFLOW_TRIGGER_CONTACT_CREATED){
+              if(this.applyFiltersContactCreated(trig.content.filters)){
+                
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  async oppportunityStatusChange() {
+    const user = await this.userRepository.getLoggedInUserDetails()
+    const workflows = await this.workFlowModel.find({'trigger.node_name': WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED, created_by: user._id});
+    for (const workflow of workflows) {
+      if (workflow.status === WorkFlowStatus.PUBLISHED) {
+        const { trigger, action } = workflow;
+
+        for (const trig of trigger) {
+          for (const act of action) {
+            if(trig.node_name === WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED){
+              const datas = await this.applyFiltersOpportunityStatusChange(trig.content.filters)
+
+              if(datas?.length){
+                for(const data of datas){
+                if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                    await this.emailerService.sendEmailNotification(
+                      data.primary_email,
+                      act.content,
+                    );
+                } else if (
+                  act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                ) {
+                  await this.smsService.sendSms(
+                    data.primary_phone,
+                    act.content.message,
+                  );
+                }
+              }
               }
             }
           }

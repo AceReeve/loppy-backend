@@ -219,8 +219,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       );
 
       // run cron
-      await this.cronService.handleCron();
-
+      // await this.cronService.handleCron();
       // }
       return createWorkFlow;
     } catch (error) {
@@ -305,7 +304,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       if (!result) {
         throw new Error(`workflow failed to published `);
       }
-      const results = await this.cronService.handleCron();
+      // const results = await this.cronService.handleCron();
 
       return result;
     } else {
