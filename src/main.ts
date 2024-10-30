@@ -57,37 +57,37 @@ async function bootstrap(): Promise<void> {
   console.log('Swagger document created');
   SwaggerModule.setup('docs', app, document);
   console.log('Swagger documentation setup complete');
-  if (isProd) {
-    // Production setup with HTTPS
-    const httpsOptions = {
-      key: fs.readFileSync('/etc/nginx/ssl/servihero.com.key'),
-      cert: fs.readFileSync('/etc/nginx/ssl/servihero.com.crt'),
-    };
+  // if (isProd) {
+  //   // Production setup with HTTPS
+  //   const httpsOptions = {
+  //     key: fs.readFileSync('/etc/nginx/ssl/servihero.com.key'),
+  //     cert: fs.readFileSync('/etc/nginx/ssl/servihero.com.crt'),
+  //   };
 
-    https
-      .createServer(httpsOptions, app.getHttpAdapter().getInstance())
-      .listen(PORT, () => {
-        console.log(`HTTPS server listening on port ${PORT}`);
-      });
-  } 
-  else if(isDev){
-    console.log('Running in dev mode');
-    const httpsOptions = {
-      key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
-      cert: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
-      ca: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
-      rejectUnauthorized: true,
-    };
-    console.log('HTTPS options loaded for dev mode');
-    https.createServer(httpsOptions, app.getHttpAdapter().getInstance())
-      .listen(PORT, () => console.log(`HTTPS server listening on port dev${PORT}`))
-      .on('error', (error) => console.error('Failed to start HTTPS server:', error));
+  //   https
+  //     .createServer(httpsOptions, app.getHttpAdapter().getInstance())
+  //     .listen(PORT, () => {
+  //       console.log(`HTTPS server listening on port ${PORT}`);
+  //     });
+  // } 
+  // else if(isDev){
+  //   console.log('Running in dev mode');
+  //   const httpsOptions = {
+  //     key: fs.readFileSync('/etc/nginx/ssl/sandbox.servihero.com.key'),
+  //     cert: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
+  //     ca: fs.readFileSync('/etc/nginx/ssl/fullchain.pem'),
+  //     rejectUnauthorized: true,
+  //   };
+  //   console.log('HTTPS options loaded for dev mode');
+  //   https.createServer(httpsOptions, app.getHttpAdapter().getInstance())
+  //     .listen(PORT, () => console.log(`HTTPS server listening on port dev${PORT}`))
+  //     .on('error', (error) => console.error('Failed to start HTTPS server:', error));
 
-  }
-  else {
+  // }
+  // else {
     // Local setup without HTTPS
     await app.listen(PORT);
     console.log(`Server listening on port ${PORT}`);
-  }
+  // }
 }
 bootstrap();
