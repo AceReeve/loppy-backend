@@ -26,6 +26,7 @@ import { LeadModule } from './app/modules/lead/lead.module';
 import { SmsModule } from './config/sms/sms.module';
 import { GmailModule } from './app/modules/gmail/gmail.module';
 import { PipelineModule } from './app/modules/pipeline/pipeline.module';
+import { LeadTriggerModule } from './app/modules/lead-trigger/lead-trigger.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { PipelineModule } from './app/modules/pipeline/pipeline.module';
     PipelineModule,
     OpportunityModule,
     LeadModule,
+    LeadTriggerModule,
     TwilioModule,
     DashboardModule,
     EmailNotificationModule,

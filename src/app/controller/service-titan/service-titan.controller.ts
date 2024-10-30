@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/app/decorators/public.decorator';
 import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
 
@@ -7,7 +7,41 @@ import { ServiceTitanService } from 'src/app/services/service-titan/service-tita
 @Controller('service-titan')
 @Public()
 export class serviceTitanController {
-  constructor(private readonly serviceTitanService: ServiceTitanService) {}
+  constructor(private readonly serviceTitanService: ServiceTitanService) { }
+
+  @Get('getAllCustomersOverview')
+  @ApiQuery({
+    name: 'page',
+    description: 'page',
+    example: '1',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page_size',
+    description: 'page size',
+    example: '50',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'start_date',
+    description: 'start date',
+    example: '2023-01-01',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'end_date',
+    description: 'end date',
+    example: '2023-01-31',
+    required: false,
+  })
+  async getAllCustomersOverview(
+    @Query('page') page: number = 1,
+    @Query('page_size') page_size: number = 50,
+    @Query('start_date') start_date: string = `${new Date().getFullYear()}-01-01`,
+    @Query('end_date') end_date: string = `${new Date().getFullYear()}-12-31`
+  ): Promise<any[]> {
+    return this.serviceTitanService.getAllCustomersOverview(page, page_size, start_date, end_date);
+  }
 
   @Get('inventory-bills')
   async getInventoryBills(
@@ -231,4 +265,10 @@ export class serviceTitanController {
   async getTasks(): Promise<any> {
     return this.serviceTitanService.getTasks();
   }
+
+  @Get('token')
+  async getToken(): Promise<String> {
+    return this.serviceTitanService.getToken();
+  }
+
 }

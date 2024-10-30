@@ -22,6 +22,11 @@ export abstract class AbstractOpportunityRepository {
     updateOpportunityDto: UpdateOpportunityDTO,
   ): Promise<Opportunity | null>;
   abstract deleteOpportunity(id: string): Promise<Opportunity | null>;
+  abstract getAllOpportunitiesPaginated(
+    page: number,
+    limit: number,
+    search: string,
+  ): Promise<Opportunity[] | null>;
 }
 
 export abstract class AbstractOpportunityService {
@@ -37,4 +42,9 @@ export abstract class AbstractOpportunityService {
     updateOpportunityDto: UpdateOpportunityDTO,
   ): Promise<Opportunity | null>;
   abstract deleteOpportunity(id: string): Promise<Opportunity | null>;
+  abstract getAllOpportunitiesPaginated(
+    page: number,
+    limit: number,
+    search: string,
+  ): Promise<any>;
 }

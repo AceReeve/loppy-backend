@@ -12,12 +12,14 @@ import {
 } from 'src/app/interface/pipeline';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 import * as XLSX from 'xlsx';
+import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class PipelineRepository implements AbstractPipelineRepository {
   constructor(
     @InjectModel(Pipeline.name)
     private pipelineModel: Model<Pipeline & Document>,
+    private userRepository: UserRepository,
   ) {}
 
   async getAllPipelines(): Promise<Pipeline[] | null> {
@@ -27,9 +29,47 @@ export class PipelineRepository implements AbstractPipelineRepository {
         path: 'opportunities',
         populate: {
           path: 'leads',
+          populate: {
+            path: 'owner_id',
+          },
         },
       })
       .exec();
+  }
+
+  async getAllPipelinesList(): Promise<any> {
+    const pipelineData = await this.pipelineModel
+      .find({})
+      .populate({
+        path: 'opportunities',
+        populate: {
+          path: 'leads',
+          populate: {
+            path: 'owner_id',
+          },
+        },
+      })
+      .exec();
+    const members = await this.userRepository.getMember();
+    const transformedPipelines = pipelineData.map(pipeline => ({
+      _id: pipeline._id,
+      title: pipeline.title,
+      opportunities: pipeline.opportunities.map(opportunity => ({
+        _id: opportunity._id,
+        title: opportunity.title,
+      })),
+    }));
+  
+    // Transform the members data
+    const transformedMembers = members.users.map(user => ({
+      name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`: user.email,
+      id: user._id.toString(),
+    }));
+  
+    return {
+      pipelines: transformedPipelines,
+      members: transformedMembers,
+    };
   }
 
   async getPipeline(id: string): Promise<Pipeline | null> {
@@ -39,6 +79,9 @@ export class PipelineRepository implements AbstractPipelineRepository {
         path: 'opportunities',
         populate: {
           path: 'leads',
+          populate: {
+            path: 'owner_id',
+          },
         },
       })
       .exec();

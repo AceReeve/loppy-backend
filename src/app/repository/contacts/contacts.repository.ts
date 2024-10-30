@@ -365,6 +365,10 @@ export class ContactsRepository implements AbstractContactsRepository {
     return { data, meta };
   }
 
+  async getAllContact(): Promise<any> {
+    return await this.contactsModel.find();
+  }
+
   async getContactByID(id: string): Promise<any> {
     const contactDetails = await this.contactsModel.findById({
       _id: new Types.ObjectId(id),

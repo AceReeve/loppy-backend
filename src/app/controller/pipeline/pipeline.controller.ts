@@ -32,7 +32,7 @@ import { extname } from 'path';
 @ApiTags('Pipelines')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('Bearer')
-@Controller('pipeline')
+@Controller('pipelines')
 export class PipelineController {
   constructor(private readonly pipelineService: AbstractPipelineService) {}
 
@@ -48,6 +48,12 @@ export class PipelineController {
   @ApiOperation({ summary: 'Get pipelines' })
   async getAllPipelines(): Promise<Pipeline[] | null> {
     return await this.pipelineService.getAllPipelines();
+  }
+
+  @Get('all-pipelines-list')
+  @ApiOperation({ summary: 'Get pipelines' })
+  async getAllPipelinesList(): Promise<Pipeline[] | null> {
+    return await this.pipelineService.getAllPipelinesList();
   }
 
   @Get(':id')

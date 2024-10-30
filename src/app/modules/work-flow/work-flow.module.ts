@@ -18,14 +18,6 @@ import { WeatherForecastSchemaModule } from 'src/app/models/weatherforecast/weat
 import { OtpSchemaModule } from 'src/app/models/otp/otp.schema.module';
 import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.schema.module';
 import { S3Service } from 'src/app/services/s3/s3.service';
-import { MessagingTwilioSchemaModule } from 'src/app/models/messaging-twilio/messaging-twilio.schema.module';
-import { MessagingTwilioController } from 'src/app/controller/messaging-twilio/messaging-twilio.controller';
-import {
-  AbstractMessagingTwilioRepository,
-  AbstractMessagingTwilioService,
-} from 'src/app/interface/messaging-twilio';
-import { MessagingTwilioRepository } from 'src/app/repository/messaging-twilio/messaging-twilio.repository';
-import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
 import { WorkFlowSchemaModule } from 'src/app/models/work-flow/work-flow.schema.module';
 import {
   AbstractWorkFlowRepository,
@@ -40,7 +32,11 @@ import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.
 import { SmsService } from 'src/config/sms/sms.service';
 import { OpportunitySchemaModule } from 'src/app/models/opportunity/opportunity.schema.module';
 import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.module';
-
+import { LeadSchemaModule } from 'src/app/models/lead/lead.schema.module';
+import { PipelineRepository } from 'src/app/repository/pipeline/pipeline.repository';
+import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
+import { HttpService } from '@nestjs/axios';
+import axios from 'axios';
 @Global()
 @Module({
   imports: [
@@ -57,7 +53,9 @@ import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.mo
     FileUploadSchemaModule,
     TeamSchemaModule,
     OpportunitySchemaModule,
+    LeadSchemaModule,
     PipelineSchemaModule,
+    WeatherForecastSchemaModule,
   ],
   providers: [
     UserService,
@@ -67,6 +65,9 @@ import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.mo
     OauthRepository,
     CronService,
     SmsService,
+    PipelineRepository,
+    ServiceTitanService,
+    HttpService,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,
@@ -75,8 +76,12 @@ import { PipelineSchemaModule } from 'src/app/models/pipeline/pipeline.schema.mo
       provide: AbstractWorkFlowService,
       useClass: WorkFlowService,
     },
+    {
+      provide: 'AXIOS_INSTANCE_TOKEN',
+      useFactory: () => axios.create(),
+    },
   ],
   controllers: [WorkFlowController],
-  exports: [],
+  exports: ['AXIOS_INSTANCE_TOKEN', HttpService],
 })
 export class WorkFlowModule {}

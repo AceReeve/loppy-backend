@@ -70,7 +70,7 @@ export class AuthRepository {
       { email: email },
       { $inc: { login_count: 1 } },
     );
-    return { _id, first_name, last_name, email, status, access_token };
+    return { _id, first_name, last_name, email, status, access_token, role };
   }
 
   async googleLogin(user: GoogleLoginUserDto) {
@@ -92,7 +92,7 @@ export class AuthRepository {
       userRole.role,
       user.email,
     );
-    return { access_token };
+    return { access_token, role: userRole.role };
   }
 
   async googleSave(googleSaveDTO: GoogleSaveDTO) {
@@ -122,7 +122,7 @@ export class AuthRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      return { userData, access_token };
+      return { userData, access_token, role };
     } else {
       const userData = await this.userModel.create({
         email: googleSaveDTO.email,
@@ -143,7 +143,7 @@ export class AuthRepository {
         payload,
         this.configService.get<string>('JWT_EXPIRATION'),
       );
-      return { userData, userInfo, access_token };
+      return { userData, userInfo, access_token, role };
     }
   }
 

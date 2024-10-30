@@ -13,9 +13,9 @@ export class ServiceTitanService {
   private readonly apiUrl = 'https://api.servicetitan.io/';
   private readonly appKey = 'ak1.5y547w55zqerjtwixu6od03et';
   private readonly tenant = '1885706780';
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
-  private async getToken(): Promise<string> {
+  async getToken(): Promise<string> {
     if (this.token) {
       return this.token;
     }
@@ -63,7 +63,7 @@ export class ServiceTitanService {
             order: 'desc',
           },
           // Add a timeout to handle cases where requests are hanging
-          timeout: 5000, // Adjust the timeout as needed
+          timeout: 10000, // Adjust the timeout as needed
         }),
       );
       return response.data;
@@ -78,6 +78,131 @@ export class ServiceTitanService {
     }
   }
 
+  //////////
+  async getAllCustomers(
+    page: number = 1,
+    pageSize: number = 50,
+    startDate: string = `${new Date().getFullYear()}-01-01`,
+    endDate: string = `${new Date().getFullYear()}-12-31`): Promise<any[]> {
+
+    const customers = [];
+    let currentPage = page;
+    let hasMore = true;
+
+    // while (hasMore) {
+    // Fetch customers with date filtering applied at the API level
+    const customerPage = await this.fetchData(
+      `crm/v2/tenant/${this.tenant}/customers`,
+      {
+        page: currentPage,
+        pageSize,
+        createdOnOrAfter: startDate,
+        createdBefore: endDate
+      }
+    );
+
+    if (customerPage.data) {
+      console.log(customerPage.data)
+      customers.push(...customerPage.data);
+    } else {
+      throw new Error('Unexpected response structure: data field not found');
+    }
+
+    // hasMore = customerPage.hasMore;
+    // currentPage++;
+    // }
+    return customers;
+  }
+
+  async getCallsV1(customerId: string): Promise<any> {
+    console.log('b3')
+    const allCalls = await this.fetchData(`telecom/v2/tenant/${this.tenant}/calls`);
+    const customerCalls = allCalls.data.filter(call => call.leadCall?.customer?.id === customerId);
+    return customerCalls;
+  }
+
+  // Fetch jobs for the customer to calculate lifetime value
+  async getJobsV1(customerId: string): Promise<any> {
+    console.log('a1')
+    const jobsData = await this.fetchData(`jpm/v2/tenant/${this.tenant}/jobs`, { customerId });
+
+    // Check if jobsData.data is an array
+    return Array.isArray(jobsData.data) ? jobsData.data : [];
+  }
+
+  // Fetch campaigns for the customer
+  async getCampaignsV1(customerId: string): Promise<any> {
+    console.log('b2')
+    return this.fetchData(`marketing/v2/tenant/${this.tenant}/campaigns`, { customerId });
+  }
+
+  // Fetch the last interaction for the customer
+  // this api " INTERACTIONS" is having error 404 for enhancement
+  async getInteractions(customerId: string): Promise<any> {
+    return this.fetchData(`crm/v2/tenant/${this.tenant}/interactions`, { customerId });
+  }
+
+  async getAllCustomersOverview(
+    page: number,
+    page_size: number,
+    start_date: string,
+    end_date: string
+  ): Promise<any[]> {
+
+    const customers = await this.getAllCustomers(page, page_size, start_date, end_date);
+    const customersOverview = [];
+    const batchSize = 5; // Set the number of customers to process concurrently
+
+    // Helper function to process each batch of customers
+    const processBatch = async (batch) => {
+      const promises = batch.map(async (customer) => {
+        try {
+          const [jobs, campaigns, calls] = await Promise.all([
+            this.getJobsV1(customer.id).catch(() => []),
+            this.getCampaignsV1(customer.id).catch(() => ({ data: [] })),
+            this.getCallsV1(customer.id).catch(() => [])
+          ]);
+
+          const lifetimeValue = jobs.length
+            ? jobs.reduce((acc, job) => {
+              if (!job.noCharge) {
+                return acc + (job.totalAmount || 0);
+              }
+              return acc;
+            }, 0)
+            : 0;
+
+          const lastCampaign = campaigns?.data?.length ? campaigns.data[0].name : 'None';
+
+          const contactPhones = calls.map(call =>
+            call.leadCall?.customer?.contacts?.find(contact => contact.type === 'MobilePhone')?.value || null
+          );
+
+          customersOverview.push({
+            name: customer.name || 'Unknown',
+            phone: contactPhones.filter(Boolean).toString(),
+            source: customer.customFields?.source || 'Unknown',
+            lifetimeValue,
+            lastCampaign,
+            lastInteraction: 'None',
+            created_on: customer.createdOn
+          });
+
+        } catch (error) {
+          console.error(`Error processing customer ${customer.id}:`, error);
+        }
+      });
+
+      await Promise.all(promises); // Wait for the batch to complete
+    };
+
+    // Split customers into batches and process each batch sequentially
+    for (let i = 0; i < customers.length; i += batchSize) {
+      const batch = customers.slice(i, i + batchSize);
+      await processBatch(batch); // Process each batch
+    }
+    return customersOverview;
+  }
   getInventoryBills(page: number, pageSize: number): Promise<any> {
     return this.fetchData(
       `accounting/v2/tenant/${this.tenant}/inventory-bills`,
@@ -108,10 +233,23 @@ export class ServiceTitanService {
   }
 
   async getCustomers(page: number, pageSize: number): Promise<any> {
-    return this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, {
+    const startYear = new Date().getFullYear() - 1;
+    const endYear = new Date().getFullYear();
+
+    const response = await this.fetchData(`crm/v2/tenant/${this.tenant}/customers`, {
       page,
       pageSize,
     });
+
+    const customers = response.data || [];
+
+    const filteredCustomers = customers.filter((customer: any) => {
+      const createdOnDate = new Date(customer.createdOn);
+      return createdOnDate.getFullYear() === startYear;
+    });
+    console.log('data count', response.data.length)
+    console.log('startYear', startYear)
+    // return filteredCustomers;
   }
 
   async getAppointmentAssignments(

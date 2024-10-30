@@ -13,6 +13,9 @@ export class PipelineService implements AbstractPipelineService {
   async getAllPipelines(): Promise<Pipeline[] | null> {
     return await this.repository.getAllPipelines();
   }
+  async getAllPipelinesList(): Promise<Pipeline[] | null> {
+    return await this.repository.getAllPipelinesList();
+  }
 
   async getPipeline(id: string): Promise<Pipeline | null> {
     return await this.repository.getPipeline(id);

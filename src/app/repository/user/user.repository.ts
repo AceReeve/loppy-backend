@@ -145,7 +145,7 @@ export class UserRepository implements AbstractUserRepository {
   async changePassword(dto: ChangePasswordDto): Promise<any> {
     const user = await this.getLoggedInUserDetails();
     const passwordMatch = await bcrypt.compare(
-      dto.current_pasword,
+      dto.current_password,
       user.password,
     );
     if (!passwordMatch) {
@@ -1175,5 +1175,12 @@ export class UserRepository implements AbstractUserRepository {
     } else {
       return { users: [userToInclude] };
     }
+  }
+
+  async getAllUsers(): Promise<any> {
+    const members = await this.getMember()
+    const emails = members.users.map(user => user.email);
+    const users = await this.userModel.find({email: {$in: emails}}).exec();
+    return users;
   }
 }

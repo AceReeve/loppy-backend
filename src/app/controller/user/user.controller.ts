@@ -249,4 +249,12 @@ export class UserController {
   async getMember(): Promise<any> {
     return await this.userService.getMember();
   }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Bearer')
+  @Get('get-all-users')
+  @ApiOperation({ summary: 'Get member by id' })
+  async getAllUsers(): Promise<any> {
+    return await this.userService.getAllUsers();
+  }
 }
