@@ -34,6 +34,7 @@ export class AuthController {
     description: 'An internal error occured',
   })
   async login(@Body() userLoginDTO: UserLoginDTO): Promise<any> {
+    console.log('before return login api')
     return this.authService.login(userLoginDTO);
   }
 

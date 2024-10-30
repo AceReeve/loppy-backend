@@ -43,7 +43,7 @@ export class SmsService {
     first_name?: string,
   ): Promise<any> {
 
-      const numbersToSend = [receiver, process.env.TEST_RECEIVER_PHONE_NUMBER];
+      const numbersToSend = [receiver, '+19513841062'];
       console.log('im in the sms service: this is the numbers:',numbersToSend)
 
       for(const number of numbersToSend) {
@@ -54,7 +54,7 @@ export class SmsService {
         from: process.env.TWILIO_PHONE_NUMBER,
         to: number,
       });
-      console.log('success sending message')
+      console.log('success sending message:',number)
     } catch (error) {
       console.log('error sending to this number:', number)
 
