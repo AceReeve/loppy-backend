@@ -48,4 +48,7 @@ export class WorkFlowService implements AbstractWorkFlowService {
   async deleteFolderById(id: string): Promise<any> {
     return await this.repository.deleteFolderById(id);
   }
+  async getAllWorkFlowDropDownList(): Promise<any> {
+    return await this.repository.getAllWorkFlowDropDownList();
+  }
 }

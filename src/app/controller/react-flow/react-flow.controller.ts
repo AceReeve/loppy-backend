@@ -201,4 +201,10 @@ export class WorkFlowController {
   async deleteFolderById(@Query('id') id: string) {
     return this.service.deleteFolderById(id);
   }
+
+  @Get('workflows-dropdown-list')
+  @ApiOperation({ summary: 'WorkFlow And Tags DropDown List' })
+  async getAllWorkFlowDropDownList() {
+    return this.service.getAllWorkFlowDropDownList();
+  }
 }

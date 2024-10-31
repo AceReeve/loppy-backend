@@ -74,7 +74,7 @@ export class ServiceTitanService {
         );
         return this.fetchData(endpoint, params, retries - 1);
       }
-      throw new Error('Could not retrieve data: ' + error.message);
+      // throw new Error('Could not retrieve data: ' + error.message);
     }
   }
 
@@ -395,6 +395,10 @@ export class ServiceTitanService {
 
   async getTagTypes(): Promise<any> {
     return this.fetchData(`settings/v2/tenant/${this.tenant}/tag-types`);
+  }
+
+  async getTagTypesv2(): Promise<any> {
+    return this.fetchData(`settings/v2/tenant/${this.tenant}/export/tag-types`);
   }
 
   async getTechnicians(): Promise<any> {

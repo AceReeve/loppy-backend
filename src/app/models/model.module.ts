@@ -10,6 +10,7 @@ import { ContactsSchemaModule } from './contacts/contacts.schema.module';
 import { OtpSchemaModule } from './otp/otp.schema.module';
 import { MessagingTwilioSchemaModule } from './messaging-twilio/messaging-twilio.schema.module';
 import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
+import { TagsSchemaModule } from './tags/tags.schema.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
     ContactsSchemaModule,
     OtpSchemaModule,
     MessagingTwilioSchemaModule,
-    WorkFlowSchemaModule
+    WorkFlowSchemaModule,
+    TagsSchemaModule
   ],
   providers: [],
   exports: [
@@ -37,7 +39,8 @@ import { WorkFlowSchemaModule } from './work-flow/work-flow.schema.module';
     ContactsSchemaModule,
     OtpSchemaModule,
     MessagingTwilioSchemaModule,
-    WorkFlowSchemaModule
+    WorkFlowSchemaModule,
+    TagsSchemaModule
   ],
 })
 export class ModelModule {}
