@@ -50,16 +50,16 @@ export class PipelineRepository implements AbstractPipelineRepository {
         },
       })
       .exec();
+
     const members = await this.userRepository.getMember();
     const transformedPipelines = pipelineData.map(pipeline => ({
-      _id: pipeline._id,
-      title: pipeline.title,
+      id: pipeline._id,
+      name: pipeline.title,
       opportunities: pipeline.opportunities.map(opportunity => ({
-        _id: opportunity._id,
-        title: opportunity.title,
+        id: opportunity._id,
+        name: opportunity.title,
       })),
     }));
-  
     // Transform the members data
     const transformedMembers = members.users.map(user => ({
       name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`: user.email,
