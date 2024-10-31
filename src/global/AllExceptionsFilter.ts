@@ -59,12 +59,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const mongoException = exceptionInstanceGeneric as MongooseValidation;
         const mongoErrors = mongoException
           ? _.map(mongoException, (exception) => {
-              const field = exception.path;
-              return {
-                [field]: [mongoException[field].message],
-              };
-            })
-          : [exception.message] || ['Unknown error has occured'];
+              if (exception && exception.path) {
+        const field = exception.path;
+        return {
+          [field]: [mongoException[field]?.message || 'Unknown error occurred'],
+        };
+      }
+      return { error: 'Unknown error occurred' };
+    })
+            : exception.message ? [exception.message] : ['Unknown error has occurred'];
+          // : [exception.message] || ['Unknown error has occured'];
         status = 400;
         responseData = {
           message: exception.name,
