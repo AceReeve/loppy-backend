@@ -52,4 +52,8 @@ export enum LeadStatus {
   IN_PROGRESS = 'In Progress',
   GOOD = 'Good',
   STALLED = 'Stalled',
+  OPEN = 'Open',
+  LOST = 'Lost',
+  WON = 'Won',
+  ABANDON = 'Abandon',
 }
