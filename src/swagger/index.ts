@@ -5,7 +5,7 @@ const swaggerConfig = (): Omit<OpenAPIObject, 'paths'> =>
     .setTitle('HeroHub API Swagger')
     .setDescription('HeroHub API document')
     .setVersion('1.0')
-    .addServer('https://sandbox.servihero.com:8080') 
+    .addServer('https://servihero.com') 
     .addBearerAuth(
       {
         description: `Add a valid JWT access token here to access API end-point.`,
