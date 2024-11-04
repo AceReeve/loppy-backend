@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model ,Types} from 'mongoose';
 import { CronService } from 'src/app/cron/cron.service';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { AbstractLeadRepository } from 'src/app/interface/lead';
@@ -84,5 +84,19 @@ export class LeadRepository implements AbstractLeadRepository {
 
   async deleteLead(id: string): Promise<any> {
     return await this.leadModel.findByIdAndDelete(id);
+  }
+
+  async updateOpportunityStatus(
+    id: string,
+    status: string,
+  ): Promise<Lead | null> {
+    try {
+      return await this.leadModel.findOneAndUpdate(
+        {_id: new Types.ObjectId(id)}, 
+        {$set: {status: status} },
+        {new: true})
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

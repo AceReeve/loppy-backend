@@ -24,6 +24,9 @@ export class Lead implements GenericSchema {
   @Prop({ required: [false, 'Missing required field'] })
   primary_contact_name_id: string;
 
+  @Prop()
+  primary_contact_name?: string;
+
   @Prop({ required: [false, 'Missing required field'] })
   opportunity_name: string;
 

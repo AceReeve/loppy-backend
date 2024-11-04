@@ -37,6 +37,8 @@ import { PipelineRepository } from 'src/app/repository/pipeline/pipeline.reposit
 import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
 import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
+import { TagsSchemaModule } from 'src/app/models/tags/tags.schema.module';
+import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
 @Global()
 @Module({
   imports: [
@@ -56,6 +58,8 @@ import axios from 'axios';
     LeadSchemaModule,
     PipelineSchemaModule,
     WeatherForecastSchemaModule,
+    TagsSchemaModule,
+    ContactsSchemaModule
   ],
   providers: [
     UserService,

@@ -36,6 +36,7 @@ import { FileUploadSchemaModule } from 'src/app/models/file-upload/file-upload.s
 import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.schema.module';
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
 
 
 @Module({
@@ -54,6 +55,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
     TeamSchemaModule,
+    ContactsSchemaModule
   ],
   controllers: [LeadController],
   // Inversion

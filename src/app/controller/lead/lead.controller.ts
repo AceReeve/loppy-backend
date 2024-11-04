@@ -7,8 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiQueryOptions, ApiTags } from '@nestjs/swagger';
 import { AbstractLeadService } from 'src/app/interface/lead';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
@@ -31,6 +32,26 @@ export class LeadController {
   @ApiOperation({ summary: 'Get opportunity by id' })
   async getLeadById(@Param('id') id: string): Promise<Lead | null> {
     return await this.leadService.getLeadById(id);
+  }
+
+  @Put('status-change')
+  @ApiOperation({ summary: 'Update Opportunity status' })
+  @ApiQuery({
+    name: 'id',
+    required: true,
+  } as ApiQueryOptions)
+  @ApiQuery({
+    name: 'status',
+    required: true,
+  } as ApiQueryOptions)
+  async updateOpportunityStatus(
+    @Query('id') id: string,
+    @Query('status') status: string,
+  ): Promise<Lead | null> {
+    return await this.leadService.updateOpportunityStatus(
+      id,
+      status,
+    );
   }
 
   @Get()

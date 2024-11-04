@@ -9,7 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiQueryOptions, ApiTags } from '@nestjs/swagger';
 import { AbstractOpportunityService } from 'src/app/interface/opportunity';
 import {
   CreateOpportunityDTO,

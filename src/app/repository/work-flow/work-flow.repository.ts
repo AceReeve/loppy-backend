@@ -19,6 +19,9 @@ import { WorkFlowType } from 'src/app/const';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 import { Lead } from 'src/app/models/lead/lead.schema';
+import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
+import { Tags } from 'src/app/models/contacts/contacts.schema';
+import { TagsDocument } from 'src/app/models/tags/tags.schema';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -36,6 +39,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     @InjectModel(Lead.name)
     private leadModel: Model<Lead & Document>,
     private cronService: CronService,
+    private serviceTitan: ServiceTitanService,
+    @InjectModel(Tags.name)
+    private tagsModel: Model<TagsDocument>,
   ) {}
 
   async generateUniqueName(): Promise<string> {
@@ -295,6 +301,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.PUBLISHED,
+            isPublished: published
           },
         },
         {
@@ -316,6 +323,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.SAVED,
+            isPublished: published
           },
         },
         {
@@ -582,6 +590,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
             status: WorkFlowStatus.DELETED,
           },
         },
+        {
+          new: true,
+        },
       );
       if (!result) {
         throw new Error(`workflow folder failed to delete `);
@@ -609,5 +620,43 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       }
       return result;
     }
+  }
+
+  async getAllWorkFlowDropDownList(): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails();
+    const workFlows = await this.workFlowModel.find({
+      created_by: user._id,
+      status: { $ne: WorkFlowStatus.DELETED },
+    });
+    const formattedWorkFlows = workFlows.map(workFlow => ({
+      name: workFlow.name,
+      id: workFlow._id
+    }));
+    try{
+      const tagsResponse = await this.serviceTitan.getTagTypesv2();
+      const tags = tagsResponse.data;
+      const formattedTags = tags.map(tag => ({
+        name: tag.name,
+        id: tag.id,
+      }));
+      for(const formattedTag of formattedTags){
+        const isExisting = await this.tagsModel.findOne({id: formattedTag.id})
+        if(!isExisting){
+          const saveTags = new this.tagsModel({
+            name: formattedTag.name,
+            id: formattedTag.id,
+            source: 'Service Titan',
+          });
+          await saveTags.save();
+        }
+      }
+    }catch (error){
+      console.error('Error fetching tags from Service Titan:', error);
+    }
+
+    return {
+      workflows: formattedWorkFlows,
+      tags: await this.tagsModel.find(),
+    };
   }
 }

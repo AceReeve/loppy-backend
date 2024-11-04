@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model,Types } from 'mongoose';
 import { CreatePipelineDTO, UpdatePipelineDTO } from 'src/app/dto/pipeline';
 import {
   AbstractPipelineRepository,
@@ -13,17 +13,23 @@ import {
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
 import * as XLSX from 'xlsx';
 import { UserRepository } from '../user/user.repository';
+import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
+import { Contacts, ContactsDocument } from 'src/app/models/contacts/contacts.schema';
 
 @Injectable()
 export class PipelineRepository implements AbstractPipelineRepository {
   constructor(
     @InjectModel(Pipeline.name)
     private pipelineModel: Model<Pipeline & Document>,
+    @InjectModel(UserInfo.name)
+    private userInfoModel: Model<UserInfoDocument>,
+    @InjectModel(Contacts.name)
+    private contactModel: Model<ContactsDocument>,
     private userRepository: UserRepository,
   ) {}
 
   async getAllPipelines(): Promise<Pipeline[] | null> {
-    return await this.pipelineModel
+    const pipelines = await this.pipelineModel
       .find({})
       .populate({
         path: 'opportunities',
@@ -35,6 +41,29 @@ export class PipelineRepository implements AbstractPipelineRepository {
         },
       })
       .exec();
+      for (const pipeline of pipelines) {
+        for (const opportunity of pipeline.opportunities) {
+          for (const lead of opportunity.leads) {
+            if (lead.owner_id) {
+              let user: any;
+              user = lead.owner_id
+              if (user) {
+                const userData = await this.userInfoModel.findOne({ user_id: user._id });
+                user.name = userData ? `${userData.first_name} ${userData.last_name}` : 'Unknown';
+             }
+            } else {
+              console.log('    No owner found for this lead');
+            }
+
+           if(lead.primary_contact_name_id){
+             const contact = await this.contactModel.findOne({_id: new Types.ObjectId(lead.primary_contact_name_id)})
+             lead.primary_contact_name = contact ? `${contact.first_name} ${contact.last_name}` : 'Unknown';
+           }
+
+          }
+        }
+      }
+      return pipelines;
   }
 
   async getAllPipelinesList(): Promise<any> {
@@ -50,16 +79,17 @@ export class PipelineRepository implements AbstractPipelineRepository {
         },
       })
       .exec();
+
     const members = await this.userRepository.getMember();
     const transformedPipelines = pipelineData.map(pipeline => ({
-      _id: pipeline._id,
-      title: pipeline.title,
+      id: pipeline._id,
+      name: pipeline.title,
       opportunities: pipeline.opportunities.map(opportunity => ({
-        _id: opportunity._id,
-        title: opportunity.title,
+        id: opportunity._id,
+        name: opportunity.title,
       })),
     }));
-  
+
     // Transform the members data
     const transformedMembers = members.users.map(user => ({
       name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`: user.email,
@@ -73,7 +103,7 @@ export class PipelineRepository implements AbstractPipelineRepository {
   }
 
   async getPipeline(id: string): Promise<Pipeline | null> {
-    return await this.pipelineModel
+    const pipeline = await this.pipelineModel
       .findById(id)
       .populate({
         path: 'opportunities',
@@ -85,7 +115,29 @@ export class PipelineRepository implements AbstractPipelineRepository {
         },
       })
       .exec();
+
+        for (const opportunity of pipeline.opportunities) {
+          for (const lead of opportunity.leads) {
+            if (lead.owner_id) {
+              let user: any;
+              user = lead.owner_id
+              if (user) {
+                const userData = await this.userInfoModel.findOne({ user_id: user._id });
+                user.name = userData ? `${userData.first_name} ${userData.last_name}` : 'Unknown';
+             }
+            } else {
+              console.log('    No owner found for this lead');
+            }
+
+            if(lead.primary_contact_name_id){
+              const contact = await this.contactModel.findOne({_id: new Types.ObjectId(lead.primary_contact_name_id)})
+              lead.primary_contact_name = contact ? `${contact.first_name} ${contact.last_name}` : 'Unknown';
+            }
+          }
+      }
+      return pipeline;
   }
+
   async createPipeline(
     createPipelineDto: CreatePipelineDTO,
   ): Promise<Pipeline | null> {

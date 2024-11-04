@@ -14,6 +14,10 @@ export abstract class AbstractLeadRepository {
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null>;
   abstract deleteLead(id: string): Promise<Lead | null>;
+  abstract updateOpportunityStatus(
+    id: string,
+    status: string,
+  ): Promise<Lead | null>;
 }
 
 export abstract class AbstractLeadService {
@@ -25,4 +29,8 @@ export abstract class AbstractLeadService {
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null>;
   abstract deleteLead(id: string): Promise<Lead | null>;
+  abstract updateOpportunityStatus(
+    id: string,
+    status: string,
+  ): Promise<Lead | null>;
 }
