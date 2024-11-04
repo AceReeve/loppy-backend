@@ -26,7 +26,7 @@ export class User implements GenericSchema {
 
   @Prop({ default: 'ACTIVE' })
   status: string;
-
+  
   @Prop()
   login_by?: string;
 
@@ -41,6 +41,9 @@ export class User implements GenericSchema {
 
   @Prop({ type: Object })
   role: Object;
+
+  @Prop()
+  name?: string;
 }
 
 async function hashPasswordHook(next: () => void): Promise<void> {

@@ -30,6 +30,7 @@ import { S3Service } from 'src/app/services/s3/s3.service';
 import { OauthRepository } from 'src/app/repository/oauth/oauth.repository';
 import { MailerService,MAILER_OPTIONS } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ConfigService } from '@nestjs/config';
     InvitedUserSchemaModule,
     FileUploadSchemaModule,
     TeamSchemaModule,
+    ContactsSchemaModule
   ],
   controllers: [PipelineController],
   // Inversion

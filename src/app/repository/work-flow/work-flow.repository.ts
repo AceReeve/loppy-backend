@@ -628,27 +628,32 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       created_by: user._id,
       status: { $ne: WorkFlowStatus.DELETED },
     });
-    const tagsResponse = await this.serviceTitan.getTagTypesv2();
-    const tags = tagsResponse.data;
     const formattedWorkFlows = workFlows.map(workFlow => ({
       name: workFlow.name,
       id: workFlow._id
     }));
-    const formattedTags = tags.map(tag => ({
-      name: tag.name,
-      id: tag.id,
-    }));
-    for(const formattedTag of formattedTags){
-      const isExisting = await this.tagsModel.findOne({id: formattedTag.id})
-      if(!isExisting){
-        const saveTags = new this.tagsModel({
-          name: formattedTag.name,
-          id: formattedTag.id,
-          source: 'Service Titan',
-        });
-        await saveTags.save();
+    try{
+      const tagsResponse = await this.serviceTitan.getTagTypesv2();
+      const tags = tagsResponse.data;
+      const formattedTags = tags.map(tag => ({
+        name: tag.name,
+        id: tag.id,
+      }));
+      for(const formattedTag of formattedTags){
+        const isExisting = await this.tagsModel.findOne({id: formattedTag.id})
+        if(!isExisting){
+          const saveTags = new this.tagsModel({
+            name: formattedTag.name,
+            id: formattedTag.id,
+            source: 'Service Titan',
+          });
+          await saveTags.save();
+        }
       }
+    }catch (error){
+      console.error('Error fetching tags from Service Titan:', error);
     }
+
     return {
       workflows: formattedWorkFlows,
       tags: await this.tagsModel.find(),

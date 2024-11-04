@@ -22,6 +22,7 @@ import { OpportunitySchemaModule } from '../models/opportunity/opportunity.schem
 import { PipelineSchemaModule } from '../models/pipeline/pipeline.schema.module';
 import { LeadSchemaModule } from '../models/lead/lead.schema.module';
 import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
+import { ContactsSchemaModule } from '../models/contacts/contacts.schema.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
     OpportunitySchemaModule,
     PipelineSchemaModule,
     LeadSchemaModule,
+    ContactsSchemaModule
   ],
   providers: [
     {
