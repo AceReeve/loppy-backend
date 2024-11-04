@@ -301,6 +301,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.PUBLISHED,
+            isPublished: published
           },
         },
         {
@@ -322,6 +323,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
         {
           $set: {
             status: WorkFlowStatus.SAVED,
+            isPublished: published
           },
         },
         {
@@ -587,6 +589,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
           $set: {
             status: WorkFlowStatus.DELETED,
           },
+        },
+        {
+          new: true,
         },
       );
       if (!result) {

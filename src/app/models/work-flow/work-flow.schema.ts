@@ -69,5 +69,8 @@ export class WorkFlow {
 
   @Prop({ type: Date })
   updated_at?: Date;
+
+  @Prop({ default: false })
+  isPublished: boolean;
 }
 export const WorkFlowSchema = SchemaFactory.createForClass(WorkFlow);
