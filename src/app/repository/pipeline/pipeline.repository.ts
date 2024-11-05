@@ -95,6 +95,7 @@ export class PipelineRepository implements AbstractPipelineRepository {
       const userInfo = await this.userInfoModel.findOne({ user_id: member.id });
     
       return {
+        
         name: userInfo && userInfo.first_name && userInfo.last_name 
           ? `${userInfo.first_name} ${userInfo.last_name}`
           : member.name,
