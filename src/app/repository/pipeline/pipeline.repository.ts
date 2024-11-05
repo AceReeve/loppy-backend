@@ -81,6 +81,7 @@ export class PipelineRepository implements AbstractPipelineRepository {
       .exec();
 
     const members = await this.userRepository.getMember();
+    const memberArray = Array.isArray(members) ? members : members.users || [];
     const transformedPipelines = pipelineData.map(pipeline => ({
       id: pipeline._id,
       name: pipeline.title,
@@ -90,12 +91,17 @@ export class PipelineRepository implements AbstractPipelineRepository {
       })),
     }));
 
-    // Transform the members data
-    const transformedMembers = members.users.map(user => ({
-      name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`: user.email,
-      id: user._id.toString(),
+    const transformedMembers = await Promise.all(memberArray.map(async (member) => {
+      const userInfo = await this.userInfoModel.findOne({ user_id: member.id });
+    
+      return {
+        name: userInfo && userInfo.first_name && userInfo.last_name 
+          ? `${userInfo.first_name} ${userInfo.last_name}`
+          : member.name,
+        id: member.id,
+      };
     }));
-  
+
     return {
       pipelines: transformedPipelines,
       members: transformedMembers,

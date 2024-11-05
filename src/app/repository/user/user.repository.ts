@@ -1178,9 +1178,32 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async getAllUsers(): Promise<any> {
-    const members = await this.getMember()
-    const emails = members.users.map(user => user.email);
-    const users = await this.userModel.find({email: {$in: emails}}).exec();
-    return users;
+    const members = await this.getMember();
+  
+    // Ensure members.users is an array
+    const memberArray = Array.isArray(members.users) ? members.users : [];
+    const emails = memberArray.map(user => user.email);
+  
+    // Fetch users based on email addresses
+    const users = await this.userModel.find({ email: { $in: emails } }).exec();
+    const userIds = users.map(user => user._id);
+  
+    // Fetch user information based on user IDs
+    const userInfoList = await this.userInfoModel.find({ user_id: { $in: userIds } }).exec();
+  
+    // Map user information to users
+    const usersWithInfo = users.map(user => {
+      const userInfo = userInfoList.find(info => info.user_id.toString() === user._id.toString());
+  
+      return {
+        ...user.toObject(), // convert Mongoose document to plain object
+        name: userInfo && userInfo.first_name && userInfo.last_name 
+          ? `${userInfo.first_name} ${userInfo.last_name}` 
+          : user.email, // fallback to email if no name is available
+      };
+    });
+  
+    return usersWithInfo;
   }
+  
 }
