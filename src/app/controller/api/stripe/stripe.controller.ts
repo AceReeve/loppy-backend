@@ -1,12 +1,16 @@
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, Res, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, BadRequestException, Headers, Res, Get, Delete } from '@nestjs/common';
 import { StripeService } from 'src/app/services/api/stripe/stripe.service';
 import {
   cancelSubscriptionDTO,
+  CardDetailsDTO,
+  CardTokenDTO,
+  StripeCardIdDTO,
   StripePaymentIntentDTO,
   SummarizePaymentDTO,
   UpdateSubscriptionDTO,
@@ -159,6 +163,130 @@ export class StripeController {
     }
   }
 
+  @ApiBearerAuth('Bearer')
+  @Get('list-customer-cards')
+  @ApiOperation({ summary: 'list of cards' })
+  async getCustomerCards(
+    @Req() request) {
+    try {
+      const userId = request.user.sub;
+      const customerCards = await this.stripeService.listCustomerCards(
+        userId,
+      );
+      return {
+        success: true,
+        customerCards
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+
+
+  @ApiBearerAuth('Bearer')
+  @Post('add-card-to-customer')
+  @ApiOperation({ summary: 'add-card-to-customer' })
+  async addCardToCustomer(
+    @Req() request,
+    @Body() cardTokenDTO: CardTokenDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.addCardWithToken(
+        userId,
+        cardTokenDTO.token
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+
+  @ApiBearerAuth('Bearer')
+  @Post('set-default-card')
+  @ApiOperation({ summary: 'set default card' })
+  async setDefaultCard(
+    @Req() request,
+    @Body() cardId: StripeCardIdDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.setDefaultCard(
+        userId,
+        cardId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+
+  @ApiBearerAuth('Bearer')
+  @Delete('delete-card')
+  @ApiOperation({ summary: 'delete card' })
+  async deletCard(
+    @Req() request,
+    @Body() cardId: StripeCardIdDTO) {
+    try {
+      const userId = request.user.sub;
+      const subscription = await this.stripeService.deleteCard(
+        userId,
+        cardId,
+      );
+      return {
+        success: true,
+        subscription
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
+
+  @ApiBearerAuth('Bearer')
+  @Get('billing-history')
+  @ApiOperation({ summary: 'billing history' })
+  async getCustomerBillingHistory(
+    @Req() request) {
+    try {
+      const userId = request.user.sub;
+      const customerCards = await this.stripeService.getCustomerBillingHistory(
+        userId,
+      );
+      return {
+        success: true,
+        customerCards
+      };
+    }
+    catch (error) {
+      return {
+        success: false,
+        message: error,
+      };
+    }
+  }
 
   @Public()
   @Post('webhook')

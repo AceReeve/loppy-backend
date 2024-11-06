@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import {
   cancelSubscriptionDTO,
+  CardDetailsDTO,
+  StripeCardIdDTO,
   StripePaymentIntentDTO,
   SubscriptionResponseDTO,
   SummarizePaymentDTO,
@@ -58,9 +60,9 @@ export class StripeService {
     let customerCreated;
     if (
       customerDetails.payment_method_preview.billing_details.name !=
-        userDetails.first_name + ' ' + userDetails.last_name &&
+      userDetails.first_name + ' ' + userDetails.last_name &&
       customerDetails.payment_method_preview.billing_details.email !=
-        userDetails.email
+      userDetails.email
     ) {
       throw new BadRequestException(
         'Please verify your name and email combination',
@@ -149,7 +151,7 @@ export class StripeService {
               for (const subscriptionData of subscriptionDataList.items.data) {
                 if (
                   subscriptionData.plan.id ===
-                    this.pricesEnum[stripeSubscriptionDTO.type] &&
+                  this.pricesEnum[stripeSubscriptionDTO.type] &&
                   subscriptionData.plan.active === true
                 ) {
                   activeFlag = true;
@@ -282,4 +284,144 @@ export class StripeService {
 
     return null;
   }
+
+  // Method to add a card to a customer using the token from frontend
+  async addCardWithToken(customerId: string, token: string): Promise<Stripe.CustomerSource> {
+    try {
+      // Step 1: Use the token to create a Source (alternatively, you could create a PaymentMethod if needed)
+      const source = await this.stripe.customers.createSource(customerId, {
+        source: token,
+      });
+
+      // Optional: Set this newly added card as the default payment method
+      await this.stripe.customers.update(customerId, {
+        invoice_settings: {
+          default_payment_method: source.id,
+        },
+      });
+
+      return source;
+    } catch (error) {
+      throw new Error(`Failed to add card: ${error.message}`);
+    }
+  }
+
+
+  async listCustomerCards(userId: string): Promise<Stripe.PaymentMethod[]> {
+    // List payment methods of type 'card' for the customer
+    const userCreds = await this.userService.getUser(userId);
+
+    let customerCreated;
+
+    const stripeCustomers = await this.stripe.customers.search({
+      query: `name:\'${userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
+    });
+
+    if (stripeCustomers.data.length >= 1) {
+      customerCreated = stripeCustomers.data[0];
+    } else {
+      throw new BadRequestException("No stripe user found");
+    }
+
+    const paymentMethods = await this.stripe.paymentMethods.list({
+      customer: customerCreated.id,
+      type: 'card',
+    });
+    return paymentMethods.data;
+  }
+
+
+  async setDefaultCard(userId: string, stripeCardId: StripeCardIdDTO): Promise<Stripe.Customer> {
+    try {
+      // Update the customer's invoice settings to set the default payment method
+
+      const userCreds = await this.userService.getUser(userId);
+
+      let customer;
+
+      const stripeCustomers = await this.stripe.customers.search({
+        query: `name:\'${userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
+      });
+
+      if (stripeCustomers.data.length >= 1) {
+        customer = stripeCustomers.data[0];
+      } else {
+        throw new BadRequestException("No stripe user found");
+      }
+
+
+      return await this.stripe.customers.update(customer.id, {
+        invoice_settings: {
+          default_payment_method: stripeCardId.cardId,
+        },
+      });
+    } catch (error) {
+      throw new Error(`Failed to set default card: ${error.message}`);
+    }
+  }
+
+  // Method to delete a card
+  async deleteCard(userId: string, stripeCardId: StripeCardIdDTO): Promise<Stripe.CustomerSource | Stripe.DeletedCustomerSource> {
+    try {
+
+      const userCreds = await this.userService.getUser(userId);
+
+      let customer;
+
+      const stripeCustomers = await this.stripe.customers.search({
+        query: `name:\'${userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
+      });
+
+      if (stripeCustomers.data.length >= 1) {
+        customer = stripeCustomers.data[0];
+      } else {
+        throw new BadRequestException("No stripe user found");
+      }
+
+      console.log("12312321321", customer.id)
+      console.log("76876876787", stripeCardId.cardId)
+
+      let deletedCard;
+      // If it's a Payment Method (pm_ prefix), use `detach`
+      if (stripeCardId.cardId.startsWith('pm_')) {
+        deletedCard = await this.stripe.paymentMethods.detach(stripeCardId.cardId);
+      } else {
+        // If it's a Source (src_ prefix), use `deleteSource`
+        deletedCard = await this.stripe.customers.deleteSource(customer.id, stripeCardId.cardId);
+      }
+
+      console.log("0909787798", deletedCard)
+      return deletedCard;
+    } catch (error) {
+      throw new Error(`Failed to delete card: ${error.message}`);
+    }
+  }
+
+  // Method to retrieve billing history (invoices) for a customer
+  async getCustomerBillingHistory(userId: string): Promise<Stripe.ApiList<Stripe.Invoice>> {
+    try {
+
+      const userCreds = await this.userService.getUser(userId);
+
+      let customer;
+
+      const stripeCustomers = await this.stripe.customers.search({
+        query: `name:\'${userCreds.userInfo.first_name + ' ' + userCreds.userInfo.last_name}\' AND email:\'${userCreds.userDetails.email}\'`,
+      });
+
+      if (stripeCustomers.data.length >= 1) {
+        customer = stripeCustomers.data[0];
+      } else {
+        throw new BadRequestException("No stripe user found");
+      }
+
+      return await this.stripe.invoices.list({
+        customer: customer.id,
+        limit: 10, // Optional: limit to the most recent 10 invoices
+      });
+    } catch (error) {
+      throw new Error(`Failed to retrieve billing history: ${error.message}`);
+    }
+  }
+
 }

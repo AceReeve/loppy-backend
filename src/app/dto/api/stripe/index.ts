@@ -154,3 +154,40 @@ export class TwilioCreateSubAccount {
   @IsNotEmpty()
   name: string;
 }
+
+export class StripeCardIdDTO {
+  @ApiProperty({ example: 'card_9898098123' })
+  @IsString()
+  @IsNotEmpty()
+  cardId: string;
+}
+
+export class CardTokenDTO {
+  @ApiProperty({ example: 'card_9898098123' })
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
+
+
+export class CardDetailsDTO {
+  @ApiProperty({ example: '4242424242424242' })
+  @IsString()
+  @IsNotEmpty()
+  cardNumber: string;
+
+  @ApiProperty({ example: 9 })
+  @IsNumber()
+  @IsNotEmpty()
+  expiryMonth: number;
+
+  @ApiProperty({ example: 2025 })
+  @IsNumber()
+  @IsNotEmpty()
+  expiryYear: number;
+
+  @ApiProperty({ example: '424' })
+  @IsString()
+  @IsNotEmpty()
+  cvc: string;
+}
