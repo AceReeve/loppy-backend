@@ -23,6 +23,8 @@ import { PipelineSchemaModule } from '../models/pipeline/pipeline.schema.module'
 import { LeadSchemaModule } from '../models/lead/lead.schema.module';
 import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
 import { ContactsSchemaModule } from '../models/contacts/contacts.schema.module';
+import { CustomerRepliedSchemaModule } from '../models/email/gmail.schema.module';
+import { GmailService } from '../services/gmail/gmail.service';
 
 @Module({
   imports: [
@@ -40,7 +42,8 @@ import { ContactsSchemaModule } from '../models/contacts/contacts.schema.module'
     OpportunitySchemaModule,
     PipelineSchemaModule,
     LeadSchemaModule,
-    ContactsSchemaModule
+    ContactsSchemaModule,
+    CustomerRepliedSchemaModule,
   ],
   providers: [
     {
@@ -68,7 +71,8 @@ import { ContactsSchemaModule } from '../models/contacts/contacts.schema.module'
     AuthRepository,
     S3Service,
     OauthRepository,
-    PipelineRepository
+    PipelineRepository,
+    GmailService
   ],
 })
 export class CronModule {}

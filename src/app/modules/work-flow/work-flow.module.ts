@@ -39,6 +39,8 @@ import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
 import { TagsSchemaModule } from 'src/app/models/tags/tags.schema.module';
 import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
+import { CustomerRepliedSchemaModule } from 'src/app/models/email/gmail.schema.module';
+import { GmailService } from 'src/app/services/gmail/gmail.service';
 @Global()
 @Module({
   imports: [
@@ -59,7 +61,8 @@ import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.mo
     PipelineSchemaModule,
     WeatherForecastSchemaModule,
     TagsSchemaModule,
-    ContactsSchemaModule
+    ContactsSchemaModule,
+    CustomerRepliedSchemaModule
   ],
   providers: [
     UserService,
@@ -72,6 +75,7 @@ import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.mo
     PipelineRepository,
     ServiceTitanService,
     HttpService,
+    GmailService,
     {
       provide: AbstractWorkFlowRepository,
       useClass: WorkFlowRepository,

@@ -54,8 +54,13 @@ async function bootstrap(): Promise<void> {
   console.log('CORS configuration applied');
 
   const document = SwaggerModule.createDocument(app, swaggerConfig());
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      docExpansion: 'none',
+    },
+  });
   console.log('Swagger document created');
-  SwaggerModule.setup('docs', app, document);
+  // SwaggerModule.setup('docs', app, document);
   console.log('Swagger documentation setup complete');
   // if (isProd) {
   //   // Production setup with HTTPS

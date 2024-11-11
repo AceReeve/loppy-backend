@@ -37,6 +37,8 @@ import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.
 import { S3Service } from 'src/app/services/s3/s3.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
+import { CustomerRepliedSchemaModule } from 'src/app/models/email/gmail.schema.module';
+import { GmailService } from 'src/app/services/gmail/gmail.service';
 
 
 @Module({
@@ -55,7 +57,8 @@ import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.mo
     WeatherForecastSchemaModule,
     FileUploadSchemaModule,
     TeamSchemaModule,
-    ContactsSchemaModule
+    ContactsSchemaModule,
+    CustomerRepliedSchemaModule
   ],
   controllers: [LeadController],
   // Inversion
@@ -104,6 +107,7 @@ import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.mo
     UserRepository,
     PipelineRepository,
     MailerService,
+    GmailService,
   ],
 
   exports: [

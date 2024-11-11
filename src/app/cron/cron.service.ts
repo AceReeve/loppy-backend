@@ -29,6 +29,8 @@ import { Opportunity } from '../models/opportunity/opportunity.schema';
 import { Pipeline } from '../models/pipeline/pipeline.schema';
 import { Lead } from '../models/lead/lead.schema';
 import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
+import { GmailService } from '../services/gmail/gmail.service';
+import { CustomerReplied, CustomerRepliedDocument } from '../models/email/gmail.schema';
 
 @Injectable()
 export class CronService {
@@ -49,11 +51,14 @@ export class CronService {
     private pipelineModel: Model<Pipeline & Document>,
     @InjectModel(Lead.name)
     private leadModel: Model<Lead & Document>,
+    @InjectModel(CustomerReplied.name)
+    private customerRepliedModel: Model<CustomerRepliedDocument>,
     private emailerService: EmailerService,
     private smsService: SmsService,
     protected readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
     private readonly pipelineRepository: PipelineRepository,
+    private readonly gmailService: GmailService,
   ) {}
 
   async triggerData() {
@@ -248,7 +253,6 @@ export class CronService {
     return true;
   }
 
-  // @Cron('*/10 * * * * *')
   @Cron('0 0 * * *') // Runs every day at midnight
   async handleCron() {
     const workflows = await this.triggerData();
@@ -261,7 +265,7 @@ export class CronService {
             // WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
             if (
               trig.node_name ===
-              WorkFlowTrigger.WORKFLOW_TRIGGER_BIRHTDAY_REMINDER
+              WorkFlowTrigger.WORKFLOW_TRIGGER_BIRTHDAY_REMINDER
             ) {
               const users = await this.userInfoModel.find();
               for (const user of users) {
@@ -277,6 +281,7 @@ export class CronService {
                         receiverUser.email,
                         act.content,
                         user.first_name,
+                        workflow._id,
                       );
                     }
                   } else if (
@@ -486,6 +491,8 @@ export class CronService {
                     await this.emailerService.sendEmailNotification(
                       data.primary_email,
                       act.content,
+                      '',
+                      workflow._id,
                     );
                 } else if (
                   act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
@@ -504,4 +511,64 @@ export class CronService {
       }
     }
   }
+
+
+  ///////////
+  @Cron('*/10 * * * * *')
+  async saveCustomerReplies() {
+    console.log('1s')
+
+    try {
+      const messages = await this.gmailService.listMessages();
+      console.log('messages',messages)
+      for (const message of messages) {
+        const emailData = await this.gmailService.getReply(message.id);
+  
+        // Check if email is a reply and retrieve the topic identifier from the header
+        const inReplyToHeader = emailData.payload.headers.find(
+          (header) => header.name === 'In-Reply-To'
+        );
+  
+        if (inReplyToHeader) {
+          const topicIdentifier = this.extractTopicIdentifier(emailData.payload.headers);
+  
+          await this.saveReplyToDatabase({
+            emailId: message.id,
+            threadId: message.threadId,
+            topicIdentifier,
+            subject: message.subject,
+            body: this.extractMessageBody(emailData),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error tracking customer replies:', error);
+    }
+  }
+
+  // Extract topic identifier from the email subject or other header
+  private extractTopicIdentifier(headers: any): string {
+    const topicHeader = headers.find((header) => header.name === 'X-Topic-Identifier');
+    return topicHeader ? topicHeader.value : 'unknown';
+  }
+
+  // Extract email body from the message payload
+  private extractMessageBody(emailData: any): string {
+    const bodyPart = emailData.payload.parts?.find(part => part.mimeType === 'text/plain');
+    return bodyPart ? Buffer.from(bodyPart.body.data, 'base64').toString('utf-8') : '';
+  }
+
+  // Example method to save reply in your database
+  private async saveReplyToDatabase(replyData: any) {
+    try {
+      // Create a new document in the 'customerreplied' collection
+      const newReply = new this.customerRepliedModel(replyData);
+      await newReply.save();
+      console.log('Reply saved successfully:', newReply);
+    } catch (error) {
+      console.error('Error saving reply:', error);
+    }
+  }
+
+
 }

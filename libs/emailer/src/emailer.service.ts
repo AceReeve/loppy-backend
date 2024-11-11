@@ -107,26 +107,54 @@ export class EmailerService {
       throw new InternalServerErrorException(errorMessage);
     }
   }
-
   async sendEmailNotification(
     receiver: string,
     content: any,
     first_name?: string,
-
+    topic_identifier?: string
   ): Promise<any> {
     try {
+      const messageWithTopicIdentifier = {
+        ...content,
+        headers: {
+          'X-Topic-Identifier': topic_identifier, 
+        },
+      };
+  
       await this.mailerService.sendMail({
         to: [receiver, this.serviHeroTestEmail],
-        subject: content.subject,
+        subject: content.subject, 
         html: content.message,
+        headers: messageWithTopicIdentifier.headers,
       });
+      console.log('success')
     } catch (error) {
       const errorMessage = 'Error Sending Email Notification';
-
       this.logger.error(errorMessage, error);
       throw new InternalServerErrorException(errorMessage);
     }
   }
+  
+  // async sendEmailNotification(
+  //   receiver: string,
+  //   content: any,
+  //   first_name?: string,
+
+  // ): Promise<any> {
+  //   try {
+
+  //     await this.mailerService.sendMail({
+  //       to: [receiver, this.serviHeroTestEmail],
+  //       subject: content.subject,
+  //       html: content.message,
+  //     });
+  //   } catch (error) {
+  //     const errorMessage = 'Error Sending Email Notification';
+
+  //     this.logger.error(errorMessage, error);
+  //     throw new InternalServerErrorException(errorMessage);
+  //   }
+  // }
 
   async sendEmailCustomDateRemider(
     receiver: string,

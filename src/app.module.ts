@@ -27,6 +27,30 @@ import { SmsModule } from './config/sms/sms.module';
 import { GmailModule } from './app/modules/gmail/gmail.module';
 import { PipelineModule } from './app/modules/pipeline/pipeline.module';
 import { LeadTriggerModule } from './app/modules/lead-trigger/lead-trigger.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronService } from './app/cron/cron.service';
+import { WorkFlowSchemaModule } from './app/models/work-flow/work-flow.schema.module';
+import { InvitedUserSchemaModule } from './app/models/invited-users/invited-users.schema.module';
+import { OpportunitySchemaModule } from './app/models/opportunity/opportunity.schema.module';
+import { PipelineSchemaModule } from './app/models/pipeline/pipeline.schema.module';
+import { LeadSchemaModule } from './app/models/lead/lead.schema.module';
+import { CustomerRepliedSchemaModule } from './app/models/email/gmail.schema.module';
+import { EmailerService } from '@util/emailer/emailer';
+import { SmsService } from './config/sms/sms.service';
+import { UserRepository } from './app/repository/user/user.repository';
+import { PipelineController } from './app/controller/pipeline/pipeline.controller';
+import { PipelineRepository } from './app/repository/pipeline/pipeline.repository';
+import { GmailService } from './app/services/gmail/gmail.service';
+import { MailerService, MAILER_OPTIONS } from '@nestjs-modules/mailer';
+import { RoleSchemaModule } from './app/models/role/role.schema.module';
+import { OtpSchemaModule } from './app/models/otp/otp.schema.module';
+import { StripeEventSchemaModule } from './app/models/stripe/stripe.event.schema.module';
+import { WeatherForecastSchemaModule } from './app/models/weatherforecast/weatherforecast.schema.module';
+import { AuthRepository } from './app/repository/auth/auth.repository';
+import { FileUploadSchemaModule } from './app/models/file-upload/file-upload.schema.module';
+import { TeamSchemaModule } from './app/models/settings/manage-team/team/team.schema.module';
+import { S3Service } from './app/services/s3/s3.service';
+import { OauthRepository } from './app/repository/oauth/oauth.repository';
 
 @Module({
   imports: [
@@ -56,7 +80,22 @@ import { LeadTriggerModule } from './app/modules/lead-trigger/lead-trigger.modul
     WorkFlowModule,
     CronModule,
     SmsModule,
-    GmailModule
+    GmailModule,
+    ScheduleModule.forRoot(),
+    //
+    // WorkFlowSchemaModule,
+    // InvitedUserSchemaModule,
+    // OpportunitySchemaModule,
+    // PipelineSchemaModule,
+    // LeadSchemaModule,
+    // CustomerRepliedSchemaModule,
+    // RoleSchemaModule,
+    // OtpSchemaModule,
+    // StripeEventSchemaModule,
+    // WeatherForecastSchemaModule,
+    // FileUploadSchemaModule,
+    // TeamSchemaModule,
+
   ],
 
   providers: [
@@ -64,6 +103,34 @@ import { LeadTriggerModule } from './app/modules/lead-trigger/lead-trigger.modul
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
+    // {
+    //   provide: MAILER_OPTIONS,
+    //   useFactory: async (configService: ConfigService) => ({
+    //     transport: {
+    //       host: configService.get<string>('SMTP_HOST'),
+    //       secure: true,
+    //       auth: {
+    //         user: configService.get<string>('SMTP_USER'),
+    //         pass: configService.get<string>('SMTP_PASSWORD'),
+    //       },
+    //     },
+    //     defaults: {
+    //       from: `"No Reply" <${configService.get<string>('EMAIL_NO_REPLY_ADDRESS')}>`,
+    //     },
+    //   }),
+    //   inject: [ConfigService],
+    // },
+    // CronService,
+    // EmailerService,
+    // SmsService,
+    // UserRepository,
+    // PipelineRepository,
+    // GmailService,
+    // MailerService,
+    // AuthRepository,
+    // S3Service,
+    // OauthRepository,
+
   ],
   controllers: [],
 })

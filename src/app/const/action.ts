@@ -1,5 +1,5 @@
 export enum WorkFlowTrigger {
-  WORKFLOW_TRIGGER_BIRHTDAY_REMINDER = 'Birthday Reminder',
+  WORKFLOW_TRIGGER_BIRTHDAY_REMINDER = 'Birthday Reminder',
   WORKFLOW_TRIGGER_CONTACT_Tag = 'Contact Tag',
   WORKFLOW_TRIGGER_CONTACT_CHANGED = 'Contact Changed',
   WORKFLOW_TRIGGER_CONTACT_CREATED = 'Contact Created',

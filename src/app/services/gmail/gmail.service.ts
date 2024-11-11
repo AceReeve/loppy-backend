@@ -157,7 +157,4 @@ export class GmailService {
   
     return messagesWithSubject;
   }
-  
-
-  
 }
