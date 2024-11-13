@@ -140,7 +140,9 @@ export class CronService {
       }
       if (filter === 'Has a Tag') {
         const tags = await this.tagModel.findOne({id: value})
-        matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(tags.name));
+        if(tags){
+          matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(tags.name));
+        }
       }
   
       if (filter === 'Lead Value') {
