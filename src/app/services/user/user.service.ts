@@ -16,11 +16,9 @@ import {
   ChangePasswordDto,
   CreatePasswordDto,
 } from 'src/app/dto/user';
-import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
+import { AbstractUserService, ProfileImages , UserInterface} from 'src/app/interface/user';
 import { AbstractUserRepository } from 'src/app/interface/user';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
-import { Request } from 'express';
-import { REQUEST } from '@nestjs/core';
 import {
   UserInfo,
   UserInfoDocument,
@@ -31,26 +29,25 @@ export class UserService implements AbstractUserService {
   constructor(
     private readonly repository: AbstractUserRepository,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @Inject(REQUEST) private readonly request: Request,
     @InjectModel(UserInfo.name) private userInfoModel: Model<UserInfoDocument>,
   ) {}
 
   async createUser(userRegisterDto: UserRegisterDTO): Promise<any> {
     return await this.repository.createUser(userRegisterDto);
   }
-  async changePassword(changePasswordDto: ChangePasswordDto): Promise<any> {
-    return await this.repository.changePassword(changePasswordDto);
+  async changePassword(req: UserInterface, changePasswordDto: ChangePasswordDto): Promise<any> {
+    return await this.repository.changePassword(req, changePasswordDto);
   }
-  async createPassword(createPasswordDto: CreatePasswordDto): Promise<any> {
-    return await this.repository.createPassword(createPasswordDto);
+  async createPassword(req: UserInterface,createPasswordDto: CreatePasswordDto): Promise<any> {
+    return await this.repository.createPassword(req, createPasswordDto);
   }
-  async createUserInfo(userInfoDTO: UserInfoDTO): Promise<any> {
-    return await this.repository.createUserInfo(userInfoDTO);
+  async createUserInfo(req: UserInterface, userInfoDTO: UserInfoDTO): Promise<any> {
+    return await this.repository.createUserInfo(req, userInfoDTO);
   }
 
-  async profile(): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    return await this.repository.profile(user);
+  async profile(req: UserInterface): Promise<any> {
+    const user = req.user;
+    return await this.repository.profile(req);
   }
   async getUser(id: string): Promise<any> {
     return await this.repository.getUser(id);
@@ -59,26 +56,26 @@ export class UserService implements AbstractUserService {
   async getUserByEmail(email: string): Promise<any> {
     return await this.repository.getUserByEmail(email);
   }
-  async getInvitedUser(): Promise<any> {
-    return await this.repository.getInvitedUser();
+  async getInvitedUser(req: UserInterface): Promise<any> {
+    return await this.repository.getInvitedUser(req);
   }
-  async getAcceptedInvitedUser(): Promise<any> {
-    return await this.repository.getAcceptedInvitedUser();
+  async getAcceptedInvitedUser(req: UserInterface): Promise<any> {
+    return await this.repository.getAcceptedInvitedUser(req);
   }
   async findByUserId(userId: string) {
     const userInfo = await this.userInfoModel.findOne({ user_id: userId });
     return userInfo;
   }
-  async inviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-    return await this.repository.inviteUser(inviteUserDTO);
+  async inviteUser(req: UserInterface, inviteUserDTO: InviteUserDTO): Promise<any> {
+    return await this.repository.inviteUser(req, inviteUserDTO);
   }
 
-  async cancelInviteUser(email: string): Promise<any> {
-    return await this.repository.cancelInviteUser(email);
+  async cancelInviteUser(req: UserInterface, email: string): Promise<any> {
+    return await this.repository.cancelInviteUser(req, email);
   }
 
-  async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-    return await this.repository.validateInviteUser(inviteUserDTO);
+  async validateInviteUser(req: UserInterface, inviteUserDTO: InviteUserDTO): Promise<any> {
+    return await this.repository.validateInviteUser(req, inviteUserDTO);
   }
 
   async updateUserStripeId(stripeId: string, userId: string): Promise<any> {
@@ -108,8 +105,8 @@ export class UserService implements AbstractUserService {
   async verifyOTP(email: string, otp: string): Promise<any> {
     return this.repository.verifyOTP(email, otp);
   }
-  async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
-    return this.repository.uploadProfile(files, userInfoId);
+  async uploadProfile(req: UserInterface, files: ProfileImages, userInfoId: string): Promise<any> {
+    return this.repository.uploadProfile(req, files, userInfoId);
   }
   async userData(id: string): Promise<any> {
     return this.repository.userData(id);
@@ -131,10 +128,10 @@ export class UserService implements AbstractUserService {
   ): Promise<any> {
     return this.repository.resetPassword(token, resetPasswordDTO);
   }
-  async getMember(): Promise<any> {
-    return this.repository.getMember();
+  async getMember(req: UserInterface,): Promise<any> {
+    return this.repository.getMember(req);
   }
-  async getAllUsers(): Promise<any> {
-    return this.repository.getAllUsers();
+  async getAllUsers(req: UserInterface): Promise<any> {
+    return this.repository.getAllUsers(req);
   }
 }

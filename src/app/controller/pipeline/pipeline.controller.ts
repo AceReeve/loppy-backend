@@ -12,6 +12,7 @@ import {
   BadRequestException,
   UseInterceptors,
   UploadedFile,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -28,6 +29,7 @@ import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UserInterface } from 'src/app/interface/user';
 
 @ApiTags('Pipelines')
 @UseGuards(JwtAuthGuard)
@@ -52,8 +54,8 @@ export class PipelineController {
 
   @Get('pipelines-list')
   @ApiOperation({ summary: 'Get pipelines' })
-  async getAllPipelinesList(): Promise<Pipeline[] | null> {
-    return await this.pipelineService.getAllPipelinesList();
+  async getAllPipelinesList(@Request() req: UserInterface, ): Promise<Pipeline[] | null> {
+    return await this.pipelineService.getAllPipelinesList(req);
   }
 
   @Get(':id')

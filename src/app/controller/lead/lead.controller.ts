@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiQueryOptions, ApiTags } from '@nestjs/swagger';
 import { AbstractLeadService } from 'src/app/interface/lead';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
 import { JwtAuthGuard } from 'src/app/guard/auth';
+import { UserInterface } from 'src/app/interface/user';
 
 @ApiTags('Opportunities')
 @UseGuards(JwtAuthGuard)
@@ -63,10 +65,11 @@ export class LeadController {
   @Put(':id')
   @ApiOperation({ summary: 'Update opportunity' })
   async updateLead(
+    @Request() req: UserInterface,
     @Param('id') id: string,
     @Body() updateLeadDTO: CreateLeadDTO,
   ): Promise<Lead | null> {
-    return await this.leadService.updateLead(id, updateLeadDTO);
+    return await this.leadService.updateLead(req, id, updateLeadDTO);
   }
 
   @Delete(':id')

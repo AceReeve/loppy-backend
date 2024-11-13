@@ -4,6 +4,7 @@ import { Model ,Types} from 'mongoose';
 import { CronService } from 'src/app/cron/cron.service';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { AbstractLeadRepository } from 'src/app/interface/lead';
+import { UserInterface } from 'src/app/interface/user';
 import { Lead } from 'src/app/models/lead/lead.schema';
 import { Opportunity } from 'src/app/models/opportunity/opportunity.schema';
 
@@ -56,6 +57,7 @@ export class LeadRepository implements AbstractLeadRepository {
   }
 
   async updateLead(
+    req: UserInterface,
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null> {
@@ -77,7 +79,7 @@ export class LeadRepository implements AbstractLeadRepository {
       path: 'owner_id',
     });
     if(lead){
-       await this.cronService.oppportunityStatusChange() 
+       await this.cronService.oppportunityStatusChange(req) 
     }
     return populatedLead;
   }

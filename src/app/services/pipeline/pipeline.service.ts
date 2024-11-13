@@ -5,6 +5,7 @@ import {
 } from 'src/app/interface/pipeline';
 import { CreatePipelineDTO, UpdatePipelineDTO } from 'src/app/dto/pipeline';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
+import { UserInterface } from 'src/app/interface/user';
 
 @Injectable()
 export class PipelineService implements AbstractPipelineService {
@@ -13,8 +14,8 @@ export class PipelineService implements AbstractPipelineService {
   async getAllPipelines(): Promise<Pipeline[] | null> {
     return await this.repository.getAllPipelines();
   }
-  async getAllPipelinesList(): Promise<Pipeline[] | null> {
-    return await this.repository.getAllPipelinesList();
+  async getAllPipelinesList(req: UserInterface,): Promise<Pipeline[] | null> {
+    return await this.repository.getAllPipelinesList(req);
   }
 
   async getPipeline(id: string): Promise<Pipeline | null> {

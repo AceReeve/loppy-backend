@@ -46,6 +46,7 @@ import {
   FileUploadDocument,
 } from 'src/app/models/file-upload/file-upload.schema';
 import { Response } from 'express';
+import { UserInterface } from 'src/app/interface/user';
 
 export class ManageTeamRepository implements AbstractManageTeamRepository {
   constructor(
@@ -156,12 +157,12 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
   //   return result;
   // }
-  async inviteMember(inviteUserDTO: InviteUserDTO): Promise<any> {
-    return await this.userRepository.inviteUser(inviteUserDTO);
+  async inviteMember(req: UserInterface, inviteUserDTO: InviteUserDTO): Promise<any> {
+    return await this.userRepository.inviteUser(req, inviteUserDTO);
   }
-  async createTeam(createTeamDTO: CreateTeamDTO): Promise<any> {
+  async createTeam(req: UserInterface,createTeamDTO: CreateTeamDTO): Promise<any> {
     // Fetch logged-in user details (assuming you have a method like this in userRepository)
-    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails(req,);
     // validate team if already existing
     const isTeamExisting = await this.teamModel.findOne({
       created_by: loggedInUser._id,
@@ -216,8 +217,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
     return newTeam;
   }
-  async updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
-    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+  async updateTeam(req: UserInterface,createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails(req);
     // Fetch existing team
     const existingTeam = await this.teamModel.findOne({
       _id: new Types.ObjectId(id),
@@ -229,7 +230,7 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
       );
     }
     // Fetch accepted users
-    const acceptedUsers = await this.userRepository.getAcceptedInvitedUser();
+    const acceptedUsers = await this.userRepository.getAcceptedInvitedUser(req);
 
     // Create a Set of accepted user IDs for quick lookup
     const acceptedUserIds = new Set(
@@ -272,9 +273,9 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     return existingTeam;
   }
 
-  async deleteTeam(teamId: string): Promise<any> {
+  async deleteTeam(req: UserInterface,teamId: string): Promise<any> {
     // Fetch logged-in user details (assuming you have a method like this in userRepository)
-    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails(req);
     // validate team if already existing
     const isTeamExisting = await this.teamModel.findOne({
       created_by: loggedInUser._id,
@@ -293,8 +294,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     return team;
   }
 
-  async deleteTeamMember(teamId: string, memberId: string): Promise<any> {
-    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+  async deleteTeamMember(req: UserInterface,teamId: string, memberId: string): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails(req);
 
     // Fetch existing team
     const existingTeam = await this.teamModel.findOne({
@@ -326,8 +327,8 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
     return existingTeam;
   }
 
-  async getAllTeam(): Promise<any> {
-    const loggedInUser = await this.userRepository.getLoggedInUserDetails();
+  async getAllTeam(req: UserInterface,): Promise<any> {
+    const loggedInUser = await this.userRepository.getLoggedInUserDetails(req);
 
     const teams = await this.teamModel
       .find({ created_by: loggedInUser._id })
@@ -453,11 +454,12 @@ export class ManageTeamRepository implements AbstractManageTeamRepository {
 
   ////////////////////
   async uploadProfile(
+    req: UserInterface,
     files: ProfileImages,
     team_id: string,
   ): Promise<any | null> {
     const images: any = {};
-    const user = await this.userRepository.getLoggedInUserDetails();
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     console.log('files', files);
     if (files === undefined)
       throw new BadRequestException('Image files cannot be empty.');

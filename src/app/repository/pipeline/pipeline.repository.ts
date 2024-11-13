@@ -15,6 +15,7 @@ import * as XLSX from 'xlsx';
 import { UserRepository } from '../user/user.repository';
 import { UserInfo, UserInfoDocument } from 'src/app/models/user/user-info.schema';
 import { Contacts, ContactsDocument } from 'src/app/models/contacts/contacts.schema';
+import { UserInterface } from 'src/app/interface/user';
 
 @Injectable()
 export class PipelineRepository implements AbstractPipelineRepository {
@@ -66,7 +67,7 @@ export class PipelineRepository implements AbstractPipelineRepository {
       return pipelines;
   }
 
-  async getAllPipelinesList(): Promise<any> {
+  async getAllPipelinesList(req: UserInterface): Promise<any> {
     const pipelineData = await this.pipelineModel
       .find({})
       .populate({
@@ -79,8 +80,7 @@ export class PipelineRepository implements AbstractPipelineRepository {
         },
       })
       .exec();
-
-    const members = await this.userRepository.getMember();
+    const members = await this.userRepository.getMember(req);
     const memberArray = Array.isArray(members) ? members : members.users || [];
     const transformedPipelines = pipelineData.map(pipeline => ({
       id: pipeline._id,

@@ -5,6 +5,7 @@ import {
 } from 'src/app/interface/lead';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
+import { UserInterface } from 'src/app/interface/user';
 
 @Injectable()
 export class LeadService implements AbstractLeadService {
@@ -30,10 +31,11 @@ export class LeadService implements AbstractLeadService {
   }
 
   async updateLead(
+    req: UserInterface,
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null> {
-    return await this.repository.updateLead(id, updateLeadDto);
+    return await this.repository.updateLead(req, id, updateLeadDto);
   }
 
   async deleteLead(id: string): Promise<Lead | null> {

@@ -42,6 +42,7 @@ import { TeamSchemaModule } from 'src/app/models/settings/manage-team/team/team.
       provide: AbstractUserService,
       useClass: UserService,
     },
+    
     JwtService,
     UserService,
     AuthRepository,

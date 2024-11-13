@@ -2,6 +2,7 @@ import { User } from 'src/app/models/user/user.schema';
 import { GenericInterfaceRepoistory } from '../generic.interface.repository';
 import { CreatePipelineDTO, UpdatePipelineDTO } from 'src/app/dto/pipeline';
 import { Pipeline } from 'src/app/models/pipeline/pipeline.schema';
+import { UserInterface } from '../user';
 
 export type UserRepositoryInterface = GenericInterfaceRepoistory<User>;
 
@@ -11,7 +12,7 @@ export abstract class AbstractPipelineRepository {
   ): Promise<Pipeline | null>;
   abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
-  abstract getAllPipelinesList(): Promise<Pipeline[] | null>;
+  abstract getAllPipelinesList(req: UserInterface,): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],
   ): Promise<Pipeline[] | null>;
@@ -34,7 +35,7 @@ export abstract class AbstractPipelineService {
   ): Promise<Pipeline | null>;
   abstract getPipeline(id: string): Promise<Pipeline | null>;
   abstract getAllPipelines(): Promise<Pipeline[] | null>;
-  abstract getAllPipelinesList(): Promise<Pipeline[] | null>;
+  abstract getAllPipelinesList(req: UserInterface,): Promise<Pipeline[] | null>;
   abstract updatePipelines(
     updatePipelineDto: UpdatePipelineDTO[],
   ): Promise<Pipeline[] | null>;

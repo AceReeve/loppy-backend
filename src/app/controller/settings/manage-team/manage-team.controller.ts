@@ -13,6 +13,7 @@ import {
   StreamableFile,
   UploadedFiles,
   Delete,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -37,6 +38,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
 import { Public } from 'src/app/decorators/public.decorator';
 import { Response } from 'express';
+import { UserInterface } from 'src/app/interface/user';
 
 @ApiTags('Manage Team')
 @Controller('manage-team')
@@ -50,8 +52,8 @@ export class ManageTeamController {
   @Post('team')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Create Team' })
-  async createTeam(@Body() createTeamDTO: CreateTeamDTO): Promise<any> {
-    return this.manageTeamService.createTeam(createTeamDTO);
+  async createTeam(@Request() req: UserInterface, @Body() createTeamDTO: CreateTeamDTO): Promise<any> {
+    return this.manageTeamService.createTeam(req, createTeamDTO);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -61,24 +63,25 @@ export class ManageTeamController {
   async updateTeam(
     @Param('id') id: string,
     @Body() createTeamDTO: CreateTeamDTO,
+    @Request() req: UserInterface, 
   ): Promise<any> {
-    return this.manageTeamService.updateTeam(createTeamDTO, id);
+    return this.manageTeamService.updateTeam(req, createTeamDTO, id);
   }
 
   @UseGuards(AdminAuthGuard)
   @Delete('team/:teamId')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Delete Team' })
-  async deleteTeam(@Param('teamId') teamId: string): Promise<any> {
-    return this.manageTeamService.deleteTeam(teamId);
+  async deleteTeam(@Request() req: UserInterface, @Param('teamId') teamId: string): Promise<any> {
+    return this.manageTeamService.deleteTeam(req,teamId);
   }
 
   @UseGuards(AdminAuthGuard)
   @Get('teams')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'List of All Team' })
-  async getAllTeam(): Promise<any> {
-    return this.manageTeamService.getAllTeam();
+  async getAllTeam(@Request() req: UserInterface, ): Promise<any> {
+    return this.manageTeamService.getAllTeam(req);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -93,8 +96,8 @@ export class ManageTeamController {
   @Post('invite-member')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
-  async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
-    return this.manageTeamService.inviteMember(inviteUserDTO);
+  async inviteUser(@Request() req: UserInterface, @Body() inviteUserDTO: InviteUserDTO): Promise<any> {
+    return this.manageTeamService.inviteMember(req,inviteUserDTO);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -102,10 +105,11 @@ export class ManageTeamController {
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Delete Team Member' })
   async deleteTeamMember(
+    @Request() req: UserInterface, 
     @Param('teamId') teamId: string,
     @Param('memberId') memberId: string,
   ): Promise<any> {
-    return this.manageTeamService.deleteTeamMember(teamId, memberId);
+    return this.manageTeamService.deleteTeamMember(req, teamId, memberId);
   }
 
   @UseGuards(AdminAuthGuard)
@@ -144,8 +148,8 @@ export class ManageTeamController {
   @Get('available-seats')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Available Seats' })
-  async getAvailableSeats(): Promise<any> {
-    return this.userRepository.availableSeats();
+  async getAvailableSeats(@Request() req: UserInterface): Promise<any> {
+    return this.userRepository.availableSeats(req);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -157,11 +161,12 @@ export class ManageTeamController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
   @ApiConsumes('multipart/form-data')
   async updateUserProfile(
+    @Request() req: UserInterface, 
     @UploadedFiles(FileUploadPipe) files: ProfileImages,
     @Query('id') id?: string,
   ) {
     if (!id) id = '';
-    return await this.manageTeamService.uploadProfile(files, id);
+    return await this.manageTeamService.uploadProfile(req,files, id);
   }
 
   @Public()

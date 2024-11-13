@@ -1,6 +1,5 @@
 import { Schema as MongooseSchema, FilterQuery, Document } from 'mongoose';
 import { GenericAbstractRepository } from 'src/app/interface/generic.abstract.repository';
-import { User } from 'src/app/models/user/user.schema';
 import {
   UserRegisterDTO,
   UserInfoDTO,
@@ -16,13 +15,13 @@ import { Response } from 'express';
 export abstract class AbstractUserRepository {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
   abstract userData(id: string): Promise<any>;
-  abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
-  abstract profile(user: Partial<User> & { sub: string }): Promise<any>;
+  abstract createUserInfo(req: UserInterface,userInfoDTO: UserInfoDTO): Promise<any>;
+  abstract profile(req: UserInterface): Promise<any>;
   abstract getUser(id: string): Promise<any>;
   abstract getUserByEmail(email: string): Promise<any>;
-  abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
-  abstract cancelInviteUser(email: string): Promise<any>;
-  abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract inviteUser(req: UserInterface,inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract cancelInviteUser(req: UserInterface,email: string): Promise<any>;
+  abstract validateInviteUser(req: UserInterface,inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract updateUserStripeId(stripeId: string, userId: string): Promise<any>;
   abstract updateWeatherInfoId(
     weatherforecast_id: string,
@@ -34,8 +33,9 @@ export abstract class AbstractUserRepository {
   ): Promise<any>;
   abstract verifyOTP(email: string, otp: string): Promise<any>;
   abstract sendOTP(email: string): Promise<any>;
-  abstract getInvitedUser(): Promise<any>;
+  abstract getInvitedUser(req: UserInterface): Promise<any>;
   abstract uploadProfile(
+    req: UserInterface,
     files: ProfileImages,
     userInfoId: string,
   ): Promise<any>;
@@ -50,29 +50,29 @@ export abstract class AbstractUserRepository {
     token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
-  abstract getMember(): Promise<any>;
-  abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
-  abstract createPassword(createPasswordDto: CreatePasswordDto): Promise<any>;
-  abstract getAcceptedInvitedUser(): Promise<any>;
-  abstract getAllUsers(): Promise<any>;
+  abstract getMember(req: UserInterface,): Promise<any>;
+  abstract changePassword(req: UserInterface,changePasswordDTO: ChangePasswordDto): Promise<any>;
+  abstract createPassword(req: UserInterface,createPasswordDto: CreatePasswordDto): Promise<any>;
+  abstract getAcceptedInvitedUser(req: UserInterface): Promise<any>;
+  abstract getAllUsers(req: UserInterface,): Promise<any>;
 }
 
 export abstract class AbstractUserService {
   abstract createUser(userRegisterDto: UserRegisterDTO): Promise<any>;
-  abstract profile(): Promise<any>;
+  abstract profile(req: UserInterface): Promise<any>;
   abstract getUser(id: string): Promise<any>;
   abstract getUserByEmail(email: string): Promise<any>;
-  abstract createUserInfo(userInfoDTO: UserInfoDTO): Promise<any>;
+  abstract createUserInfo(req: UserInterface,userInfoDTO: UserInfoDTO): Promise<any>;
   abstract updateUserStripeId(stripeId: string, userId: string): Promise<any>;
   abstract updateWeatherInfoId(
     weatherforecast_id: string,
     userId: string,
   ): Promise<any>;
-  abstract inviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
-  abstract cancelInviteUser(email: string): Promise<any>;
-  abstract getInvitedUser(): Promise<any>;
-  abstract getAcceptedInvitedUser(): Promise<any>;
-  abstract validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract inviteUser(req: UserInterface,inviteUserDTO: InviteUserDTO): Promise<any>;
+  abstract cancelInviteUser(req: UserInterface,email: string): Promise<any>;
+  abstract getInvitedUser(req: UserInterface,): Promise<any>;
+  abstract getAcceptedInvitedUser(req: UserInterface,): Promise<any>;
+  abstract validateInviteUser(req: UserInterface,inviteUserDTO: InviteUserDTO): Promise<any>;
   abstract invitedUserRegistration(
     invitedUserRegistrationDTO: InvitedUserRegistrationDTO,
     token: string,
@@ -80,6 +80,7 @@ export abstract class AbstractUserService {
   abstract verifyOTP(email: string, otp: string): Promise<any>;
   abstract sendOTP(email: string): Promise<any>;
   abstract uploadProfile(
+    req: UserInterface,
     files: ProfileImages,
     userInfoId: string,
   ): Promise<any>;
@@ -90,15 +91,15 @@ export abstract class AbstractUserService {
     res: Response,
     type: string,
   ): Promise<void | StreamableFile>;
-  abstract getMember(): Promise<any>;
+  abstract getMember(req: UserInterface,): Promise<any>;
   abstract forgotPassword(email: string): Promise<any>;
   abstract resetPassword(
     token: string,
     resetPasswordDTO: ResetPasswordDto,
   ): Promise<any>;
-  abstract changePassword(changePasswordDTO: ChangePasswordDto): Promise<any>;
-  abstract createPassword(createPasswordDto: CreatePasswordDto): Promise<any>;
-  abstract getAllUsers(): Promise<any>;
+  abstract changePassword(req: UserInterface, changePasswordDTO: ChangePasswordDto): Promise<any>;
+  abstract createPassword(req: UserInterface,createPasswordDto: CreatePasswordDto): Promise<any>;
+  abstract getAllUsers(req: UserInterface,): Promise<any>;
 }
 export interface RegisterResponseData {
   _id: string;
@@ -133,3 +134,10 @@ export type ProfileImages = {
   image_4: File[];
   image_5: File[];
 };
+export interface UserInterface {
+  user: User;
+}
+export interface User {
+  email: string;
+  sub: string;
+}

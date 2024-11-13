@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Put,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,6 +21,7 @@ import {
 import { CreateWorkflowDto, UpdateWorkflowDto } from 'src/app/dto/work-flow';
 import { JwtAuthGuard } from 'src/app/guard/auth';
 import { AbstractWorkFlowService } from 'src/app/interface/react-flow';
+import { UserInterface } from 'src/app/interface/user';
 
 @ApiTags('React Flow')
 @Controller('react-flow')
@@ -43,10 +45,11 @@ export class WorkFlowController {
     required: false,
   })
   async workflow(
+    @Request() req: UserInterface,
     @Query('id') id: string,
     @Query('template_id') template_id: string,
   ) {
-    return this.service.workFlow(id, template_id);
+    return this.service.workFlow(req, id, template_id);
   }
 
   @Put('workflow')
@@ -58,10 +61,11 @@ export class WorkFlowController {
     required: false,
   })
   async updateWorkflow(
+    @Request() req: UserInterface,
     @Query('id') id: string,
     @Body() dto: UpdateWorkflowDto,
   ) {
-    return this.service.updateWorkFlow(id, dto);
+    return this.service.updateWorkFlow(req, id, dto);
   }
   @Put('workflow-published')
   @ApiOperation({ summary: 'Published Workflow' })
@@ -78,10 +82,11 @@ export class WorkFlowController {
     required: false,
   })
   async publishedWorkFlow(
+    @Request() req: UserInterface,
     @Query('id') id: string,
     @Query('published') published: Boolean,
   ) {
-    return this.service.publishedWorkFlow(id, published);
+    return this.service.publishedWorkFlow(req, id, published);
   }
 
   @Get('workflows')
@@ -92,8 +97,8 @@ export class WorkFlowController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async getAllWorkFlow(@Query('folder_id') folder_id: string) {
-    return this.service.getAllWorkFlow(folder_id);
+  async getAllWorkFlow(@Request() req: UserInterface,@Query('folder_id') folder_id: string) {
+    return this.service.getAllWorkFlow(req,folder_id);
   }
 
   @Get('workflow/:id')
@@ -123,10 +128,11 @@ export class WorkFlowController {
     required: true,
   })
   async updateWorkFlowById(
+    @Request() req: UserInterface,
     @Query('id') id: string,
     @Query('name') name: string,
   ) {
-    return this.service.updateWorkFlowById(id, name);
+    return this.service.updateWorkFlowById(req, id, name);
   }
 
   //folder
@@ -144,8 +150,8 @@ export class WorkFlowController {
     example: 'folder id',
     required: false,
   })
-  async folder(@Query('name') name: string, @Query('id') id: string) {
-    return this.service.folder(name, id);
+  async folder(@Request() req: UserInterface,@Query('name') name: string, @Query('id') id: string) {
+    return this.service.folder(req, name, id);
   }
 
   @Get('folders')
@@ -156,8 +162,8 @@ export class WorkFlowController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async getAllFolder(@Query('id') id: string) {
-    return this.service.getAllFolder(id);
+  async getAllFolder(@Request() req: UserInterface,@Query('id') id: string) {
+    return this.service.getAllFolder(req, id);
   }
 
   @Get('folder/:id')
@@ -186,8 +192,8 @@ export class WorkFlowController {
     example: 'My WorkFlows',
     required: true,
   })
-  async updateFolderById(@Query('id') id: string, @Query('name') name: string) {
-    return this.service.updateFolderById(id, name);
+  async updateFolderById(@Request() req: UserInterface,@Query('id') id: string, @Query('name') name: string) {
+    return this.service.updateFolderById(req, id, name);
   }
 
   @Delete('folder/:id')
@@ -198,13 +204,13 @@ export class WorkFlowController {
     example: '66b462060e61af2e685d6e55',
     required: true,
   })
-  async deleteFolderById(@Query('id') id: string) {
-    return this.service.deleteFolderById(id);
+  async deleteFolderById(@Request() req: UserInterface,@Query('id') id: string) {
+    return this.service.deleteFolderById(req, id);
   }
 
   @Get('workflows-dropdown-list')
   @ApiOperation({ summary: 'WorkFlow And Tags DropDown List' })
-  async getAllWorkFlowDropDownList() {
-    return this.service.getAllWorkFlowDropDownList();
+  async getAllWorkFlowDropDownList(@Request() req: UserInterface,) {
+    return this.service.getAllWorkFlowDropDownList(req);
   }
 }

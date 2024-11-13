@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs';
 import { join } from 'path';
+
 @Injectable()
 export class EmailerService {
   constructor(
@@ -116,25 +117,43 @@ export class EmailerService {
     try {
       const messageWithTopicIdentifier = {
         ...content,
-        headers: {
-          'X-Topic-Identifier': topic_identifier, 
-        },
+        message: `${content.message}\n\n<span style="font-size:0px;color:transparent;">Topic-ID: ${topic_identifier}</span>`,
       };
-  
-      await this.mailerService.sendMail({
+      const data = await this.mailerService.sendMail({
         to: [receiver, this.serviHeroTestEmail],
         subject: content.subject, 
-        html: content.message,
-        headers: messageWithTopicIdentifier.headers,
+        html: messageWithTopicIdentifier.message,
       });
-      console.log('success')
     } catch (error) {
       const errorMessage = 'Error Sending Email Notification';
       this.logger.error(errorMessage, error);
       throw new InternalServerErrorException(errorMessage);
     }
   }
-  
+
+  async replyToEmail(
+    receiver: string,
+    content: any,
+    originalMessageId: string,
+  ): Promise<any> {
+    try {
+      await this.mailerService.sendMail({
+        to: receiver,
+        subject: content.subject,
+        html: content.message,
+        headers: {
+          'In-Reply-To': originalMessageId,
+          References: originalMessageId,
+        },
+      });
+      console.log('success send')
+    } catch (error) {
+      const errorMessage = 'Error Sending Email Notification';
+      this.logger.error(errorMessage, error);
+      throw new InternalServerErrorException(errorMessage);
+    }
+  }
+
   // async sendEmailNotification(
   //   receiver: string,
   //   content: any,

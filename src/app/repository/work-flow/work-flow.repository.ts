@@ -22,6 +22,7 @@ import { Lead } from 'src/app/models/lead/lead.schema';
 import { ServiceTitanService } from 'src/app/services/service-titan/service-titan.service';
 import { Tags } from 'src/app/models/contacts/contacts.schema';
 import { TagsDocument } from 'src/app/models/tags/tags.schema';
+import { UserInterface } from 'src/app/interface/user';
 
 @Injectable()
 export class WorkFlowRepository implements AbstractWorkFlowRepository {
@@ -65,9 +66,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return uniqueName;
   }
 
-  async workFlow(id: string, template_id: string): Promise<any> {
+  async workFlow(req: UserInterface,id: string, template_id: string): Promise<any> {
     try {
-      const user = await this.userRepository.getLoggedInUserDetails();
+      const user = await this.userRepository.getLoggedInUserDetails(req);
       if (!user) {
         throw new Error('User not found or not authenticated');
       }
@@ -110,9 +111,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
   }
 
-  async updateWorkFlow(id: string, dto: UpdateWorkflowDto): Promise<any> {
+  async updateWorkFlow(req: UserInterface,id: string, dto: UpdateWorkflowDto): Promise<any> {
     try {
-      const user = await this.userRepository.getLoggedInUserDetails();
+      const user = await this.userRepository.getLoggedInUserDetails(req);
       if (!user) {
         throw new Error('User not found or not authenticated');
       }
@@ -232,8 +233,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       throw new Error(`Error in workFlow method: ${error.message}`);
     }
   }
-  async getAllWorkFlow(folder_id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async getAllWorkFlow(req: UserInterface,folder_id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     if (folder_id) {
       const workflow = await this.workFlowModel.find({
         created_by: user._id,
@@ -260,8 +261,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return result;
   }
 
-  async updateWorkFlowById(id: string, name: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async updateWorkFlowById(req: UserInterface,id: string, name: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const validateWorkFlowName = await this.workFlowModel.findOne({
       created_by: user._id,
       name: name,
@@ -289,8 +290,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
     return result;
   }
-  async publishedWorkFlow(id: string, published: Boolean): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async publishedWorkFlow(req: UserInterface,id: string, published: Boolean): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
 
     if (published === true || published.toString() === 'true') {
       const result = await this.workFlowModel.findOneAndUpdate(
@@ -340,8 +341,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
   }
 
   //folder
-  async folder(name: string, id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async folder(req: UserInterface,name: string, id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const validateFolderName = await this.workFlowFolderModel.findOne({
       name: name,
       created_by: user._id,
@@ -376,9 +377,9 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return await createWorkFlowFolder.save();
   }
 
-  async getAllFolder(id: string): Promise<any> {
+  async getAllFolder(req: UserInterface,id: string): Promise<any> {
     try {
-      const user = await this.userRepository.getLoggedInUserDetails();
+      const user = await this.userRepository.getLoggedInUserDetails(req);
 
       if (id) {
         const folders = await this.workFlowFolderModel
@@ -493,8 +494,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
   }
 
-  async updateFolderById(id: string, name: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async updateFolderById(req: UserInterface,id: string, name: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const validateWorkFlowFolderName = await this.workFlowFolderModel.findOne({
       created_by: user._id,
       name: name,
@@ -557,8 +558,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     return result;
   }
 
-  async deleteFolderById(id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async deleteFolderById(req: UserInterface,id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const folder = await this.workFlowFolderModel.findOne({
       _id: new Types.ObjectId(id),
     });
@@ -622,8 +623,8 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
     }
   }
 
-  async getAllWorkFlowDropDownList(): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async getAllWorkFlowDropDownList(req: UserInterface,): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const workFlows = await this.workFlowModel.find({
       created_by: user._id,
       status: { $ne: WorkFlowStatus.DELETED },

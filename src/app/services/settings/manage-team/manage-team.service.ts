@@ -21,6 +21,7 @@ import {
   InviteMemberDTO,
 } from 'src/app/dto/settings/manage-team';
 import { InviteUserDTO } from 'src/app/dto/user';
+import { UserInterface } from 'src/app/interface/user';
 @Injectable()
 export class ManageTeamService implements AbstractManageTeamService {
   constructor(
@@ -31,27 +32,27 @@ export class ManageTeamService implements AbstractManageTeamService {
   // async inviteMember(inviteMemberDTO: InviteMemberDTO): Promise<any> {
   //   return await this.repository.inviteMember(inviteMemberDTO);
   // }
-  async inviteMember(inviteMemberDTO: InviteUserDTO): Promise<any> {
-    return await this.repository.inviteMember(inviteMemberDTO);
+  async inviteMember(req: UserInterface, inviteMemberDTO: InviteUserDTO): Promise<any> {
+    return await this.repository.inviteMember(req, inviteMemberDTO);
   }
 
-  async deleteTeamMember(teamId: string, memberId: string): Promise<any> {
-    return await this.repository.deleteTeamMember(teamId, memberId);
+  async deleteTeamMember(req: UserInterface,teamId: string, memberId: string): Promise<any> {
+    return await this.repository.deleteTeamMember(req, teamId, memberId);
   }
 
-  async createTeam(createTeamDTO: CreateTeamDTO): Promise<any> {
-    return await this.repository.createTeam(createTeamDTO);
+  async createTeam(req: UserInterface,createTeamDTO: CreateTeamDTO): Promise<any> {
+    return await this.repository.createTeam(req, createTeamDTO);
   }
-  async updateTeam(createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
-    return await this.repository.updateTeam(createTeamDTO, id);
-  }
-
-  async deleteTeam(teamId: string): Promise<any> {
-    return await this.repository.deleteTeam(teamId);
+  async updateTeam(req: UserInterface,createTeamDTO: CreateTeamDTO, id: string): Promise<any> {
+    return await this.repository.updateTeam(req,createTeamDTO, id);
   }
 
-  async getAllTeam(): Promise<any> {
-    return await this.repository.getAllTeam();
+  async deleteTeam(req: UserInterface,teamId: string): Promise<any> {
+    return await this.repository.deleteTeam(req,teamId);
+  }
+
+  async getAllTeam(req: UserInterface,): Promise<any> {
+    return await this.repository.getAllTeam(req);
   }
   async getTeam(id: string): Promise<any> {
     return await this.repository.getTeam(id);
@@ -71,8 +72,8 @@ export class ManageTeamService implements AbstractManageTeamService {
     return await this.repository.getRole(id);
   }
 
-  async uploadProfile(files: ProfileImages, userInfoId: string): Promise<any> {
-    return this.repository.uploadProfile(files, userInfoId);
+  async uploadProfile(req: UserInterface,files: ProfileImages, userInfoId: string): Promise<any> {
+    return this.repository.uploadProfile(req, files, userInfoId);
   }
   async getProfile(
     id: string,

@@ -10,6 +10,9 @@ export type CustomerRepliedDocument = CustomerReplied & Document;
 })
 export class CustomerReplied implements GenericSchema {
   _id: string;
+  
+  @Prop()
+  email: string;
 
   @Prop()
   emailId: string;
@@ -25,6 +28,7 @@ export class CustomerReplied implements GenericSchema {
 
   @Prop()
   body: string;
+
 }
 
 export const CustomerRepliedSchema = SchemaFactory.createForClass(CustomerReplied);

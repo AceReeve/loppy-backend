@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import * as nodemailer from 'nodemailer';
-
+const gmail = google.gmail('v1');
 @Injectable()
 export class GmailService {
   private gmail = google.gmail('v1');
@@ -42,28 +42,20 @@ export class GmailService {
 
   // Configure authentication with refresh token
   private getAuth() {
-  console.log('im inside of getauth')
 
     const auth = new google.auth.OAuth2(
       process.env.TEST_GOOGLE_CLIENT_ID,
       process.env.TEST_GOOGLE_CLIENT_SECRET,
       process.env.TEST_GOOGLE_REDIRECT_URI,
     );
-    console.log('this is auth:', auth)
-
     // Set stored refresh token to obtain new access tokens as needed
     auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-    console.log('this is auth after set credentials:', auth)
-    
     return auth;
   }
 
   // Watch Gmail mailbox for new emails
   async watchMailbox() {
-    console.log('before getAuth');
     const auth = this.getAuth();
-    console.log('after getAuth:', auth);
-  
     try {
       const response = await this.gmail.users.watch({
         userId: 'me',
@@ -73,7 +65,6 @@ export class GmailService {
         },
         auth,
       });
-      console.log('Watch mailbox response:', response.data); // Log the response for debugging
       return response.data;
     } catch (error) {
       console.error('Error in watchMailbox:', error);
@@ -81,7 +72,6 @@ export class GmailService {
         labelIds: ['INBOX'],
         topicName: 'projects/prefab-passage-438215-n8/topics/customer-replied'
       });
-      console.error('Auth credentials:', auth.credentials); // Check if credentials are correctly set
       throw error; // This will allow the error to propagate to your AllExceptionsFilter
     }
   }
@@ -156,5 +146,44 @@ export class GmailService {
     }
   
     return messagesWithSubject;
+  }
+
+  async replyToEmailWithGmailAPI(
+    receiver: string,
+    content: any,
+    originalMessageId: string,
+    threadId: string
+  ) {
+    const auth = this.getAuth();
+    const emailLines = [
+      `To: ${receiver}`,
+      `Subject: ${content.subject}`,
+      `Message-ID: <${originalMessageId}>`,
+      `In-Reply-To: <${originalMessageId}>`,
+      `References: <${originalMessageId}>`,
+      'Content-Type: text/html; charset=UTF-8',
+      'MIME-Version: 1.0',
+      '',
+      content.message,
+    ];
+    
+    const email = emailLines.join('\n');
+  
+    const base64EncodedEmail = Buffer.from(email)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+      console.log(receiver)
+      console.log(originalMessageId)
+      console.log(threadId)
+      console.log(base64EncodedEmail)
+    await gmail.users.messages.send({
+      auth,
+      userId: 'me',
+      requestBody: {
+        raw: base64EncodedEmail,
+        threadId: threadId, 
+      },
+    });
   }
 }

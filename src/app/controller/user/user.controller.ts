@@ -32,7 +32,7 @@ import {
   ChangePasswordDto,
   CreatePasswordDto,
 } from 'src/app/dto/user';
-import { AbstractUserService, ProfileImages } from 'src/app/interface/user';
+import { AbstractUserService, ProfileImages, UserInterface } from 'src/app/interface/user';
 import { Public } from '../../decorators/public.decorator';
 import { FileUpload } from 'src/app/models/file-upload/file-upload.schema';
 import { FileUploadPipe } from 'src/app/pipes/file-upload.pipe';
@@ -85,9 +85,10 @@ export class UserController {
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Change Password' })
   async changePassword(
-    @Body() changePasswordDTO: ChangePasswordDto,
+    @Request() req: UserInterface,
+    @Body() changePasswordDTO: ChangePasswordDto, 
   ): Promise<any> {
-    return this.userService.changePassword(changePasswordDTO);
+    return this.userService.changePassword(req, changePasswordDTO);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -95,9 +96,10 @@ export class UserController {
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Create Password' })
   async createPassword(
+    @Request() req: UserInterface,
     @Body() createPasswordDTO: CreatePasswordDto,
   ): Promise<any> {
-    return this.userService.createPassword(createPasswordDTO);
+    return this.userService.createPassword(req, createPasswordDTO);
   }
 
   @Public()
@@ -133,16 +135,16 @@ export class UserController {
   @Post('user-info')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Create user info' })
-  async createUserInfo(@Body() userInfoDTO: UserInfoDTO): Promise<any> {
-    return this.userService.createUserInfo(userInfoDTO);
+  async createUserInfo(@Request() req: UserInterface,@Body() userInfoDTO: UserInfoDTO): Promise<any> {
+    return this.userService.createUserInfo(req, userInfoDTO);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get User Profile' })
-  async profile(): Promise<any> {
-    return this.userService.profile();
+  async profile(@Request() req: UserInterface): Promise<any> {
+    return this.userService.profile(req);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -157,8 +159,8 @@ export class UserController {
   @Post('invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
-  async inviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
-    return this.userService.inviteUser(inviteUserDTO);
+  async inviteUser(@Request() req: UserInterface,@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
+    return this.userService.inviteUser(req, inviteUserDTO);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -169,31 +171,31 @@ export class UserController {
     name: 'email',
     required: true,
   } as ApiQueryOptions)
-  async cancelInviteUser(@Query('email') email: string): Promise<any> {
-    return this.userService.cancelInviteUser(email);
+  async cancelInviteUser(@Request() req: UserInterface,@Query('email') email: string): Promise<any> {
+    return this.userService.cancelInviteUser(req, email);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('get-invited-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get Invite User' })
-  async getInviteUser(): Promise<any> {
-    return this.userService.getInvitedUser();
+  async getInviteUser(@Request() req: UserInterface): Promise<any> {
+    return this.userService.getInvitedUser(req);
   }
   @UseGuards(JwtAuthGuard)
   @Get('get-accepted-invited-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Get Invite User' })
-  async getAcceptedInviteUser(): Promise<any> {
-    return this.userService.getAcceptedInvitedUser();
+  async getAcceptedInviteUser(@Request() req: UserInterface): Promise<any> {
+    return this.userService.getAcceptedInvitedUser(req);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('validate-invite-user')
   @ApiBearerAuth('Bearer')
   @ApiOperation({ summary: 'Invite User' })
-  async validateInviteUser(@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
-    return this.userService.validateInviteUser(inviteUserDTO);
+  async validateInviteUser(@Request() req: UserInterface,@Body() inviteUserDTO: InviteUserDTO): Promise<any> {
+    return this.userService.validateInviteUser(req, inviteUserDTO);
   }
 
   @Public()
@@ -222,12 +224,13 @@ export class UserController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'image_1' }]))
   @ApiConsumes('multipart/form-data')
   async updateUserProfile(
+    @Request() req: UserInterface,
     @UploadedFiles(FileUploadPipe) files: ProfileImages,
     @Query('id') userInfoId?: string,
   ) {
     if (!userInfoId) userInfoId = '';
 
-    return await this.userService.uploadProfile(files, userInfoId);
+    return await this.userService.uploadProfile(req, files, userInfoId);
   }
 
   @Public()
@@ -246,15 +249,15 @@ export class UserController {
   @ApiBearerAuth('Bearer')
   @Get('members')
   @ApiOperation({ summary: 'Get all members' })
-  async getMember(): Promise<any> {
-    return await this.userService.getMember();
+  async getMember(@Request() req: UserInterface,): Promise<any> {
+    return await this.userService.getMember(req);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('Bearer')
   @Get('get-all-users')
   @ApiOperation({ summary: 'Get member by id' })
-  async getAllUsers(): Promise<any> {
-    return await this.userService.getAllUsers();
+  async getAllUsers(@Request() req: UserInterface): Promise<any> {
+    return await this.userService.getAllUsers(req);
   }
 }

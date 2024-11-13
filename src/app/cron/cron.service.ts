@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import * as nodemailer from 'nodemailer';
 import {
@@ -31,6 +31,8 @@ import { Lead } from '../models/lead/lead.schema';
 import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
 import { GmailService } from '../services/gmail/gmail.service';
 import { CustomerReplied, CustomerRepliedDocument } from '../models/email/gmail.schema';
+import { REQUEST } from '@nestjs/core';
+import { UserInterface } from '../interface/user';
 
 @Injectable()
 export class CronService {
@@ -129,37 +131,46 @@ export class CronService {
           const pipeline = await this.pipelineRepository.getPipeline(value);
           if (pipeline && pipeline.opportunities) {
             for (const opportunity of pipeline.opportunities) {
-              console.log('Im inside of loop')
               matchedLeads = matchedLeads.concat(opportunity.leads);
             }
           }
       }
       if (filterName === 'Has a Tag') {
-        console.log('Im inside of Has a Tag')
-
         matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
       }
   
       if (filterName === 'Lead Value') {
-        console.log('Im inside of Lead Value')
-
         matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
       }
   
       if (filterName === 'Moved from status') {
-        console.log('Im inside of Moved from status')
-
         matchedLeads = matchedLeads.filter(lead => lead.old_status === value);
       }
   
       if (filterName === 'Moved to status') {
-        console.log('Im inside of Moved to status')
-
         matchedLeads = matchedLeads.filter(lead => lead.status === value);
       }
     }
-    console.log('this is the matchedLeads:',matchedLeads)
     return matchedLeads.length > 0 ? matchedLeads : false;
+  }
+
+  private applyFiltersCustomerReplied(identifier: string, filters: any[]): boolean {
+    console.log('identifier 123', identifier)
+    const today = moment();
+    for (const filtercontent of filters) {
+      const { filter: filter, value } = filtercontent;
+    console.log('filter', filter)
+    console.log('value', value)
+
+      if (filter === 'Replied to Workflow') {
+            
+              if(identifier.toString() === value.toString()){
+                return true;
+              }
+            }
+    }
+
+    return false;
   }
   
   private applyFiltersContactCreated(filters: any[]): boolean {
@@ -473,8 +484,8 @@ export class CronService {
     }
   }
 
-  async oppportunityStatusChange() {
-    const user = await this.userRepository.getLoggedInUserDetails()
+  async oppportunityStatusChange(req: UserInterface) {
+    const user = await this.userRepository.getLoggedInUserDetails(req)
     const workflows = await this.workFlowModel.find({'trigger.node_name': WorkFlowTrigger.WORKFLOW_TRIGGER_OPPORTUNITY_STATUS_CHANGED, created_by: user._id});
     for (const workflow of workflows) {
       if (workflow.status === WorkFlowStatus.PUBLISHED) {
@@ -512,63 +523,110 @@ export class CronService {
     }
   }
 
+  async customerRepliedWorkFlow(customer_replied_id: string) {
+    const customerRepliedData = await this.customerRepliedModel.findOne({_id: new Types.ObjectId(customer_replied_id)})
+    const workflows = await this.workFlowModel.find({'trigger.node_name': WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOMER_REPLIED});
+    for(const workflow of workflows){
+      if (workflow.status === WorkFlowStatus.PUBLISHED) {
+        const { trigger, action } = workflow;
+        for (const trig of trigger) {
+          for (const act of action) {
+            if (
+              trig.node_name ===
+              WorkFlowTrigger.WORKFLOW_TRIGGER_CUSTOMER_REPLIED
+            ) {
+
+              if (this.applyFiltersCustomerReplied(customerRepliedData.topicIdentifier, trig.content.filters)) {
+                // If filters are valid, send the notifications
+                const receiverUser = await this.userModel.findOne({
+                  email: customerRepliedData.email, 
+                });
+                if (act.node_name === WorkFlowAction.WORKFLOW_ACTION_EMAIL) {
+                  const originalMessageId = customerRepliedData.emailId;
+                  const threadId = customerRepliedData.threadId;
+                  if (receiverUser) {
+                    await this.gmailService.replyToEmailWithGmailAPI(
+                      receiverUser.email,
+                      act.content,
+                      originalMessageId,
+                      threadId
+                    );
+                  }
+                } else if (
+                  act.node_name === WorkFlowAction.WORKFLOW_ACTION_SMS
+                ) {
+                  const receiverUserInfo = await this.userInfoModel.findOne({
+                    user_id: receiverUser._id,
+                  });
+                  // await this.smsService.sendSms(
+                  //   receiverUserInfo.contact_no,
+                  //   act.content.message,
+                  //   user.first_name,
+                  // );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   ///////////
   @Cron('*/10 * * * * *')
   async saveCustomerReplies() {
-    console.log('1s')
-
-    try {
       const messages = await this.gmailService.listMessages();
-      console.log('messages',messages)
       for (const message of messages) {
         const emailData = await this.gmailService.getReply(message.id);
   
-        // Check if email is a reply and retrieve the topic identifier from the header
         const inReplyToHeader = emailData.payload.headers.find(
           (header) => header.name === 'In-Reply-To'
         );
-  
+        const fromHeader = emailData.payload.headers.find(
+          (header) => header.name === 'From'
+        );
+        const senderEmail = fromHeader ? this.extractEmailAddress(fromHeader.value) : 'unknown';
         if (inReplyToHeader) {
-          const topicIdentifier = this.extractTopicIdentifier(emailData.payload.headers);
-  
+          const emailBody = this.extractMessageBody(emailData);
+          const topicIdentifier = this.extractTopicIdentifier(emailBody);
           await this.saveReplyToDatabase({
+            email: senderEmail,
             emailId: message.id,
             threadId: message.threadId,
             topicIdentifier,
             subject: message.subject,
-            body: this.extractMessageBody(emailData),
+            body: emailBody,
           });
         }
       }
-    } catch (error) {
-      console.error('Error tracking customer replies:', error);
-    }
   }
 
-  // Extract topic identifier from the email subject or other header
-  private extractTopicIdentifier(headers: any): string {
-    const topicHeader = headers.find((header) => header.name === 'X-Topic-Identifier');
-    return topicHeader ? topicHeader.value : 'unknown';
+  private extractEmailAddress(fromValue: string): string {
+    const emailMatch = fromValue.match(/<(.+)>/); 
+    return emailMatch ? emailMatch[1] : fromValue;
   }
 
-  // Extract email body from the message payload
+  private extractTopicIdentifier(emailBody: string): string {
+    const match = emailBody.match(/Topic-ID:\s*([a-zA-Z0-9]+)/i);
+    return match ? match[1] : 'unknown';
+  }
+
   private extractMessageBody(emailData: any): string {
     const bodyPart = emailData.payload.parts?.find(part => part.mimeType === 'text/plain');
     return bodyPart ? Buffer.from(bodyPart.body.data, 'base64').toString('utf-8') : '';
   }
 
-  // Example method to save reply in your database
   private async saveReplyToDatabase(replyData: any) {
-    try {
-      // Create a new document in the 'customerreplied' collection
+      const existingReply = await this.customerRepliedModel.findOne({
+        emailId: replyData.emailId,
+      });
+  
+      if (existingReply) {
+        return; 
+      }
+  
       const newReply = new this.customerRepliedModel(replyData);
       await newReply.save();
-      console.log('Reply saved successfully:', newReply);
-    } catch (error) {
-      console.error('Error saving reply:', error);
-    }
+      await this.customerRepliedWorkFlow(newReply._id.toString())
   }
-
-
 }

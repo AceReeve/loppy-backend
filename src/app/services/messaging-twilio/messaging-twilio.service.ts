@@ -9,16 +9,18 @@ import {
   InboxesDTO,
   OrganizationDTO,
 } from 'src/app/dto/messaging-twilio';
+import { UserInterface } from 'src/app/interface/user';
 
 @Injectable()
 export class MessagingTwilioService implements AbstractMessagingTwilioService {
   constructor(private readonly repository: AbstractMessagingTwilioRepository) {}
 
   async organization(
+    req: UserInterface,
     organizationDTO: OrganizationDTO,
     friendlyName: string,
   ): Promise<any> {
-    return await this.repository.organization(organizationDTO, friendlyName);
+    return await this.repository.organization(req, organizationDTO, friendlyName);
   }
 
   async fetchAvailableNumbers(
@@ -35,18 +37,18 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     );
   }
 
-  async buyNumber(phoneNumber: string): Promise<any> {
-    return await this.repository.buyNumber(phoneNumber);
+  async buyNumber(req: UserInterface,phoneNumber: string): Promise<any> {
+    return await this.repository.buyNumber(req, phoneNumber);
   }
 
-  async inbox(inbox: InboxesDTO): Promise<any> {
-    return await this.repository.inbox(inbox);
+  async inbox(req: UserInterface,inbox: InboxesDTO): Promise<any> {
+    return await this.repository.inbox(req, inbox);
   }
-  async getAllOrganization(): Promise<any> {
-    return await this.repository.getAllOrganization();
+  async getAllOrganization(req: UserInterface,): Promise<any> {
+    return await this.repository.getAllOrganization(req);
   }
-  async getAllInbox(): Promise<any> {
-    return await this.repository.getAllInbox();
+  async getAllInbox(req: UserInterface,): Promise<any> {
+    return await this.repository.getAllInbox(req);
   }
 
   async getInboxById(inbox_id: string): Promise<any> {
@@ -57,29 +59,29 @@ export class MessagingTwilioService implements AbstractMessagingTwilioService {
     return await this.repository.getOrganizationById(organization_id);
   }
 
-  async addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any> {
-    return await this.repository.addMemberToAnOrganization(addMemberDTO);
+  async addMemberToAnOrganization(req: UserInterface,addMemberDTO: AddMemberDTO): Promise<any> {
+    return await this.repository.addMemberToAnOrganization(req, addMemberDTO);
   }
 
   async getCred(password: string): Promise<any> {
     return await this.repository.getCred(password);
   }
-  async getTwilioAccessToken(): Promise<any> {
-    return await this.repository.getTwilioAccessToken();
+  async getTwilioAccessToken(req: UserInterface,): Promise<any> {
+    return await this.repository.getTwilioAccessToken(req);
   }
-  async getPurchasedNumber(): Promise<any> {
-    return await this.repository.getPurchasedNumber();
+  async getPurchasedNumber(req: UserInterface,): Promise<any> {
+    return await this.repository.getPurchasedNumber(req);
   }
-  async activateWorkSpace(id: string): Promise<any> {
-    return await this.repository.activateWorkSpace(id);
+  async activateWorkSpace(req: UserInterface,id: string): Promise<any> {
+    return await this.repository.activateWorkSpace(req, id);
   }
-  async activateInbox(id: string): Promise<any> {
-    return await this.repository.activateInbox(id);
+  async activateInbox(req: UserInterface,id: string): Promise<any> {
+    return await this.repository.activateInbox(req, id);
   }
-  async getActivatedInbox(): Promise<any> {
-    return await this.repository.getActivatedInbox();
+  async getActivatedInbox(req: UserInterface,): Promise<any> {
+    return await this.repository.getActivatedInbox(req);
   }
-  async getActivatedWorkSpace(): Promise<any> {
-    return await this.repository.getActivatedWorkSpace();
+  async getActivatedWorkSpace(req: UserInterface,): Promise<any> {
+    return await this.repository.getActivatedWorkSpace(req);
   }
 }

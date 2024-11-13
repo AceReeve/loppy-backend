@@ -12,6 +12,7 @@ import {
   AbstractUserRepository,
   ProfileImages,
   RegisterResponseData,
+  UserInterface
 } from 'src/app/interface/user';
 import { User, UserDocument } from 'src/app/models/user/user.schema';
 import {
@@ -30,8 +31,6 @@ import {
 } from 'src/app/dto/user';
 import * as _ from 'lodash';
 import { DefaultUserRole, SignInBy } from 'src/app/const';
-import { Request } from 'express';
-import { REQUEST } from '@nestjs/core';
 import { EmailerService } from '@util/emailer/emailer';
 import { StripeEvent } from 'src/app/models/stripe/stripe.event.schema';
 import {
@@ -57,7 +56,7 @@ import {
   Team,
   TeamDocument,
 } from 'src/app/models/settings/manage-team/team/team.schema';
-
+import { ExecutionContext } from '@nestjs/common';
 export class UserRepository implements AbstractUserRepository {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -69,7 +68,7 @@ export class UserRepository implements AbstractUserRepository {
     private weatherforecastModel: Model<StripeEvent>,
     @InjectModel(InvitedUser.name)
     private invitedUserModel: Model<InvitedUserDocument>,
-    @Inject(REQUEST) private readonly request: Request,
+    // @Inject(REQUEST) private readonly request: Request,
     private readonly emailService: EmailerService,
     private readonly authRepository: AuthRepository,
     private configService: ConfigService,
@@ -81,9 +80,9 @@ export class UserRepository implements AbstractUserRepository {
     private readonly jwtService: JwtService,
   ) {}
 
-  async getLoggedInUserDetails(): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
-    return await this.userModel.findOne({ email: user.email });
+  async getLoggedInUserDetails(req: UserInterface): Promise<any> {
+    const user = req.user;
+    return await this.userModel.findOne({ email: user.email});
   }
 
   async validateResetPassToken(token: string): Promise<any> {
@@ -142,8 +141,8 @@ export class UserRepository implements AbstractUserRepository {
     return { newUser };
   }
 
-  async changePassword(dto: ChangePasswordDto): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async changePassword(req: UserInterface, dto: ChangePasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const passwordMatch = await bcrypt.compare(
       dto.current_password,
       user.password,
@@ -169,8 +168,8 @@ export class UserRepository implements AbstractUserRepository {
     return newUser;
   }
 
-  async createPassword(dto: CreatePasswordDto): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async createPassword(req: UserInterface, dto: CreatePasswordDto): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const password = await bcrypt.hash(dto.password, 12);
     const newUser = await this.userModel.findOneAndUpdate(
       { _id: user._id },
@@ -186,8 +185,9 @@ export class UserRepository implements AbstractUserRepository {
     return newUser;
   }
 
-  async createUserInfo(userInfoDTODto: UserInfoDTO): Promise<any> {
-    const user = this.request.user as Partial<User> & { sub: string };
+  async createUserInfo(req: UserInterface,userInfoDTODto: UserInfoDTO): Promise<any> {
+
+    const user = await this.getLoggedInUserDetails(req)
     const userData = await this.userModel.findOne({ email: user.email });
     //set default role
     const role = await this.roleDocumentModel.findOne({
@@ -234,10 +234,11 @@ export class UserRepository implements AbstractUserRepository {
     }
     return { result };
   }
-  async profile(user: Partial<User> & { sub: string }): Promise<any> {
+  async profile(req: UserInterface): Promise<any> {
+    const user = req.user;
     const userDetails = await this.userModel.findById(user.sub);
     const userInfo = await this.userInfoModel.findOne({ user_id: user.sub });
-    const availableSeats = await this.availableSeats();
+    const availableSeats = await this.availableSeats(req);
     return { userDetails, userInfo, availableSeats };
   }
 
@@ -254,14 +255,14 @@ export class UserRepository implements AbstractUserRepository {
     return { userDetails };
   }
 
-  async inviteUser(inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
-    const loggedInUser = await this.getLoggedInUserDetails();
+  async inviteUser(req: UserInterface, inviteUserDTO: InviteUserDTO): Promise<InvitedUserDocument> {
+    const loggedInUser = await this.getLoggedInUserDetails(req);
     // Plan validation logic
     // const allInvitedByUser = await this.invitedUserModel.findOne({
     //   invited_by: loggedInUser._id,
 
     // });
-    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser(req);
 
     if (allAcceptedInvitationByUser) {
       const totalAccepted = allAcceptedInvitationByUser.length;
@@ -425,9 +426,10 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async OrganizationInviteUser(
+    req: UserInterface,
     inviteUserDTO: OrganizationDTO,
   ): Promise<InvitedUserDocument> {
-    const loggedInUser = await this.getLoggedInUserDetails();
+    const loggedInUser = await this.getLoggedInUserDetails(req);
     // Validate if emails are already invited
     const roles = await Promise.all(
       inviteUserDTO.users.map(({ role }) =>
@@ -605,8 +607,8 @@ export class UserRepository implements AbstractUserRepository {
     }
   }
 
-  async getInvitedUser(): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async getInvitedUser(req: UserInterface): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
@@ -631,8 +633,8 @@ export class UserRepository implements AbstractUserRepository {
     return [];
   }
 
-  async getAcceptedInvitedUser(): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async getAcceptedInvitedUser(req: UserInterface): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const invitedUser = await this.invitedUserModel
       .findOne({
         users: user._id,
@@ -648,8 +650,9 @@ export class UserRepository implements AbstractUserRepository {
     return [];
   }
 
-  async validateInviteUser(inviteUserDTO: InviteUserDTO): Promise<any> {
-    const loggedInUser = this.request.user as User; // Assuming User type for logged-in user
+  async validateInviteUser(req: UserInterface, inviteUserDTO: InviteUserDTO): Promise<any> {
+    
+    const loggedInUser = await this.getLoggedInUserDetails(req)
     const userData = await this.userModel.findOne({
       email: loggedInUser.email,
     });
@@ -721,9 +724,9 @@ export class UserRepository implements AbstractUserRepository {
     return userWeatherforecast;
   }
 
-  async availableSeats(): Promise<any> {
-    const loggedInUser = await this.getLoggedInUserDetails();
-    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser();
+  async availableSeats(req: UserInterface): Promise<any> {
+    const loggedInUser = await this.getLoggedInUserDetails(req);
+    const allAcceptedInvitationByUser = await this.getAcceptedInvitedUser(req);
     const totalAccepted = allAcceptedInvitationByUser.length;
 
     const getPlan = await this.stripeEventModel.findOne({
@@ -905,8 +908,8 @@ export class UserRepository implements AbstractUserRepository {
     return { message: 'OTP verified successfully' };
   }
 
-  async cancelInviteUser(email: string): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async cancelInviteUser(req: UserInterface, email: string): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const invitation = await this.invitedUserModel.findOne({
       'users.email': email,
       invited_by: user._id,
@@ -943,11 +946,12 @@ export class UserRepository implements AbstractUserRepository {
   }
 
   async uploadProfile(
+    req: UserInterface,
     files: ProfileImages,
     userInfoId: string,
   ): Promise<any | null> {
     const images: any = {};
-    const user = await this.getLoggedInUserDetails();
+    const user = await this.getLoggedInUserDetails(req);
     if (files === undefined)
       throw new BadRequestException('Image files cannot be empty.');
 
@@ -1153,8 +1157,8 @@ export class UserRepository implements AbstractUserRepository {
     return { users, userInfos };
   }
 
-  async getMember(): Promise<any> {
-    const user = await this.getLoggedInUserDetails();
+  async getMember(req: UserInterface): Promise<any> {
+    const user = await this.getLoggedInUserDetails(req);
     const invitedUser = await this.invitedUserModel.findOne({
       invited_by: user._id,
     });
@@ -1177,8 +1181,8 @@ export class UserRepository implements AbstractUserRepository {
     }
   }
 
-  async getAllUsers(): Promise<any> {
-    const members = await this.getMember();
+  async getAllUsers(req: UserInterface): Promise<any> {
+    const members = await this.getMember(req);
   
     // Ensure members.users is an array
     const memberArray = Array.isArray(members.users) ? members.users : [];

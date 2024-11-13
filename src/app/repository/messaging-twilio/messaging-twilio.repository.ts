@@ -32,6 +32,7 @@ import {
   ActivatedTwilioOrganizations,
   ActivatedTwilioOrganizationsDocument,
 } from 'src/app/models/messaging-twilio/organization/activated-organization.schema';
+import { UserInterface } from 'src/app/interface/user';
 const algorithm = 'aes-256-ctr';
 
 const encrypt = (text: string): string => {
@@ -83,10 +84,10 @@ export class MessagingTwilioRepository
     const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
     this.twilioClient = new Twilio(accountSid, authToken);
   }
-  async organization(dto: OrganizationDTO, friendlyName: string): Promise<any> {
+  async organization(req: UserInterface,dto: OrganizationDTO, friendlyName: string): Promise<any> {
     try {
       const testOnly = this.configService.get<string>('SUBACCOUNT_NAME_PREFIX');
-      const user = await this.userRepository.getLoggedInUserDetails();
+      const user = await this.userRepository.getLoggedInUserDetails(req);
       const isExisting = await this.twilioOrganizationModel.findOne({
         organization_name: dto.organization_name,
         created_by: user._id,
@@ -121,7 +122,7 @@ export class MessagingTwilioRepository
       });
       const result = await createOrganization.save();
       if (dto.users) {
-        await this.userRepository.OrganizationInviteUser(dto);
+        await this.userRepository.OrganizationInviteUser(req, dto);
       }
 
       return result;
@@ -156,8 +157,8 @@ export class MessagingTwilioRepository
     }
   }
 
-  async getAllOrganization() {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async getAllOrganization(req: UserInterface) {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const organizations = await this.twilioOrganizationModel.find({
       created_by: user._id,
     });
@@ -234,9 +235,9 @@ export class MessagingTwilioRepository
       throw new Error(`Failed to fetch available numbers: ${error.message}`);
     }
   }
-  async buyNumber(phoneNumber: string): Promise<any> {
-    const activeOrganization = await this.getActivatedWorkSpace();
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async buyNumber(req: UserInterface, phoneNumber: string): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const organization = await this.twilioOrganizationModel.findOne({
       _id: activeOrganization._id,
     });
@@ -281,12 +282,12 @@ export class MessagingTwilioRepository
     }
   }
 
-  async inbox(dto: InboxesDTO): Promise<any> {
-    const activeOrganization = await this.getActivatedWorkSpace();
+  async inbox(req: UserInterface,dto: InboxesDTO): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
     const generatedNumbers = Math.floor(
       10000 + Math.random() * 90000,
     ).toString();
-    const user = await this.userRepository.getLoggedInUserDetails();
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const isExisting = await this.inboxModel.findOne({
       inbox_name: dto.inbox_name,
       created_by: user._id,
@@ -361,21 +362,21 @@ export class MessagingTwilioRepository
     return result;
   }
 
-  async getAllInbox() {
-    const activeOrganization = await this.getActivatedWorkSpace();
+  async getAllInbox(req: UserInterface) {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
     const result = await this.inboxModel.find({
       organization_id: activeOrganization._id,
     });
     return result;
   }
 
-  async addMemberToAnOrganization(addMemberDTO: AddMemberDTO): Promise<any> {
-    const activeOrganization = await this.getActivatedWorkSpace();
+  async addMemberToAnOrganization(req: UserInterface, addMemberDTO: AddMemberDTO): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
 
     const { members } = addMemberDTO;
 
     // Fetch existing members in the organization
-    const memberData = await this.userRepository.getMember();
+    const memberData = await this.userRepository.getMember(req);
 
     // Filter out user IDs that are not in the fetched member data
     const validMembers = members.filter((member) =>
@@ -412,8 +413,8 @@ export class MessagingTwilioRepository
     return { sid: sid, token: token, service_sid: service_sid, secret: secret };
   }
 
-  async getTwilioAccessToken() {
-    const activeOrganization = await this.getActivatedWorkSpace();
+  async getTwilioAccessToken(req: UserInterface) {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
     const testAccountSid = this.configService.get<string>(
       'TEST_CONVO_TWILIO_ACCOUNT_SID',
     );
@@ -427,7 +428,7 @@ export class MessagingTwilioRepository
       'TEST_CONVO_TWILIO_SERVICE_SID',
     );
 
-    const user = await this.userRepository.getLoggedInUserDetails();
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const twilioCred = await this.twilioOrganizationModel.findOne({
       _id: activeOrganization._id,
       created_by: user._id,
@@ -451,7 +452,7 @@ export class MessagingTwilioRepository
     const chatGrant = new ChatGrant({
       serviceSid: serviceSid,
     });
-    const activeInbox = await this.getActivatedInbox();
+    const activeInbox = await this.getActivatedInbox(req);
     const identity = activeInbox.identity;
     const token = new AccessToken(
       twilioAccountSid,
@@ -464,15 +465,15 @@ export class MessagingTwilioRepository
     return token.toJwt();
   }
 
-  async getPurchasedNumber(): Promise<any> {
-    const activeOrganization = await this.getActivatedWorkSpace();
+  async getPurchasedNumber(req: UserInterface,): Promise<any> {
+    const activeOrganization = await this.getActivatedWorkSpace(req);
     return await this.twilioNumberModel.find({
       organization_id: activeOrganization._id,
     });
   }
 
-  async activateWorkSpace(id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async activateWorkSpace(req: UserInterface, id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const validWorkSpace = await this.twilioOrganizationModel.findById(
       new Types.ObjectId(id),
     );
@@ -535,8 +536,8 @@ export class MessagingTwilioRepository
     }
     return result;
   }
-  async activateInbox(id: string): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async activateInbox(req: UserInterface, id: string): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const validInbox = await this.inboxModel.findById(new Types.ObjectId(id));
     if (!validInbox) {
       throw new Error(`inbox with the ID: ${id} not found `);
@@ -600,9 +601,9 @@ export class MessagingTwilioRepository
     }
     return result;
   }
-  async getActivatedInbox(): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
-    const activeWorkSpace = await this.getActivatedWorkSpace();
+  async getActivatedInbox(req: UserInterface): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
+    const activeWorkSpace = await this.getActivatedWorkSpace(req);
     const activeInbox = await this.inboxModel.find({
       organization_id: activeWorkSpace._id,
     });
@@ -625,8 +626,8 @@ export class MessagingTwilioRepository
     }
     throw new Error(`No Inbox found`);
   }
-  async getActivatedWorkSpace(): Promise<any> {
-    const user = await this.userRepository.getLoggedInUserDetails();
+  async getActivatedWorkSpace(req: UserInterface): Promise<any> {
+    const user = await this.userRepository.getLoggedInUserDetails(req);
     const data = await this.activatedTwilioOrganizationModel.findOne({
       activated_by: user._id,
       status: OrganizationStatus.ACTIVE,

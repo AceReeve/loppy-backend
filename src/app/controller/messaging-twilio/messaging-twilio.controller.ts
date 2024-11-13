@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Put,
+  Request,
 } from '@nestjs/common';
 import { TwilioService } from 'src/app/services/api/twilio/twilio.service';
 import {
@@ -31,6 +32,7 @@ import {
 import { MessagingTwilioService } from 'src/app/services/messaging-twilio/messaging-twilio.service';
 import { AbstractMessagingTwilioService } from 'src/app/interface/messaging-twilio';
 import { AdminAuthGuard, JwtAuthGuard } from 'src/app/guard/auth';
+import { UserInterface } from 'src/app/interface/user';
 
 @ApiTags('Twilio Messaging')
 @Controller('twilio-messaging')
@@ -42,15 +44,16 @@ export class MessagingTwilioController {
   @Post('organization')
   @ApiOperation({ summary: 'Create Organization' })
   async organization(
+    @Request() req: UserInterface,
     @Body('friendlyName') friendlyName: string,
     @Body() organizationDTO: OrganizationDTO,
   ) {
-    return this.service.organization(organizationDTO, friendlyName);
+    return this.service.organization(req, organizationDTO, friendlyName);
   }
   @Get('organizations')
   @ApiOperation({ summary: 'List of Organization' })
-  async getAllOrganization() {
-    return this.service.getAllOrganization();
+  async getAllOrganization(@Request() req: UserInterface) {
+    return this.service.getAllOrganization(req);
   }
   @Get('organization/:organization_id')
   @ApiOperation({ summary: 'Get Organization by Organization ID' })
@@ -108,19 +111,19 @@ export class MessagingTwilioController {
       - +15005550006: This phone number is valid and available (No error).
     `,
   })
-  async buyNumber(@Query('phoneNumber') phoneNumber: string) {
-    return this.service.buyNumber(phoneNumber);
+  async buyNumber(@Request() req: UserInterface, @Query('phoneNumber') phoneNumber: string) {
+    return this.service.buyNumber(req, phoneNumber);
   }
 
   @Post('inbox')
   @ApiOperation({ summary: 'Create Inbox' })
-  async inbox(@Body() inboxDTO: InboxesDTO) {
-    return this.service.inbox(inboxDTO);
+  async inbox(@Request() req: UserInterface, @Body() inboxDTO: InboxesDTO) {
+    return this.service.inbox(req, inboxDTO);
   }
   @Get('inboxes')
   @ApiOperation({ summary: 'List of Inbox' })
-  async getAllInbox() {
-    return this.service.getAllInbox();
+  async getAllInbox(@Request() req: UserInterface, ) {
+    return this.service.getAllInbox(req);
   }
 
   @Get('inbox/:inbox_id')
@@ -131,8 +134,8 @@ export class MessagingTwilioController {
 
   @Post('add-member')
   @ApiOperation({ summary: 'Add Member to an Organization' })
-  async addMemberToAnOrganization(@Body() addMemberDTO: AddMemberDTO) {
-    return this.service.addMemberToAnOrganization(addMemberDTO);
+  async addMemberToAnOrganization(@Request() req: UserInterface, @Body() addMemberDTO: AddMemberDTO) {
+    return this.service.addMemberToAnOrganization(req, addMemberDTO);
   }
 
   @Get('getCred')
@@ -148,13 +151,13 @@ export class MessagingTwilioController {
   }
 
   @Get('get-twilio-access-token')
-  async getTwilioAccessToken() {
-    return this.service.getTwilioAccessToken();
+  async getTwilioAccessToken(@Request() req: UserInterface, ) {
+    return this.service.getTwilioAccessToken(req);
   }
 
   @Get('get-purchased-numbers')
-  async getPurchasedNumber() {
-    return this.service.getPurchasedNumber();
+  async getPurchasedNumber(@Request() req: UserInterface, ) {
+    return this.service.getPurchasedNumber(req);
   }
 
   @Put('activate-organization')
@@ -165,8 +168,8 @@ export class MessagingTwilioController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async activateWorkSpace(@Query('id') id: string) {
-    return this.service.activateWorkSpace(id);
+  async activateWorkSpace(@Request() req: UserInterface, @Query('id') id: string) {
+    return this.service.activateWorkSpace(req,id);
   }
 
   @Put('activate-inbox')
@@ -177,17 +180,17 @@ export class MessagingTwilioController {
     example: '66b462060e61af2e685d6e55',
     required: false,
   })
-  async activateInbox(@Query('id') id: string) {
-    return this.service.activateInbox(id);
+  async activateInbox(@Request() req: UserInterface, @Query('id') id: string) {
+    return this.service.activateInbox(req, id);
   }
 
   @Get('get-activated-inbox')
-  async getActivatedInbox() {
-    return this.service.getActivatedInbox();
+  async getActivatedInbox(@Request() req: UserInterface, ) {
+    return this.service.getActivatedInbox(req);
   }
 
   @Get('get-activated-organization')
-  async getActivatedWorkSpace() {
-    return this.service.getActivatedWorkSpace();
+  async getActivatedWorkSpace(@Request() req: UserInterface, ) {
+    return this.service.getActivatedWorkSpace(req);
   }
 }

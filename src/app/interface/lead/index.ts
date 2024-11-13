@@ -2,6 +2,7 @@ import { User } from 'src/app/models/user/user.schema';
 import { GenericInterfaceRepoistory } from '../generic.interface.repository';
 import { CreateLeadDTO } from 'src/app/dto/lead';
 import { Lead } from 'src/app/models/lead/lead.schema';
+import { UserInterface } from '../user';
 
 export type UserRepositoryInterface = GenericInterfaceRepoistory<User>;
 
@@ -10,6 +11,7 @@ export abstract class AbstractLeadRepository {
   abstract getLeadById(id: string): Promise<Lead | null>;
   abstract getAllLeads(): Promise<Lead[] | null>;
   abstract updateLead(
+    req: UserInterface,
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null>;
@@ -25,6 +27,7 @@ export abstract class AbstractLeadService {
   abstract getLeadById(id: string): Promise<Lead | null>;
   abstract getAllLeads(): Promise<Lead[] | null>;
   abstract updateLead(
+    req: UserInterface,
     id: string,
     updateLeadDto: CreateLeadDTO,
   ): Promise<Lead | null>;
