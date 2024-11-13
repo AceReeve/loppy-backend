@@ -25,6 +25,7 @@ import { PipelineRepository } from '../repository/pipeline/pipeline.repository';
 import { ContactsSchemaModule } from '../models/contacts/contacts.schema.module';
 import { CustomerRepliedSchemaModule } from '../models/email/gmail.schema.module';
 import { GmailService } from '../services/gmail/gmail.service';
+import { TagsSchemaModule } from '../models/tags/tags.schema.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { GmailService } from '../services/gmail/gmail.service';
     LeadSchemaModule,
     ContactsSchemaModule,
     CustomerRepliedSchemaModule,
+    TagsSchemaModule,
   ],
   providers: [
     {

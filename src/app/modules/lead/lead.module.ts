@@ -39,6 +39,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContactsSchemaModule } from 'src/app/models/contacts/contacts.schema.module';
 import { CustomerRepliedSchemaModule } from 'src/app/models/email/gmail.schema.module';
 import { GmailService } from 'src/app/services/gmail/gmail.service';
+import { TagsSchemaModule } from 'src/app/models/tags/tags.schema.module';
 
 
 @Module({
@@ -58,7 +59,8 @@ import { GmailService } from 'src/app/services/gmail/gmail.service';
     FileUploadSchemaModule,
     TeamSchemaModule,
     ContactsSchemaModule,
-    CustomerRepliedSchemaModule
+    CustomerRepliedSchemaModule,
+    TagsSchemaModule
   ],
   controllers: [LeadController],
   // Inversion
