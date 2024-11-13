@@ -142,7 +142,7 @@ export class CronService {
       }
       if (filter === 'Has a Tag') {
         console.log('value',value)
-        const tags = await this.tagModel.findOne({id: value})
+        const tags = await this.tagModel.findOne({id: value.toString()})
         console.log('tags found',tags)
 
         if(tags){
