@@ -93,9 +93,10 @@ export class LeadRepository implements AbstractLeadRepository {
     status: string,
   ): Promise<Lead | null> {
     try {
+      const leadDataBefore = await this.leadModel.findById(id);
       return await this.leadModel.findOneAndUpdate(
         {_id: new Types.ObjectId(id)}, 
-        {$set: {status: status} },
+        {$set: {status: status, old_status: leadDataBefore.status} },
         {new: true})
     } catch (error) {
       throw new Error(error);
