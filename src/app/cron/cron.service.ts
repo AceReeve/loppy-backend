@@ -72,9 +72,9 @@ export class CronService {
     let dayFilter = null;
     let monthFilter = null;
 
-    for (const filter of filters) {
-      const { filter: filterName, value } = filter;
-      if (filterName === 'Before') {
+    for (const filtercontent of filters) {
+      const { filter: filter, value } = filtercontent;
+      if (filter === 'Before') {
         const daysBefore = parseInt(value, 10);
         const beforeDate = today.clone().add(daysBefore, 'days');
         if (birthday.isBefore(beforeDate, 'day')) {
@@ -82,7 +82,7 @@ export class CronService {
         }
       }
 
-      if (filterName === 'After') {
+      if (filter === 'After') {
         const daysAfter = parseInt(value, 10);
         const afterDate = today.clone().subtract(daysAfter, 'days');
         if (birthday.isAfter(afterDate, 'day')) {
@@ -90,10 +90,10 @@ export class CronService {
         }
       }
 
-      if (filterName === 'Day') {
+      if (filter === 'Day') {
         dayFilter = parseInt(value, 10);
       }
-      if (filterName === 'Month') {
+      if (filter === 'Month') {
         monthFilter = moment().month(value).month();
       }
 
@@ -124,10 +124,10 @@ export class CronService {
   private async applyFiltersOpportunityStatusChange(filters: any[]): Promise<any> {
     let matchedLeads = [];
   
-    for (const filter of filters) {
-      const { filter: filterName, value } = filter;
+    for (const filtercontent of filters) {
+      const { filter: filter, value } = filtercontent;
   
-      if (filterName === 'In Pipeline') {
+      if (filter === 'In Pipeline') {
           const pipeline = await this.pipelineRepository.getPipeline(value);
           if (pipeline && pipeline.opportunities) {
             for (const opportunity of pipeline.opportunities) {
@@ -135,19 +135,19 @@ export class CronService {
             }
           }
       }
-      if (filterName === 'Has a Tag') {
+      if (filter === 'Has a Tag') {
         matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
       }
   
-      if (filterName === 'Lead Value') {
+      if (filter === 'Lead Value') {
         matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
       }
   
-      if (filterName === 'Moved from status') {
+      if (filter === 'Moved from status') {
         matchedLeads = matchedLeads.filter(lead => lead.old_status === value);
       }
   
-      if (filterName === 'Moved to status') {
+      if (filter === 'Moved to status') {
         matchedLeads = matchedLeads.filter(lead => lead.status === value);
       }
     }
@@ -155,15 +155,10 @@ export class CronService {
   }
 
   private applyFiltersCustomerReplied(identifier: string, filters: any[]): boolean {
-    console.log('identifier 123', identifier)
     const today = moment();
     for (const filtercontent of filters) {
       const { filter: filter, value } = filtercontent;
-    console.log('filter', filter)
-    console.log('value', value)
-
       if (filter === 'Replied to Workflow') {
-            
               if(identifier.toString() === value.toString()){
                 return true;
               }
@@ -174,9 +169,9 @@ export class CronService {
   }
   
   private applyFiltersContactCreated(filters: any[]): boolean {
-    for (const filter of filters) {
-      const { filter: filterName, value } = filter;
-      if (filterName === 'Has a Tag') {
+    for (const filtercontent of filters) {
+      const { filter: filter, value } = filtercontent;
+      if (filter === 'Has a Tag') {
       }
     }
     return false;
@@ -192,66 +187,66 @@ export class CronService {
       });
 
       // check if filter conditions are all true
-      for (const filter of filters) {
-        const { filter: filterName, value } = filter;
+      for (const filtercontent of filters) {
+        const { filter: filter, value } = filtercontent;
         // WEATHER TYPE
-        if (filterName === 'Weather Type') {
+        if (filter === 'Weather Type') {
           if (!(response.data.weather[0].main === value)) {
             return false;
           }
         }
 
         // ABOVE TEMP
-        if (filterName === 'Above Temp') {
+        if (filter === 'Above Temp') {
           if (!(response.data.main.temp >= parseInt(value, 10))) {
             return false;
           }
         }
 
         // BELOW TEMP
-        if (filterName === 'Below Temp') {
+        if (filter === 'Below Temp') {
           if (!(response.data.main.temp <= parseInt(value, 10))) {
             return false;
           }
         }
 
         // ABOVE PRESSURE
-        if (filterName === 'Above Pressure') {
+        if (filter === 'Above Pressure') {
           if (!(response.data.main.pressure >= parseInt(value, 10))) {
             return false;
           }
         }
 
         // BELOW PRESSURE
-        if (filterName === 'Below Pressure') {
+        if (filter === 'Below Pressure') {
           if (!(response.data.main.pressure <= parseInt(value, 10))) {
             return false;
           }
         }
 
         // ABOVE HUMIDITY
-        if (filterName === 'Above Humidity') {
+        if (filter === 'Above Humidity') {
           if (!(response.data.main.humidity >= parseInt(value, 10))) {
             return false;
           }
         }
 
         // BELOW HUMIDITY
-        if (filterName === 'Below Humidity') {
+        if (filter === 'Below Humidity') {
           if (!(response.data.main.humidity <= parseInt(value, 10))) {
             return false;
           }
         }
 
         // ABOVE WIND SPEED
-        if (filterName === 'Above Wind Speed') {
+        if (filter === 'Above Wind Speed') {
           if (!(response.data.wind.speed >= parseInt(value, 10))) {
             return false;
           }
         }
 
         // BELOW WIND SPEED
-        if (filterName === 'Below Wind Speed') {
+        if (filter === 'Below Wind Speed') {
           if (!(response.data.wind.speed <= parseInt(value, 10))) {
             return false;
           }

@@ -334,7 +334,7 @@ export class WorkFlowRepository implements AbstractWorkFlowRepository {
       if (!result) {
         throw new Error(`workflow failed to published `);
       }
-      // const results = await this.cronService.handleCron();
+      const results = await this.cronService.handleCron();
 
       return result;
     }
