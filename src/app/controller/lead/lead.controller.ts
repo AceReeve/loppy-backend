@@ -52,6 +52,7 @@ export class LeadController {
     @Query('status') status: string,
   ): Promise<Lead | null> {
     return await this.leadService.updateOpportunityStatus(
+      req,
       id,
       status,
     );

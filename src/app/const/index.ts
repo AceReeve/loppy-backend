@@ -55,5 +55,5 @@ export enum LeadStatus {
   OPEN = 'Open',
   LOST = 'Lost',
   WON = 'Won',
-  ABANDON = 'Abandon',
+  ABANDON = 'Abandoned',
 }
