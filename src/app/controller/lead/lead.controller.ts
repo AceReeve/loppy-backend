@@ -47,6 +47,7 @@ export class LeadController {
     required: true,
   } as ApiQueryOptions)
   async updateOpportunityStatus(
+    @Request() req: UserInterface,
     @Query('id') id: string,
     @Query('status') status: string,
   ): Promise<Lead | null> {

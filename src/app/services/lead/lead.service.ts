@@ -16,10 +16,11 @@ export class LeadService implements AbstractLeadService {
   }
 
   async updateOpportunityStatus(
+    req: UserInterface,
     id: string,
     status: string,
   ): Promise<Lead | null> {
-    return await this.repository.updateOpportunityStatus(id, status);
+    return await this.repository.updateOpportunityStatus(req, id, status);
   }
   
   async getLeadById(id: string): Promise<Lead | null> {

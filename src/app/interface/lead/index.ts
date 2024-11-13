@@ -17,6 +17,7 @@ export abstract class AbstractLeadRepository {
   ): Promise<Lead | null>;
   abstract deleteLead(id: string): Promise<Lead | null>;
   abstract updateOpportunityStatus(
+    req: UserInterface,
     id: string,
     status: string,
   ): Promise<Lead | null>;
@@ -33,6 +34,7 @@ export abstract class AbstractLeadService {
   ): Promise<Lead | null>;
   abstract deleteLead(id: string): Promise<Lead | null>;
   abstract updateOpportunityStatus(
+    req: UserInterface,
     id: string,
     status: string,
   ): Promise<Lead | null>;

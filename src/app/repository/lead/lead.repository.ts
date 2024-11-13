@@ -89,15 +89,21 @@ export class LeadRepository implements AbstractLeadRepository {
   }
 
   async updateOpportunityStatus(
+    req: UserInterface,
     id: string,
     status: string,
   ): Promise<Lead | null> {
     try {
       const leadDataBefore = await this.leadModel.findById(id);
-      return await this.leadModel.findOneAndUpdate(
+      const data =  await this.leadModel.findOneAndUpdate(
         {_id: new Types.ObjectId(id)}, 
         {$set: {status: status, old_status: leadDataBefore.status} },
         {new: true})
+
+        if(data){
+          await this.cronService.oppportunityStatusChange(req) 
+          return data;
+       }
     } catch (error) {
       throw new Error(error);
     }
