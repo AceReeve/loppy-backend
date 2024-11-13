@@ -33,6 +33,7 @@ import { GmailService } from '../services/gmail/gmail.service';
 import { CustomerReplied, CustomerRepliedDocument } from '../models/email/gmail.schema';
 import { REQUEST } from '@nestjs/core';
 import { UserInterface } from '../interface/user';
+import { Tags, TagsDocument } from '../models/tags/tags.schema';
 
 @Injectable()
 export class CronService {
@@ -54,6 +55,8 @@ export class CronService {
     @InjectModel(Lead.name)
     private leadModel: Model<Lead & Document>,
     @InjectModel(CustomerReplied.name)
+    private tagModel: Model<TagsDocument>,
+    @InjectModel(Tags.name)
     private customerRepliedModel: Model<CustomerRepliedDocument>,
     private emailerService: EmailerService,
     private smsService: SmsService,
@@ -136,7 +139,8 @@ export class CronService {
           }
       }
       if (filter === 'Has a Tag') {
-        matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(value));
+        const tags = await this.tagModel.findOne({id: value})
+        matchedLeads = matchedLeads.filter(lead => lead.tags && lead.tags.includes(tags.name));
       }
   
       if (filter === 'Lead Value') {
