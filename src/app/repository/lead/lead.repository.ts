@@ -97,7 +97,7 @@ export class LeadRepository implements AbstractLeadRepository {
       const leadDataBefore = await this.leadModel.findById(id);
       const data =  await this.leadModel.findOneAndUpdate(
         {_id: new Types.ObjectId(id)}, 
-        {$set: {status: status, old_status: leadDataBefore.status} },
+        {$set: {status: status, old_status: leadDataBefore?.status} },
         {new: true})
 
         if(data){
