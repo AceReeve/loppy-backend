@@ -131,6 +131,8 @@ export class CronService {
       const { filter: filter, value } = filtercontent;
   
       if (filter === 'In Pipeline') {
+        console.log('In Pipeline')
+
           const pipeline = await this.pipelineRepository.getPipeline(value);
           if (pipeline && pipeline.opportunities) {
             for (const opportunity of pipeline.opportunities) {
@@ -154,14 +156,20 @@ export class CronService {
       }
   
       if (filter === 'Lead Value') {
+        console.log('Lead Value')
+
         matchedLeads = matchedLeads.filter(lead => lead.opportunity_value >= Number(value));
       }
   
       if (filter === 'Moved from status') {
+        console.log('Moved from status')
+
         matchedLeads = matchedLeads.filter(lead => lead.old_status === value);
       }
   
       if (filter === 'Moved to status') {
+        console.log('Moved to status')
+
         matchedLeads = matchedLeads.filter(lead => lead.status === value);
       }
     }
